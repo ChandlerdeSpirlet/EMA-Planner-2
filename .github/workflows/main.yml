@@ -10,7 +10,7 @@ jobs:
     - name: Install ESLint
       run: npm install eslint
     - name: Run ESLint
-      run: eslint . --ext .js,.jsx,.ts,.tsx
+      run: npx eslint . --ext .js,.jsx,.ts,.tsx
   scan:
     name: Scan
     runs-on: ubuntu-20.04
