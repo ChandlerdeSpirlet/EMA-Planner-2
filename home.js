@@ -74,7 +74,7 @@ app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
 
 app.get('/', (req, res) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-planner-lakewood.herokuapp.com/')
+    res.redirect('https://ema-sidekick-lakewood.herokuapp.com/')
   } else {
     if (req.session.loggedin) {
       res.render('home.html', {
