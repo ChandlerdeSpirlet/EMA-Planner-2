@@ -40,7 +40,7 @@
     "path": "^0.12.7",
     "pg-promise": "^10.9.2",
     "redis": "^4.6.12",
-    "strip-final-newline": "^3.0.0",
+    "strip-final-newline": "^4.0.0",
     "tough-cookie": "^4.1.3"
   }
 }
