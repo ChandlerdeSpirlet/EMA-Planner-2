@@ -2,7 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const nunjucks = require('nunjucks')
 const session = require('express-session')
-const exp_val = require('express-validator')
+// const exp_val = require('express-validator')
 const flash = require('connect-flash')
 
 // const ics = require('ics')
