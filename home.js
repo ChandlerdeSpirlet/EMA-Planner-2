@@ -40,7 +40,7 @@ const fileUpload = require('express-fileupload')
 
 const app = express()
 app.use(flash())
-const port = process.env.port
+const port = process.env.PORT
 const router = express.Router()
 app.use(cookieParser('side-kick-2'))
 router.use(fileUpload())
