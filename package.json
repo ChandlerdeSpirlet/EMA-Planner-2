@@ -21,7 +21,7 @@
     "csv-parser": "^3.0.0",
     "datepicker": "^0.0.0",
     "dotenv": "^8.2.0",
-    "ejs": "^2.7.4",
+    "ejs": "^3.1.7",
     "eslint": "*",
     "express": "^4.17.1",
     "express-fileupload": "^1.4.1",
