@@ -41,6 +41,7 @@ jobs:
         with:
           scan-type: 'fs'
           format: 'github'
+          trivy-config: trivy.yaml
           output: 'dependency-results.sbom.json'
           image-ref: '.'
           github-pat: ${{ secrets.GITHUB_TOKEN }}
