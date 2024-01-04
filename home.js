@@ -62,7 +62,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 router.use(bodyParser.json())
 router.use(bodyParser.urlencoded({ extended: true }))
 app.use('/', router)
-//router.use(exp_val())
+//router.use(exp_val()) https://express-validator.github.io/docs/guides/getting-started
 
 // const db = require('./database')
 // const { proc } = require('./database')
