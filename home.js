@@ -4,6 +4,7 @@ const nunjucks = require('nunjucks')
 const session = require('express-session')
 const path = require('path')
 // const exp_val = require('express-validator')
+const { check, validationResult } = require('express-validator')
 const flash = require('connect-flash')
 const fs = require('fs')
 // const { writeFileSync, read } = require('fs')
@@ -64,7 +65,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 router.use(bodyParser.json())
 router.use(bodyParser.urlencoded({ extended: true }))
 app.use('/', router)
-//router.use(exp_val()) https://express-validator.github.io/docs/guides/getting-started
+// router.use(exp_val()) https://express-validator.github.io/docs/guides/getting-started
 
 const db = require('./database')
 // const { proc } = require('./database')
@@ -105,7 +106,7 @@ router.get('/login_success', (req, res) => {
   console.log('req.session.loggedin = ' + req.session.loggedin)
   res.render('login_success', {
 
-  }) 
+  })
 })
 
 router.get('/login_failure/(:reason)', (req, res) => {
@@ -114,35 +115,43 @@ router.get('/login_failure/(:reason)', (req, res) => {
   })
 })
 
-router.post('/login', (req, res) => {
-  const item = {
-    username: req.sanitize('username').trim(),
-    password: req.sanitize('password').trim(),
-    go_to: req.sanitize('go_to').trim()
-  }
-  if (item.username && item.password) {
-    db.query('select * from login where username = $1 and password = $2', [item.username, item.password])
-      .then(result => {
-        if (Number(result.length) > 0) {
-          console.log('Authenticated')
-          req.session.loggedin = true
-          req.session.username = item.username
-          if (req.session.username === 'cdespirlet') {
-            item.go_to = '/workout_home'
-          }
-          res.render('login_success', {
-            go_to: item.go_to
-          })
-        } else {
-          res.redirect('login_failure/username')
-        }
-      })
-      .catch(err => {
-        console.log('login error - ' + err)
-        res.redirect('login_failure/username')
-      })
+const loginValidate = [
+  check('username', 'Username must not be empty').isLength({ min: 1 }).trim().escape(), check('password').isLength({ min: 8 }).withMessage('Password must be greater than 8 characters').trim().escape()
+]
+router.post('/login', loginValidate, (req, res) => {
+  const loginErrors = validationResult(req)
+  if (!loginErrors.isEmpty()) {
+    res.status(422).json({ errors: loginErrors.array() })
   } else {
-    console.log('Username and password not received')
+    const item = {
+      username: req.body.username,
+      password: req.body.password,
+      go_to: req.body.go_to
+    }
+    if (item.username && item.password) {
+      db.query('select * from login where username = $1 and password = $2', [item.username, item.password])
+        .then(result => {
+          if (Number(result.length) > 0) {
+            console.log('Authenticated')
+            req.session.loggedin = true
+            req.session.username = item.username
+            if (req.session.username === 'cdespirlet') {
+              item.go_to = '/workout_home'
+            }
+            res.render('login_success', {
+              go_to: item.go_to
+            })
+          } else {
+            res.redirect('login_failure/username')
+          }
+        })
+        .catch(err => {
+          console.log('login error - ' + err)
+          res.redirect('login_failure/username')
+        })
+    } else {
+      console.log('Username and password not received')
+    }
   }
 })
 
