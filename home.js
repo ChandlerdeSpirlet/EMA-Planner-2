@@ -64,7 +64,7 @@ router.use(bodyParser.urlencoded({ extended: true }))
 app.use('/', router)
 //router.use(exp_val()) https://express-validator.github.io/docs/guides/getting-started
 
-// const db = require('./database')
+const db = require('./database')
 // const { proc } = require('./database')
 // const { get } = require('http')
 // const { json } = require('body-parser')
@@ -74,7 +74,7 @@ app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
 
 app.get('/', (req, res) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood.herokuapp.com/')
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
     if (req.session.loggedin) {
       res.render('home.html', {
@@ -85,6 +85,61 @@ app.get('/', (req, res) => {
     }
   }
 })
+
+router.get('/login', (req, res) => {
+  res.render('login', {
+    username: '',
+    password: '',
+    go_to: '',
+    alert_message: ''
+  })
+})
+
+router.get('/login_success', (req, res) => {
+  console.log('req.session.loggedin = ' + req.session.loggedin)
+  res.render('login_success', {
+
+  }) 
+})
+
+router.get('/login_failure/(:reason)', (req, res) => {
+  res.render('login_failure', {
+    reason: req.params.reason
+  })
+})
+
+router.post('/login', (req, res) => {
+  const item = {
+    username: req.sanitize('username').trim(),
+    password: req.sanitize('password').trim(),
+    go_to: req.sanitize('go_to').trim()
+  }
+  if (item.username && item.password) {
+    db.query('select * from login where username = $1 and password = $2', [item.username, item.password])
+      .then(result => {
+        if (Number(result.length) > 0) {
+          console.log('Authenticated')
+          req.session.loggedin = true
+          req.session.username = item.username
+          if (req.session.username === 'cdespirlet') {
+            item.go_to = '/workout_home'
+          }
+          res.render('login_success', {
+            go_to: item.go_to
+          })
+        } else {
+          res.redirect('login_failure/username')
+        }
+      })
+      .catch(err => {
+        console.log('login error - ' + err)
+        res.redirect('login_failure/username')
+      })
+  } else {
+    console.log('Username and password not received')
+  }
+})
+
 
 app.listen(port, () => {
   console.info('EMA-Planner running on port', port)

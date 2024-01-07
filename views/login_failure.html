@@ -1,11 +1,8 @@
 <html>
-    <title>Class Lookup</title>
+    <title>Login Success</title>
     {% set local = 'Tests' %}
     {% extends 'nav_bar.html' %}
     {% block content %}
-    {% if alert_message != '' %}
-        <script>alert("{{ alert_message }}")</script>
-    {% endif %}
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
     <style>
@@ -120,25 +117,16 @@
         }
     </style>
     <head>
-        <h1>Login</h1>
+        <h1>Login Failed</h1>
+        {% if reason == 'username' %}
+            <h2>You used an unrecognized username</h2>
+        {% elif reason == 'password' %}
+            <h2>Wrong password dummy</h2>
+        {% else %}
+            <h2>Who knows why this broke?</h2>
+        {% endif %}
     </head>
     <body>
-        <div id="page-container">
-            <form action="/login" method="post">
-                <div class="row">
-                    <div class="column1">
-                        <input type="hidden" name="go_to" value="{{ go_to }}">
-                        <input type="text" name="username" placeholder="Username" required pattern="[A-z0-9]{1,}">
-                    </div>
-                    <div class="column2">
-                        <input type="password" name="password" placeholder="Password" required pattern="[A-z0-9!@#$()% /:;()$&@,?!']{1,}">
-                    </div>
-                </div>
-                <div class="row">
-                    <input type="submit" name="Submit" value="Login">
-                </div>
-            </form>
-        </div>
     </body>
 </html>
 {% endblock %}
