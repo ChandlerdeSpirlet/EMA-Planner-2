@@ -80,8 +80,12 @@ app.get('/', (req, res) => {
       res.render('home.html', {
       })
     } else {
-      console.log('LOGIN')
-      // Add login
+      res.render('login', {
+        username: '',
+        password: '',
+        go_to: '/',
+        alert_message: ''
+      })
     }
   }
 })
