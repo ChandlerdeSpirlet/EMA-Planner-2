@@ -1,0 +1,1 @@
+[![Code Scanning](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/main.yml)

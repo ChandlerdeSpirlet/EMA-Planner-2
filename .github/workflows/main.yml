@@ -10,6 +10,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
     steps:
     - uses: actions/checkout@v3
     - name: Install modules
@@ -21,6 +22,7 @@ jobs:
   scan:
     name: Scan
     runs-on: ubuntu-20.04
+    if: github.event.pull_request.merged == true
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -34,6 +36,7 @@ jobs:
   sbom:
     name: SBOM
     runs-on: ubuntu-20.04
+    if: github.event.pull_request.merged == true
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
