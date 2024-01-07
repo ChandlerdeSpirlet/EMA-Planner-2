@@ -2,9 +2,12 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const nunjucks = require('nunjucks')
 const session = require('express-session')
+const path = require('path')
 // const exp_val = require('express-validator')
 const flash = require('connect-flash')
-
+const fs = require('fs')
+// const { writeFileSync, read } = require('fs')
+// const { readFileSync } = require('fs')
 // const ics = require('ics')
 var cookieParser = require('cookie-parser')
 // const { writeFileSync, read } = require('fs')
@@ -13,7 +16,6 @@ var cookieParser = require('cookie-parser')
 // const request = require('request')
 // const crypto = require('crypto')
 // const Json2csvParser = require("json2csv").Parser
-// const fs = require("fs")
 // const csv = require('csv-parser')
 const fileUpload = require('express-fileupload')
 
@@ -27,14 +29,14 @@ const fileUpload = require('express-fileupload')
 //   apikey_beta: process.env.ps_api_beta
 // }
 
-// function getAuthHeader(){
-//   let time = (new Date()).toISOString();
-//   let hash = crypto.createHmac('SHA256', settings.apikey).update(time).digest('base64');
+// function getAuthHeader() {
+//   let time = (new Date()).toISOString()
+//   let hash = crypto.createHmac('SHA256', settings.apikey).update(time).digest('base64')
 //   return "PSSERVER" + " " + "accessid=" + settings.username + "; timestamp=" + time + "; signature=" + hash;
 // }
-// function getAuthHeader_beta(){
-//   let time = (new Date()).toISOString();
-//   let hash = crypto.createHmac('SHA256', settings.apikey_beta).update(time).digest('base64');
+// function getAuthHeader_beta() {
+//   let time = (new Date()).toISOString()
+//   let hash = crypto.createHmac('SHA256', settings.apikey_beta).update(time).digest('base64')
 //   return "PSSERVER" + " " + "accessid=" + settings.username_beta + "; timestamp=" + time + "; signature=" + hash;
 // }
 
@@ -144,6 +146,328 @@ router.post('/login', (req, res) => {
   }
 })
 
+router.get('/documents', (req, res) => {
+  res.render('documents', {
+  })
+})
+
+router.get('/schedule.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/sched.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/sched.pdf'))
+    res.contentType('application/pdf')
+    res.set('Cache-Control', 'no-store')
+    res.set('Cache-Control', 'max-age=0')
+    res.send(data)
+  }
+})
+router.get('/Basic_Rubric.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Basic_Rubric.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Basic_Rubric.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Level_1_Rubric.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_1_Rubric.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_1_Rubric.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Level_2_Rubric.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_2_Rubric.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_2_Rubric.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Level_3_Rubric.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_3_Rubric.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_3_Rubric.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Level_1_Manual.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_1_Manual.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_1_Manual.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Level_2_Manual.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_2_Manual.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_2_Manual.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Level_3_Manual.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_3_Manual.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_3_Manual.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/CalendlyInstructions.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/CalendlyInstructions.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/CalendlyInstructions.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/ITP.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ITP.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/ITP.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/L1.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_1_Combos.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_1_Combos.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/L2.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_2_Combos.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_2_Combos.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/L3.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_3_Combos.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_3_Combos.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/bingo_cards.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/bingo_cards.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/bingo_cards.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/aspHomework.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ASPhomework.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/ASPhomework.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Lvl1Homework.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Lvl1Homework.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Lvl1Homework.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Lvl2Homework.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Lv21Homework.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Lvl2Homework.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Lvl3Homework.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Lvl3Homework.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Lvl3Homework.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/BBHomework.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/BBHomework.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/BBHomework.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Lvl1Sparring.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Lvl1Sparring.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Lvl1Sparring.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Lvl2Sparring.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Lvl2Sparring.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Lvl2Sparring.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/ASPPacket.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ASPPacket.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/ASPPacket.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Calendar.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Calendar.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Calendar.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/yearly_calendar.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('yearly_calendar.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/yearly_calendar.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/last_month.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/last_month.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/last_month.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/1Confidence', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/1Confidence.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/1Confidence.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/2Discipline', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/2Discipline.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/2Discipline.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/3Respect', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/3Respect.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/3Respect.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/4Responsibility', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/4Responsibility.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/4Responsibility.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/5Focus', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/5Focus.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/5Focus.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/6GoalSetting', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/6GoalSetting.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/6GoalSetting.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Level1Curriculum.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level1Curriculum.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level1Curriculum.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Level2Curriculum.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level2Curriculum.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level2Curriculum.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/Level3Curriculum.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level3Curriculum.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level3Curriculum.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
+router.get('/SWAT1Tasks.pdf', function (req, res) {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/SWAT1Tasks.pdf')
+  } else {
+    const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/SWAT1Tasks.pdf'))
+    res.contentType('application/pdf')
+    res.send(data)
+  }
+})
 
 app.listen(port, () => {
   console.info('EMA-Planner running on port', port)
