@@ -64,7 +64,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 router.use(bodyParser.json())
 router.use(bodyParser.urlencoded({ extended: true }))
 app.use('/', router)
-//router.use(exp_val()) https://express-validator.github.io/docs/guides/getting-started
+// router.use(exp_val()) https://express-validator.github.io/docs/guides/getting-started
 
 const db = require('./database')
 // const { proc } = require('./database')
@@ -105,7 +105,7 @@ router.get('/login_success', (req, res) => {
   console.log('req.session.loggedin = ' + req.session.loggedin)
   res.render('login_success', {
 
-  }) 
+  })
 })
 
 router.get('/login_failure/(:reason)', (req, res) => {
