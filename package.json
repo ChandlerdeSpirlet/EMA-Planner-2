@@ -28,7 +28,7 @@
     "express-flash": "0.0.2",
     "express-session": "^1.17.1",
     "express-validator": "^7.0.1",
-    "fast-csv": "^4.3.6",
+    "fast-csv": "^5.0.0",
     "flash": "^1.1.0",
     "fs": "^0.0.1-security",
     "ics": "^3.7.2",
