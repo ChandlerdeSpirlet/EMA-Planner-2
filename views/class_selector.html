@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    {% set local = 'Students' %}
+    {% extends 'nav_bar.html' %}
+    {% block content %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
+    <title>Select a Class</title>
+    <style>
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            color: #E7E5E3;
+        }
+        head {
+            padding-bottom: 25px;
+        }
+        html {
+            background-image: linear-gradient(#3274C4, #2E353B);
+      -webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+      min-height: 100%;
+        }
+        h1, h3 {
+            text-align: center;
+        }
+        .wrapper {
+            text-align: center;
+        }
+
+        button {
+            color: black;
+            border: 4px solid #716B5F;
+        }
+        
+        .button{
+            width: 60%;
+            align-self: center;
+            background-color: transparent;
+        }
+
+        button:hover {
+            background-color: #555555;
+            color: white;
+        }
+    </style>
+    <head>
+        <h1>Class Check-In</h1>
+        <h3>Select a class to check students in.</h3>
+    </head>
+    <body>
+        <div class="wrapper">
+        {% if data %}
+            {% for class in data %}
+                {% if (class.level / 0.5) % 2 == 0 %}
+                    <a href="/class_checkin/{{ class.class_id }}/{{ class.level }}/{{ class.class_month }} {{class.class_day }} {{ class.class_time }} - {{ class.end_time }}/{{ class.class_type }}/{{ class.can_view }}"><button class="button"><br>
+                    <h2 style="font-size: xx-large;">{% if class.level == -1 %} Little Dragons {% elif class.level == 0 %} Basic {% elif class.level == 1 %} Level 1 {% elif class.level == 2 %} Level 2 {% elif class.level == 3 %} Level 3 {% elif class.level == 4 %} Prep/Conditional Belt {% elif class.level == 5 %} Black Belt {% elif class.level == 6 %} Open Mat {% elif class.level == 7 %} Weapons {% elif class.level == 8 %} Exclusive Fight Club {% elif class.level == 9 %} Beginner's BJJ {% else %} Unknown {% endif %}</h2>
+                    <h3 style="font-size: x-large;">{{ class.class_month }} {{ class.class_day }}</h3> 
+                    <h3>Signed up: {{ class.signed_up }}</h3>
+                    <h3>Checked In: {{ class.checked_in }}</h3>
+                    <h3>{{ class.class_time }} &mdash; {{ class.end_time }}</h3>
+                </button></a><br>
+                {% else %}
+                    <a href="/class_checkin/{{ class.class_id }}/{{ class.level }}/{{ class.class_month }} {{class.class_day }} {{ class.class_time }} - {{ class.end_time }}/{{ class.class_type }}/{{ class.can_view }}"><button class="button"><br>
+                    <h2 style="font-size: xx-large;">{% if class.level == -1.5 %} Little Dragons (Floor 2) {% elif class.level == 0.5 %} Basic (Floor 2) {% elif class.level == 1.5 %} Level 1 (Floor 2) {% elif class.level == 1.51 %} Level 1 (Orange/High Orange) {% elif class.level == 1.51 %} Level 1 (Green/High Green) {% elif class.level == 1.53 %} Level 1 (Floor 2) (Orange/High Orange) {% elif class.level == 1.54 %} Level 1 (Floor 2) (Green/High Green) {% elif class.level == 2.5 %} Level 2 (Floor 2) {% elif class.level == 3.5 %} Level 3 (Floor 2) {% elif class.level == 4.5 %} Prep/Conditional Belt (Floor 2) {% elif class.level == 5.5 %} Black Belt (Floor 2) {% elif class.level == 6.5 %} Open Mat (Floor 2) {% elif class.level == 7.5 %} Weapons (Floor 2) {% elif class.level == 8.5 %} Exclusive Fight Club (Floor 2) {% elif class.level == 9.5 %} Beginner's BJJ (Floor 2) {% endif %}</h2>
+                    <h3 style="font-size: x-large;">{{ class.class_month }} {{ class.class_day }}</h3> 
+                    <h3>Signed up: {{ class.signed_up }}</h3>
+                    <h3>Checked In: {{ class.checked_in }}/25</h3>
+                    <h3>{{ class.class_time }} &mdash; {{ class.end_time }}</h3>
+                </button></a><br>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        {% if data.length == 0 %}
+            No classes can be found. Contact a system administrator. Error: c_s:Class
+        {% endif %}
+        </div>
+    </body>
+</html>
+{% endblock %}
