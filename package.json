@@ -38,7 +38,7 @@
     "npm": "^10.5.0",
     "nunjucks": "^3.2.2",
     "path": "^0.12.7",
-    "pg-promise": "^11.5.4",
+    "pg-promise": "^11.5.5",
     "redis": "^4.6.12",
     "strip-final-newline": "^4.0.0",
     "tough-cookie": "^4.1.3"
