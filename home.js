@@ -478,6 +478,67 @@ router.get('/SWAT1Tasks.pdf', function (req, res) {
   }
 })
 
+router.get('/basic_signup', (req, res) => {
+  const basicDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
+
+  if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
+    const year = convertTZ(new Date(), 'America/Denver').getFullYear() + 1
+    const basicDateCalculation = '01 10, ' + String(year)
+  }
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-planner.herokuapp.com/basic_signup')
+  } else {
+    const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (0, 0.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
+    const getNames = 'select * from signup_names(0);'
+    db.any(getNames)
+      .then(names => {
+        db.any(classQuery, [basicDateCalculation])
+          .then(rows => {
+            if (rows.length === 0) {
+              res.render('temp_classes', {
+                level: 'basic',
+                alert_message: 'There are no basic classes in the near future. Check back soon for more!'
+              })
+            } else {
+              res.render('basic_signup', {
+                alert_message: '',
+                fname: '',
+                lname: '',
+                level: '',
+                email: '',
+                classes: rows,
+                names: names
+              })
+            }
+          })
+          .catch(err => {
+            console.log('Could not render black belt classes. ERROR: ' + err)
+            res.render('basic_signup', {
+              alert_message: 'Could not find basic classes.',
+              fname: '',
+              lname: '',
+              level: '',
+              email: '',
+              classes: 'Unable to show classes.',
+              names: ''
+            })
+          })
+      })
+      .catch(err => {
+        console.log('Could not render basic names. ERROR: ' + err)
+        res.render('basic_signup', {
+          alert_message: 'Could not find basic names to display.',
+          fname: '',
+          lname: '',
+          level: '',
+          email: '',
+          classes: 'Unable to show classes.',
+          names: ''
+        })
+      })
+  }
+})
+
 app.listen(port, () => {
   console.info('EMA-Planner running on port', port)
 })
