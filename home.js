@@ -75,6 +75,37 @@ const db = require('./database')
 
 app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
 
+function parseStudentInfo (info) {
+  const studInfo = ['', 0]
+  studInfo[0] = info.substring(0, info.indexOf(' - '))
+  studInfo[1] = info.substring(info.indexOf(' - ') + 3, info.length)
+  if (studInfo[0].indexOf(',') !== -1) {
+    const lastName = studInfo[0].substring(0, studInfo[0].indexOf(','))
+    const firstName = studInfo[0].substring(studInfo[0].indexOf(',') + 2, studInfo[0].length)
+    studInfo[0] = firstName + ' ' + lastName
+  }
+  return studInfo
+}
+
+function convertTZ (date, tzString) {
+  return new Date((typeof date === 'string' ? new Date(date) : date).toLocaleString('en-US', { timeZone: tzString }))
+}
+
+function parseID (idSet) {
+  var setId = []
+  while (idSet.indexOf(',') !== -1) {
+    const idIdx = idSet.indexOf(',')
+    const id = idSet.substring(0, idIdx)
+    idSet = idSet.substring(idIdx + 1, idSet.length)
+    setId.push(Number(id))
+  }
+  if ((idSet.indexOf(',') === -1) && (idSet !== '')) {
+    setId.push(Number(idSet))
+    idSet = ''
+  }
+  return setId
+}
+
 app.get('/', (req, res) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
@@ -478,6 +509,67 @@ router.get('/SWAT1Tasks.pdf', function (req, res) {
   }
 })
 
+router.get('/dragons_signup', (req, res) => {
+  var dragonsDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
+
+  if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
+    const year = convertTZ(new Date(), 'America/Denver').getFullYear() + 1
+    var dragonsDateCalculation = '01 10, ' + String(year)
+  }
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/dragons_signup')
+  } else {
+    const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (-1, -1.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
+    const getNames = 'select * from signup_names(-1);'
+    db.any(getNames)
+      .then(names => {
+        db.any(classQuery, [dragonsDateCalculation])
+          .then(rows => {
+            if (rows.length === 0) {
+              res.render('temp_classes', {
+                level: 'dragons',
+                alert_message: 'There are no dragons classes in the near future. Check back soon for more!'
+              })
+            } else {
+              res.render('dragons_signup', {
+                alert_message: '',
+                fname: '',
+                lname: '',
+                level: '',
+                email: '',
+                classes: rows,
+                names: names
+              })
+            }
+          })
+          .catch(err => {
+            console.log('Could not render dragons belt classes. ERROR: ' + err)
+            res.render('dragons_signup', {
+              alert_message: 'Could not find dragons classes.',
+              fname: '',
+              lname: '',
+              level: '',
+              email: '',
+              classes: 'Unable to show classes.',
+              names: ''
+            })
+          })
+      })
+      .catch(err => {
+        console.log('Could not render dragons names. ERROR: ' + err)
+        res.render('dragons_signup', {
+          alert_message: 'Could not find dragons names to display.',
+          fname: '',
+          lname: '',
+          level: '',
+          email: '',
+          classes: 'Unable to show classes.',
+          names: ''
+        })
+      })
+  }
+})
+
 router.get('/basic_signup', (req, res) => {
   var basicDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
@@ -601,7 +693,7 @@ router.get('/level1_signup', (req, res) => {
 })
 
 router.get('/level2_signup', (req, res) => {
-  var leve21DateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
+  var level2DateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
   if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
     const year = convertTZ(new Date(), 'America/Denver').getFullYear() + 1
@@ -658,6 +750,1195 @@ router.get('/level2_signup', (req, res) => {
           names: ''
         })
       })
+  }
+})
+
+router.get('/level3_signup', (req, res) => {
+  var level3DateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
+
+  if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
+    const year = convertTZ(new Date(), 'America/Denver').getFullYear() + 1
+    var level3DateCalculation = '01 10, ' + String(year)
+  }
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/level3_signup')
+  } else {
+    const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (3, 3.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
+    const getNames = 'select * from signup_names(0);'
+    db.any(getNames)
+      .then(names => {
+        db.any(classQuery, [level3DateCalculation])
+          .then(rows => {
+            if (rows.length === 0) {
+              res.render('temp_classes', {
+                level: 'level 3',
+                alert_message: 'There are no level 3 classes in the near future. Check back soon for more!'
+              })
+            } else {
+              res.render('level3_signup', {
+                alert_message: '',
+                fname: '',
+                lname: '',
+                level: '',
+                email: '',
+                classes: rows,
+                names: names
+              })
+            }
+          })
+          .catch(err => {
+            console.log('Could not render level 3 classes. ERROR: ' + err)
+            res.render('level3_signup', {
+              alert_message: 'Could not find level 3 classes.',
+              fname: '',
+              lname: '',
+              level: '',
+              email: '',
+              classes: 'Unable to show classes.',
+              names: ''
+            })
+          })
+      })
+      .catch(err => {
+        console.log('Could not render level 3 names. ERROR: ' + err)
+        res.render('level3_signup', {
+          alert_message: 'Could not find level 3 names to display.',
+          fname: '',
+          lname: '',
+          level: '',
+          email: '',
+          classes: 'Unable to show classes.',
+          names: ''
+        })
+      })
+  }
+})
+
+router.get('/wfc_signup', (req, res) => {
+  var wfcDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
+
+  if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
+    const year = convertTZ(new Date(), 'America/Denver').getFullYear() + 1
+    var wfc3DateCalculation = '01 10, ' + String(year)
+  }
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/wfc_signup')
+  } else {
+    const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (8, 8.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
+    const getNames = 'select * from signup_names(0);'
+    db.any(getNames)
+      .then(names => {
+        db.any(classQuery, [wfcDateCalculation])
+          .then(rows => {
+            if (rows.length === 0) {
+              res.render('temp_classes', {
+                level: 'Women\'s Fight Club',
+                alert_message: 'There are no Women\'s Fight Club classes in the near future. Check back soon for more!'
+              })
+            } else {
+              res.render('wfc_signup', {
+                alert_message: '',
+                fname: '',
+                lname: '',
+                level: '',
+                email: '',
+                classes: rows,
+                names: names
+              })
+            }
+          })
+          .catch(err => {
+            console.log('Could not render women\'s fight club classes. ERROR: ' + err)
+            res.render('wfc_signup', {
+              alert_message: 'Could not find women\'s fight club classes.',
+              fname: '',
+              lname: '',
+              level: '',
+              email: '',
+              classes: 'Unable to show classes.',
+              names: ''
+            })
+          })
+      })
+      .catch(err => {
+        console.log('Could not render wfc names. ERROR: ' + err)
+        res.render('wfc_signup', {
+          alert_message: 'Could not find women\'s fight club names to display.',
+          fname: '',
+          lname: '',
+          level: '',
+          email: '',
+          classes: 'Unable to show classes.',
+          names: ''
+        })
+      })
+  }
+})
+
+router.get('/sparapalooza_signup', (req, res) => {
+  var sparapaloozaDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
+
+  if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
+    const year = convertTZ(new Date(), 'America/Denver').getFullYear() + 1
+    var sparapaloozaDateCalculation = '01 10, ' + String(year)
+  }
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/sparapalooza_signup')
+  } else {
+    const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (9, 9.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
+    const getNames = 'select * from signup_names(0);'
+    db.any(getNames)
+      .then(names => {
+        db.any(classQuery, [sparapaloozaDateCalculation])
+          .then(rows => {
+            if (rows.length === 0) {
+              res.render('temp_classes', {
+                level: 'Sparapalooza',
+                alert_message: 'There are no sparapalooza classes in the near future. Check back soon for more!'
+              })
+            } else {
+              res.render('sparapalooza_signup', {
+                alert_message: '',
+                fname: '',
+                lname: '',
+                level: '',
+                email: '',
+                classes: rows,
+                names: names
+              })
+            }
+          })
+          .catch(err => {
+            console.log('Could not render sparapalooza classes. ERROR: ' + err)
+            res.render('sparapalooza_signup', {
+              alert_message: 'Could not find sparapalooza classes.',
+              fname: '',
+              lname: '',
+              level: '',
+              email: '',
+              classes: 'Unable to show classes.',
+              names: ''
+            })
+          })
+      })
+      .catch(err => {
+        console.log('Could not render sparapalooza names. ERROR: ' + err)
+        res.render('sparapalooza_signup', {
+          alert_message: 'Could not find sparapalooza names to display.',
+          fname: '',
+          lname: '',
+          level: '',
+          email: '',
+          classes: 'Unable to show classes.',
+          names: ''
+        })
+      })
+  }
+})
+
+router.get('/bb_signup', (req, res) => {
+  var bbDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
+
+  if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
+    const year = convertTZ(new Date(), 'America/Denver').getFullYear() + 1
+    var bbDateCalculation = '01 10, ' + String(year)
+  }
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/bb_signup')
+  } else {
+    const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (5, 5.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
+    const getNames = 'select * from signup_names(5);'
+    db.any(getNames)
+      .then(names => {
+        db.any(classQuery, [bbDateCalculation])
+          .then(rows => {
+            if (rows.length === 0) {
+              res.render('temp_classes', {
+                level: 'black belt',
+                alert_message: 'There are no black belt classes in the near future. Check back soon for more!'
+              })
+            } else {
+              res.render('bb_signup', {
+                alert_message: '',
+                fname: '',
+                lname: '',
+                level: '',
+                email: '',
+                classes: rows,
+                names: names
+              })
+            }
+          })
+          .catch(err => {
+            console.log('Could not render black belt classes. ERROR: ' + err)
+            res.render('bb_signup', {
+              alert_message: 'Could not find black belt classes.',
+              fname: '',
+              lname: '',
+              level: '',
+              email: '',
+              classes: 'Unable to show classes.',
+              names: ''
+            })
+          })
+      })
+      .catch(err => {
+        console.log('Could not render bb names. ERROR: ' + err)
+        res.render('bb_signup', {
+          alert_message: 'Could not find black belt names to display.',
+          fname: '',
+          lname: '',
+          level: '',
+          email: '',
+          classes: 'Unable to show classes.',
+          names: ''
+        })
+      })
+  }
+})
+
+router.get('/weapons_signup', (req, res) => {
+  var weaponsDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
+
+  if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
+    const year = convertTZ(new Date(), 'America/Denver').getFullYear() + 1
+    var weaponsDateCalculation = '01 10, ' + String(year)
+  }
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/weapons_signup')
+  } else {
+    const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (7, 7.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
+    const getNames = 'select * from signup_names(1);'
+    db.any(getNames)
+      .then(names => {
+        db.any(classQuery, [weaponsDateCalculation])
+          .then(rows => {
+            if (rows.length === 0) {
+              res.render('temp_classes', {
+                level: 'weapons',
+                alert_message: 'There are no weapons classes in the near future. Check back soon for more!'
+              })
+            } else {
+              res.render('weapons_signup', {
+                alert_message: '',
+                fname: '',
+                lname: '',
+                level: '',
+                email: '',
+                classes: rows,
+                names: names
+              })
+            }
+          })
+          .catch(err => {
+            console.log('Could not render weapons classes. ERROR: ' + err)
+            res.render('weapons_signup', {
+              alert_message: 'Could not find weapons classes.',
+              fname: '',
+              lname: '',
+              level: '',
+              email: '',
+              classes: 'Unable to show classes.',
+              names: ''
+            })
+          })
+      })
+      .catch(err => {
+        console.log('Could not render weapons names. ERROR: ' + err)
+        res.render('weapons_signup', {
+          alert_message: 'Could not find weapons names to display.',
+          fname: '',
+          lname: '',
+          level: '',
+          email: '',
+          classes: 'Unable to show classes.',
+          names: ''
+        })
+      })
+  }
+})
+
+router.get('/bjj_signup', (req, res) => {
+  var bjjDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
+
+  if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
+    const year = convertTZ(new Date(), 'America/Denver').getFullYear() + 1
+    var bjjDateCalculation = '01 10, ' + String(year)
+  }
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/bjj_signup')
+  } else {
+    const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (9, 9.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
+    const getNames = 'select * from signup_names(1);'
+    db.any(getNames)
+      .then(names => {
+        db.any(classQuery, [bjjDateCalculation])
+          .then(rows => {
+            if (rows.length === 0) {
+              res.render('temp_classes', {
+                level: 'bjj',
+                alert_message: 'There are no black bjj in the near future. Check back soon for more!'
+              })
+            } else {
+              res.render('bjj_signup', {
+                alert_message: '',
+                fname: '',
+                lname: '',
+                level: '',
+                email: '',
+                classes: rows,
+                names: names
+              })
+            }
+          })
+          .catch(err => {
+            console.log('Could not render bjj classes. ERROR: ' + err)
+            res.render('bjj_signup', {
+              alert_message: 'Could not find bjj classes.',
+              fname: '',
+              lname: '',
+              level: '',
+              email: '',
+              classes: 'Unable to show classes.',
+              names: ''
+            })
+          })
+      })
+      .catch(err => {
+        console.log('Could not render bb names. ERROR: ' + err)
+        res.render('bjj_signup', {
+          alert_message: 'Could not find bjj names to display.',
+          fname: '',
+          lname: '',
+          level: '',
+          email: '',
+          classes: 'Unable to show classes.',
+          names: ''
+        })
+      })
+  }
+})
+
+router.get('/conditional_signup', (req, res) => {
+  var conditionalDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
+
+  if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
+    const year = convertTZ(new Date(), 'America/Denver').getFullYear() + 1
+    var conditionalDateCalculation = '01 10, ' + String(year)
+  }
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/conditional_signup')
+  } else {
+    const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (4, 4.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
+    const getNames = 'select * from signup_names(4);'
+    db.any(getNames)
+      .then(names => {
+        db.any(classQuery, [conditionalDateCalculation])
+          .then(rows => {
+            if (rows.length === 0) {
+              res.render('temp_classes', {
+                level: 'conditional',
+                alert_message: 'There are no conditional classes in the near future. Check back soon for more!'
+              })
+            } else {
+              res.render('conditional_signup', {
+                alert_message: '',
+                fname: '',
+                lname: '',
+                level: '',
+                email: '',
+                classes: rows,
+                names: names
+              })
+            }
+          })
+          .catch(err => {
+            console.log('Could not render conditional classes. ERROR: ' + err)
+            res.render('conditional_signup', {
+              alert_message: 'Could not find conditional classes.',
+              fname: '',
+              lname: '',
+              level: '',
+              email: '',
+              classes: 'Unable to show classes.',
+              names: ''
+            })
+          })
+      })
+      .catch(err => {
+        console.log('Could not render conditional names. ERROR: ' + err)
+        res.render('conditional_signup', {
+          alert_message: 'Could not find conditional names to display.',
+          fname: '',
+          lname: '',
+          level: '',
+          email: '',
+          classes: 'Unable to show classes.',
+          names: ''
+        })
+      })
+  }
+})
+
+router.get('/swat_signup', (req, res) => {
+  var swatDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
+
+  if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
+    const year = convertTZ(new Date(), 'America/Denver').getFullYear() + 1
+    var swatDateCalculation = '01 10, ' + String(year)
+  }
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/swat_signup')
+  } else {
+    const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, swat_count from classes where level in (8, 7, 7.5, 0.5, 2, 2.5, 3, 3.5, 1.5, 0, 1, 1.5, -1, -1.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and swat_count < 3 and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
+    const getNames = 'select * from signup_names(5);'
+    db.any(getNames)
+      .then(names => {
+        db.any(classQuery, [swatDateCalculation])
+          .then(rows => {
+            if (rows.length === 0) {
+              res.render('temp_classes', {
+                level: 'swat',
+                alert_message: 'There are no swat classes in the near future. Check back soon for more!'
+              })
+            } else {
+              res.render('swat_signup', {
+                alert_message: '',
+                fname: '',
+                lname: '',
+                level: '',
+                email: '',
+                classes: rows,
+                names: names
+              })
+            }
+          })
+          .catch(err => {
+            console.log('Could not render swat classes. ERROR: ' + err)
+            res.render('swat_signup', {
+              alert_message: 'Could not find swat classes.',
+              fname: '',
+              lname: '',
+              level: '',
+              email: '',
+              classes: 'Unable to show classes.',
+              names: ''
+            })
+          })
+      })
+      .catch(err => {
+        console.log('Could not render swat names. ERROR: ' + err)
+        res.render('swat_signup', {
+          alert_message: 'Could not find swat names to display.',
+          fname: '',
+          lname: '',
+          level: '',
+          email: '',
+          classes: 'Unable to show classes.',
+          names: ''
+        })
+      })
+  }
+})
+
+router.post('/dragons_signup', (req, res) => {
+  const item = {
+    stud_data: req.sanitize('result').trim(),
+    stud_data2: req.sanitize('result2').trim(),
+    stud_data3: req.sanitize('result3').trim(),
+    stud_data4: req.sanitize('result4').trim(),
+    day_time: req.sanitize('day_time')
+  }
+  if (item.stud_data === '') {
+    item.stud_data = ' '
+  }
+  if (item.stud_data2 === '') {
+    item.stud_data2 = ' '
+  }
+  if (item.stud_data3 === '') {
+    item.stud_data3 = ' '
+  }
+  if (item.stud_data4 === '') {
+    item.stud_data4 = ' '
+  }
+  const beltGroup = 'Little Dragons'
+  const redirLink = 'process_classes/' + item.stud_data + '/' + item.stud_data2 + '/' + item.stud_data3 + '/' + item.stud_data4 + '/' + beltGroup + '/' + item.day_time + '/not_swat'
+  res.redirect(redirLink)
+})
+
+router.post('/basic_signup', (req, res) => {
+  const item = {
+    stud_data: req.sanitize('result').trim(),
+    stud_data2: req.sanitize('result2').trim(),
+    stud_data3: req.sanitize('result3').trim(),
+    stud_data4: req.sanitize('result4').trim(),
+    day_time: req.sanitize('day_time')
+  }
+  if (item.stud_data === '') {
+    item.stud_data = ' '
+  }
+  if (item.stud_data2 === '') {
+    item.stud_data2 = ' '
+  }
+  if (item.stud_data3 === '') {
+    item.stud_data3 = ' '
+  }
+  if (item.stud_data4 === '') {
+    item.stud_data4 = ' '
+  }
+  const beltGroup = 'Basic'
+  const redirLink = 'process_classes/' + item.stud_data + '/' + item.stud_data2 + '/' + item.stud_data3 + '/' + item.stud_data4 + '/' + beltGroup + '/' + item.day_time + '/not_swat'
+  res.redirect(redirLink)
+})
+
+router.post('/weapons_signup', (req, res) => {
+  const item = {
+    stud_data: req.sanitize('result').trim(),
+    stud_data2: req.sanitize('result2').trim(),
+    stud_data3: req.sanitize('result3').trim(),
+    stud_data4: req.sanitize('result4').trim(),
+    day_time: req.sanitize('day_time')
+  }
+  if (item.stud_data === '') {
+    item.stud_data = ' '
+  }
+  if (item.stud_data2 === '') {
+    item.stud_data2 = ' '
+  }
+  if (item.stud_data3 === '') {
+    item.stud_data3 = ' '
+  }
+  if (item.stud_data4 === '') {
+    item.stud_data4 = ' '
+  }
+  const beltGroup = 'Weapons'
+  const redirLink = 'process_classes/' + item.stud_data + '/' + item.stud_data2 + '/' + item.stud_data3 + '/' + item.stud_data4 + '/' + beltGroup + '/' + item.day_time + '/not_swat'
+  res.redirect(redirLink)
+})
+
+router.post('/bjj_signup', (req, res) => {
+  const item = {
+    stud_data: req.sanitize('result').trim(),
+    stud_data2: req.sanitize('result2').trim(),
+    stud_data3: req.sanitize('result3').trim(),
+    stud_data4: req.sanitize('result4').trim(),
+    day_time: req.sanitize('day_time')
+  }
+  if (item.stud_data === '') {
+    item.stud_data = ' '
+  }
+  if (item.stud_data2 === '') {
+    item.stud_data2 = ' '
+  }
+  if (item.stud_data3 === '') {
+    item.stud_data3 = ' '
+  }
+  if (item.stud_data4 === '') {
+    item.stud_data4 = ' '
+  }
+  const beltGroup = 'Bjj'
+  const redirLink = 'process_classes/' + item.stud_data + '/' + item.stud_data2 + '/' + item.stud_data3 + '/' + item.stud_data4 + '/' + beltGroup + '/' + item.day_time + '/not_swat'
+  res.redirect(redirLink)
+})
+
+router.post('/conditional_signup', (req, res) => {
+  const item = {
+    stud_data: req.sanitize('result').trim(),
+    stud_data2: req.sanitize('result2').trim(),
+    stud_data3: req.sanitize('result3').trim(),
+    stud_data4: req.sanitize('result4').trim(),
+    day_time: req.sanitize('day_time')
+  }
+  if (item.stud_data === '') {
+    item.stud_data = ' '
+  }
+  if (item.stud_data2 === '') {
+    item.stud_data2 = ' '
+  }
+  if (item.stud_data3 === '') {
+    item.stud_data3 = ' '
+  }
+  if (item.stud_data4 === '') {
+    item.stud_data4 = ' '
+  }
+  const beltGroup = 'Conditional'
+  const redirLink = 'process_classes/' + item.stud_data + '/' + item.stud_data2 + '/' + item.stud_data3 + '/' + item.stud_data4 + '/' + beltGroup + '/' + item.day_time + '/not_swat'
+  res.redirect(redirLink)
+})
+
+router.post('/level1_signup', (req, res) => {
+  const item = {
+    stud_data: req.sanitize('result').trim(),
+    stud_data2: req.sanitize('result2').trim(),
+    stud_data3: req.sanitize('result3').trim(),
+    stud_data4: req.sanitize('result4').trim(),
+    day_time: req.sanitize('day_time')
+  }
+  if (item.stud_data === '') {
+    item.stud_data = ' '
+  }
+  if (item.stud_data2 === '') {
+    item.stud_data2 = ' '
+  }
+  if (item.stud_data3 === '') {
+    item.stud_data3 = ' '
+  }
+  if (item.stud_data4 === '') {
+    item.stud_data4 = ' '
+  }
+  const beltGroup = 'Level 1'
+  const redirLink = 'process_classes/' + item.stud_data + '/' + item.stud_data2 + '/' + item.stud_data3 + '/' + item.stud_data4 + '/' + beltGroup + '/' + item.day_time + '/not_swat'
+  res.redirect(redirLink)
+})
+
+router.post('/level2_signup', (req, res) => {
+  const item = {
+    stud_data: req.sanitize('result').trim(),
+    stud_data2: req.sanitize('result2').trim(),
+    stud_data3: req.sanitize('result3').trim(),
+    stud_data4: req.sanitize('result4').trim(),
+    day_time: req.sanitize('day_time')
+  }
+  if (item.stud_data === '') {
+    item.stud_data = ' '
+  }
+  if (item.stud_data2 === '') {
+    item.stud_data2 = ' '
+  }
+  if (item.stud_data3 === '') {
+    item.stud_data3 = ' '
+  }
+  if (item.stud_data4 === '') {
+    item.stud_data4 = ' '
+  }
+  const beltGroup = 'Level 2'
+  const redirLink = 'process_classes/' + item.stud_data + '/' + item.stud_data2 + '/' + item.stud_data3 + '/' + item.stud_data4 + '/' + beltGroup + '/' + item.day_time + '/not_swat'
+  res.redirect(redirLink)
+})
+
+router.post('/level3_signup', (req, res) => {
+  const item = {
+    stud_data: req.sanitize('result').trim(),
+    stud_data2: req.sanitize('result2').trim(),
+    stud_data3: req.sanitize('result3').trim(),
+    stud_data4: req.sanitize('result4').trim(),
+    day_time: req.sanitize('day_time')
+  }
+  if (item.stud_data === '') {
+    item.stud_data = ' '
+  }
+  if (item.stud_data2 === '') {
+    item.stud_data2 = ' '
+  }
+  if (item.stud_data3 === '') {
+    item.stud_data3 = ' '
+  }
+  if (item.stud_data4 === '') {
+    item.stud_data4 = ' '
+  }
+  const beltGroup = 'Level 3'
+  const redirLink = 'process_classes/' + item.stud_data + '/' + item.stud_data2 + '/' + item.stud_data3 + '/' + item.stud_data4 + '/' + beltGroup + '/' + item.day_time + '/not_swat'
+  res.redirect(redirLink)
+})
+
+router.post('/bb_signup', (req, res) => {
+  const item = {
+    stud_data: req.sanitize('result').trim(),
+    stud_data2: req.sanitize('result2').trim(),
+    stud_data3: req.sanitize('result3').trim(),
+    stud_data4: req.sanitize('result4').trim(),
+    day_time: req.sanitize('day_time')
+  }
+  if (item.stud_data === '') {
+    item.stud_data = ' '
+  }
+  if (item.stud_data2 === '') {
+    item.stud_data2 = ' '
+  }
+  if (item.stud_data3 === '') {
+    item.stud_data3 = ' '
+  }
+  if (item.stud_data4 === '') {
+    item.stud_data4 = ' '
+  }
+  const beltGroup = 'Black Belt'
+  const redirLink = 'process_classes/' + item.stud_data + '/' + item.stud_data2 + '/' + item.stud_data3 + '/' + item.stud_data4 + '/' + beltGroup + '/' + item.day_time + '/not_swat'
+  res.redirect(redirLink)
+})
+
+router.post('/wfc_signup', (req, res) => {
+  const item = {
+    stud_data: req.sanitize('result').trim(),
+    stud_data2: req.sanitize('result2').trim(),
+    stud_data3: req.sanitize('result3').trim(),
+    stud_data4: req.sanitize('result4').trim(),
+    day_time: req.sanitize('day_time')
+  }
+  if (item.stud_data === '') {
+    item.stud_data = ' '
+  }
+  if (item.stud_data2 === '') {
+    item.stud_data2 = ' '
+  }
+  if (item.stud_data3 === '') {
+    item.stud_data3 = ' '
+  }
+  if (item.stud_data4 === '') {
+    item.stud_data4 = ' '
+  }
+  const beltGroup = 'Women\'s Fight Club'
+  const redirLink = 'process_classes/' + item.stud_data + '/' + item.stud_data2 + '/' + item.stud_data3 + '/' + item.stud_data4 + '/' + beltGroup + '/' + item.day_time + '/not_swat'
+  res.redirect(redirLink)
+})
+
+router.post('/sparapalooza_signup', (req, res) => {
+  const item = {
+    stud_data: req.sanitize('result').trim(),
+    stud_data2: req.sanitize('result2').trim(),
+    stud_data3: req.sanitize('result3').trim(),
+    stud_data4: req.sanitize('result4').trim(),
+    day_time: req.sanitize('day_time')
+  }
+  if (item.stud_data === '') {
+    item.stud_data = ' '
+  }
+  if (item.stud_data2 === '') {
+    item.stud_data2 = ' '
+  }
+  if (item.stud_data3 === '') {
+    item.stud_data3 = ' '
+  }
+  if (item.stud_data4 === '') {
+    item.stud_data4 = ' '
+  }
+  const beltGroup = 'Sparapalooza'
+  const redirLink = 'process_classes/' + item.stud_data + '/' + item.stud_data2 + '/' + item.stud_data3 + '/' + item.stud_data4 + '/' + beltGroup + '/' + item.day_time + '/not_swat'
+  res.redirect(redirLink)
+})
+
+router.post('/swat_signup', (req, res) => {
+  const item = {
+    stud_data: req.sanitize('result').trim(),
+    stud_data2: req.sanitize('result2').trim(),
+    stud_data3: req.sanitize('result3').trim(),
+    stud_data4: req.sanitize('result4').trim(),
+    day_time: req.sanitize('day_time')
+  }
+  if (item.stud_data === '') {
+    item.stud_data = ' '
+  }
+  if (item.stud_data2 === '') {
+    item.stud_data2 = ' '
+  }
+  if (item.stud_data3 === '') {
+    item.stud_data3 = ' '
+  }
+  if (item.stud_data4 === '') {
+    item.stud_data4 = ' '
+  }
+  const beltGroup = 'Swat'
+  const redirLink = 'process_classes/' + item.stud_data + '/' + item.stud_data2 + '/' + item.stud_data3 + '/' + item.stud_data4 + '/' + beltGroup + '/' + item.day_time + '/not_swat'
+  res.redirect(redirLink)
+})
+
+router.get('/process_classes/(:stud_info)/(:stud_info2)/(:stud_info3)/(:stud_info4)/(:belt_group)/(:idSet)/(:swat)', (req, res) => {
+  var masterBarcode = 0
+  if (req.params.swat === 'is_swat') {
+    var studentInfo = []
+    if (req.params.stud_info !== ' ') {
+      studentInfo.push(parseStudentInfo(req.params.stud_info))
+    }
+    if (req.params.stud_info2 !== ' ') {
+      studentInfo.push(parseStudentInfo(req.params.stud_info2))
+    }
+    if (req.params.stud_info3 !== ' ') {
+      studentInfo.push(parseStudentInfo(req.params.stud_info3))
+    }
+    if (req.params.stud_info4 !== ' ') {
+      studentInfo.push(parseStudentInfo(req.params.stud_info4))
+    }
+    const queryClasses = 'insert into class_signups (student_name, email, class_session_id, class_check, barcode, is_swat) values ($1, (select lower(email) from student_list where barcode = $2), $3, $4, $5, true) on conflict (class_check) do nothing;'
+    const emailInfo = 'select email from student_list where barcode = $1;'
+    var idSet = parseID(req.params.idSet)
+    const swatCount = 'update classes set swat_count = swat_count + 1 where class_id = $1;'
+    const bbSwatCount = 'update student_list set swat_count = swat_count + 1 where barcode = $1;'
+    masterBarcode = studentInfo[0][1]
+    console.log('masterBarcode = ' + String(masterBarcode))
+    studentInfo.forEach(student => {
+      idSet.forEach(element => {
+        const tempClassCheck = student[0].toLowerCase().split(' ').join('') + element.toString()
+        db.none(swatCount, [element])
+          .then(row => {
+            db.none(queryClasses, [student[0], student[1], element, tempClassCheck, student[1]])
+              .then(rows => {
+                db.none(bbSwatCount, [masterBarcode])
+                  .then(swatRow => {
+                    console.log('Added swat class with element ' + element + swatRow)
+                  })
+                  .catch(err => {
+                    console.log('Err: with swat element ' + element + '. Err: ' + err)
+                    console.log('Err: with student ' + student + '. Err, could not update swat count: ' + err)
+                  })
+              })
+              .catch(err => {
+                console.log('Err: with swat element ' + element + '. Err: ' + err)
+                console.log('Err: with student ' + student + '. Err: ' + err)
+              })
+          })
+          .catch(err => {
+            console.log('Could not update swat_count ' + err)
+          })
+      })
+    })
+    var nameList = ''
+    switch (studentInfo.length) {
+      case 1:
+        nameList = studentInfo[0][0]
+        break
+      case 2:
+        nameList = studentInfo[0][0] + ', ' + studentInfo[1][0]
+        break
+      case 3:
+        nameList = studentInfo[0][0] + ', ' + studentInfo[1][0] + ', ' + studentInfo[2][0]
+        break
+      case 4:
+        nameList = studentInfo[0][0] + ', ' + studentInfo[1][0] + ', ' + studentInfo[2][0] + ', ' + studentInfo[3][0]
+        break
+      default:
+        nameList = 'Error finding names'
+        break
+    }
+    switch (idSet.length) {
+      case 1:
+        var endQuery = "select distinct on (class_id) to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, to_char(starts_at, 'MM') as month_num, to_char(starts_at, 'DD') as day_num, to_char(starts_at, 'HH24') as hour_num, to_char(starts_at, 'MI') as min_num, to_char(ends_at, 'HH24') as end_hour, to_char(ends_at, 'MI') as end_min from classes where class_id = $1;"
+        db.any(emailInfo, [studentInfo[0][1]])
+          .then(email => {
+            db.any(endQuery, [idSet[0]])
+              .then(rows => {
+                res.render('class_confirmed', {
+                  classes: rows,
+                  email: email,
+                  student_name: nameList,
+                  belt_group: req.params.belt_color,
+                  class_type: 'swat',
+                  num_events: 1,
+                  master_barcode: masterBarcode
+                })
+              })
+              .catch(err => {
+                console.log('Err in displaying confirmed classes: ' + err)
+                res.render('temp_classes', {
+                  alert_message: 'Unable to submit classes for signup.',
+                  level: 'none'
+                })
+              })
+          })
+          .catch(err => {
+            console.log('Could not find email. Error: ' + err)
+            res.render('temp_classes', {
+              level: 'none',
+              alert_message: 'Could not find an email associated with that student.'
+            })
+          })
+        break
+      case 2:
+        var endQuery = "select distinct on (class_id) to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, to_char(starts_at, 'MM') as month_num, to_char(starts_at, 'DD') as day_num, to_char(starts_at, 'HH24') as hour_num, to_char(starts_at, 'MI') as min_num, to_char(ends_at, 'HH24') as end_hour, to_char(ends_at, 'MI') as end_min from classes where class_id in ($1, $2);"
+        db.any(emailInfo, [studentInfo[0][1]])
+          .then(email => {
+            db.any(endQuery, [idSet[0], idSet[1]])
+              .then(rows => {
+                res.render('class_confirmed', {
+                  classes: rows,
+                  email: email,
+                  student_name: nameList,
+                  belt_group: req.params.belt_color,
+                  class_type: 'swat',
+                  num_events: 2,
+                  master_barcode: masterBarcode
+                })
+              })
+              .catch(err => {
+                console.log('Err in displaying confirmed classes: ' + err)
+                res.render('temp_classes', {
+                  alert_message: 'Unable to submit classes for signup.',
+                  level: 'none'
+                })
+              })
+          })
+          .catch(err => {
+            console.log('Could not find email. Error: ' + err)
+            res.render('temp_classes', {
+              level: 'none',
+              alert_message: 'Could not find an email associated with that student.'
+            })
+          })
+        break
+      case 3:
+        var endQuery = "select distinct on (class_id) to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, to_char(starts_at, 'MM') as month_num, to_char(starts_at, 'DD') as day_num, to_char(starts_at, 'HH24') as hour_num, to_char(starts_at, 'MI') as min_num, to_char(ends_at, 'HH24') as end_hour, to_char(ends_at, 'MI') as end_min from classes where class_id in ($1, $2, $3);"
+        db.any(emailInfo, [studentInfo[0][1]])
+          .then(email => {
+            db.any(endQuery, [idSet[0], idSet[1], idSet[2]])
+              .then(rows => {
+                res.render('class_confirmed', {
+                  classes: rows,
+                  email: email,
+                  student_name: nameList,
+                  belt_group: req.params.belt_color,
+                  class_type: 'swat',
+                  num_events: 3,
+                  master_barcode: masterBarcode
+                })
+              })
+              .catch(err => {
+                console.log('Err in displaying confirmed classes: ' + err)
+                res.render('temp_classes', {
+                  alert_message: 'Unable to submit classes for signup.',
+                  level: 'none'
+                })
+              })
+          })
+          .catch(err => {
+            console.log('Could not find email. Error: ' + err)
+            res.render('temp_classes', {
+              level: 'none',
+              alert_message: 'Could not find an email associated with that student.'
+            })
+          })
+        break
+      case 4:
+        var endQuery = "select distinct on (class_id) to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, to_char(starts_at, 'MM') as month_num, to_char(starts_at, 'DD') as day_num, to_char(starts_at, 'HH24') as hour_num, to_char(starts_at, 'MI') as min_num, to_char(ends_at, 'HH24') as end_hour, to_char(ends_at, 'MI') as end_min from classes where class_id in ($1, $2, $3, $4);"
+        db.any(emailInfo, [studentInfo[0][1]])
+          .then(email => {
+            db.any(endQuery, [idSet[0], idSet[1], idSet[2], idSet[3]])
+              .then(rows => {
+                res.render('class_confirmed', {
+                  classes: rows,
+                  email: email,
+                  student_name: nameList,
+                  belt_group: req.params.belt_color,
+                  class_type: 'swat',
+                  num_events: 4,
+                  master_barcode: masterBarcode
+                })
+              })
+              .catch(err => {
+                console.log('Err in displaying confirmed classes: ' + err)
+                res.render('temp_classes', {
+                  alert_message: 'Unable to submit classes for signup.',
+                  level: 'none'
+                })
+              })
+          })
+          .catch(err => {
+            console.log('Could not find email. Error: ' + err)
+            res.render('temp_classes', {
+              level: 'none',
+              alert_message: 'Could not find an email associated with that student.'
+            })
+          })
+        break
+      default:
+        console.log('Length of idSet not within [1,4]. idSet is ' + idSet + ' with length of ' + idSet.length)
+        res.render('temp_classes', {
+          alert_message: 'Class IDs not properly set. Classes NOT signed up for.',
+          level: 'none'
+        })
+        break
+    }
+  } else {
+    var studentInfo = []
+    if (req.params.stud_info !== ' ') {
+      studentInfo.push(parseStudentInfo(req.params.stud_info))
+    }
+    if (req.params.stud_info2 !== ' ') {
+      studentInfo.push(parseStudentInfo(req.params.stud_info2))
+    }
+    if (req.params.stud_info3 !== ' ') {
+      studentInfo.push(parseStudentInfo(req.params.stud_info3))
+    }
+    if (req.params.stud_info4 !== ' ') {
+      studentInfo.push(parseStudentInfo(req.params.stud_info4))
+    }
+    const queryClasses = 'insert into class_signups (student_name, email, class_session_id, class_check, barcode) values ($1, (select lower(email) from student_list where barcode = $2), $3, $4, $5) on conflict (class_check) do nothing;'
+    const emailInfo = 'select email from student_list where barcode = $1;'
+    var idSet = parseID(req.params.idSet)
+    masterBarcode = studentInfo[0][1]
+    console.log('masterBarcode = ' + String(masterBarcode))
+    const countUpdateQuery = 'update classes set student_count = student_count + 1 where class_id = $1;'
+    studentInfo.forEach(student => {
+      idSet.forEach(element => {
+        db.none(countUpdateQuery, [element])
+          .then(row => {
+            const tempClassCheck = student[0].toLowerCase().split(' ').join('') + element.toString()
+            db.none(queryClasses, [student[0], student[1], element, tempClassCheck, student[1]])
+              .then(rows => {
+                console.log('Added class with element ' + element)
+                console.log('Added element for student ' + student)
+              })
+              .catch(err => {
+                console.log('Err: with element ' + element + '. Err: ' + err)
+              })
+          })
+          .catch(err => {
+            console.log('Could not update count for class element ' + element + '. ERROR: ' + err)
+          })
+      })
+    })
+    var nameList = ''
+    switch (studentInfo.length) {
+      case 1:
+        nameList = studentInfo[0][0]
+        break
+      case 2:
+        nameList = studentInfo[0][0] + ', ' + studentInfo[1][0]
+        break
+      case 3:
+        nameList = studentInfo[0][0] + ', ' + studentInfo[1][0] + ', ' + studentInfo[2][0]
+        break
+      case 4:
+        nameList = studentInfo[0][0] + ', ' + studentInfo[1][0] + ', ' + studentInfo[2][0] + ', ' + studentInfo[3][0]
+        break
+      default:
+        nameList = 'Error finding names'
+        break
+    }
+    switch (idSet.length) {
+      case 1:
+        var endQuery = "select distinct on (class_id) to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, to_char(starts_at, 'MM') as month_num, to_char(starts_at, 'DD') as day_num, to_char(starts_at, 'HH24') as hour_num, to_char(starts_at, 'MI') as min_num, to_char(ends_at, 'HH24') as end_hour, to_char(ends_at, 'MI') as end_min from classes where class_id = $1;"
+        db.any(emailInfo, [studentInfo[0][1]])
+          .then(email => {
+            db.any(endQuery, [idSet[0]])
+              .then(rows => {
+                res.render('class_confirmed', {
+                  classes: rows,
+                  email: email,
+                  student_name: nameList,
+                  belt_group: req.params.belt_color,
+                  class_type: 'class',
+                  num_events: 1,
+                  master_barcode: masterBarcode
+                })
+              })
+              .catch(err => {
+                console.log('Err in displaying confirmed classes: ' + err)
+                res.render('temp_classes', {
+                  alert_message: 'Unable to submit classes for signup.',
+                  level: 'none'
+                })
+              })
+          })
+          .catch(err => {
+            console.log('Could not find email. Error: ' + err)
+            res.render('temp_classes', {
+              level: 'none',
+              alert_message: 'Could not find an email associated with that student.'
+            })
+          })
+        break
+      case 2:
+        var endQuery = "select distinct on (class_id) to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, to_char(starts_at, 'MM') as month_num, to_char(starts_at, 'DD') as day_num, to_char(starts_at, 'HH24') as hour_num, to_char(starts_at, 'MI') as min_num, to_char(ends_at, 'HH24') as end_hour, to_char(ends_at, 'MI') as end_min from classes where class_id in ($1, $2);"
+        db.any(emailInfo, [studentInfo[0][1]])
+          .then(email => {
+            db.any(endQuery, [idSet[0], idSet[1]])
+              .then(rows => {
+                res.render('class_confirmed', {
+                  classes: rows,
+                  email: email,
+                  student_name: nameList,
+                  belt_group: req.params.belt_color,
+                  class_type: 'class',
+                  num_events: 2,
+                  master_barcode: masterBarcode
+                })
+              })
+              .catch(err => {
+                console.log('Err in displaying confirmed classes: ' + err)
+                res.render('temp_classes', {
+                  alert_message: 'Unable to submit classes for signup.',
+                  level: 'none'
+                })
+              })
+          })
+          .catch(err => {
+            console.log('Could not find email. Error: ' + err)
+            res.render('temp_classes', {
+              level: 'none',
+              alert_message: 'Could not find an email associated with that student.'
+            })
+          })
+        break
+      case 3:
+        var endQuery = "select distinct on (class_id) to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, to_char(starts_at, 'MM') as month_num, to_char(starts_at, 'DD') as day_num, to_char(starts_at, 'HH24') as hour_num, to_char(starts_at, 'MI') as min_num, to_char(ends_at, 'HH24') as end_hour, to_char(ends_at, 'MI') as end_min from classes where class_id in ($1, $2, $3);"
+        db.any(emailInfo, [studentInfo[0][1]])
+          .then(email => {
+            db.any(endQuery, [idSet[0], idSet[1], idSet[2]])
+              .then(rows => {
+                res.render('class_confirmed', {
+                  classes: rows,
+                  email: email,
+                  student_name: nameList,
+                  belt_group: req.params.belt_color,
+                  class_type: 'class',
+                  num_events: 3,
+                  master_barcode: masterBarcode
+                })
+              })
+              .catch(err => {
+                console.log('Err in displaying confirmed classes: ' + err)
+                res.render('temp_classes', {
+                  alert_message: 'Unable to submit classes for signup.',
+                  level: 'none'
+                })
+              })
+          })
+          .catch(err => {
+            console.log('Could not find email. Error: ' + err)
+            res.render('temp_classes', {
+              level: 'none',
+              alert_message: 'Could not find an email associated with that student.'
+            })
+          })
+        break
+      case 4:
+        var endQuery = "select distinct on (class_id) to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, to_char(starts_at, 'MM') as month_num, to_char(starts_at, 'DD') as day_num, to_char(starts_at, 'HH24') as hour_num, to_char(starts_at, 'MI') as min_num, to_char(ends_at, 'HH24') as end_hour, to_char(ends_at, 'MI') as end_min from classes where class_id in ($1, $2, $3, $4);"
+        db.any(emailInfo, [studentInfo[0][1]])
+          .then(email => {
+            db.any(endQuery, [idSet[0], idSet[1], idSet[2], idSet[3]])
+              .then(rows => {
+                res.render('class_confirmed', {
+                  classes: rows,
+                  email: email,
+                  student_name: nameList,
+                  belt_group: req.params.belt_color,
+                  class_type: 'class',
+                  num_events: 4,
+                  master_barcode: masterBarcode
+                })
+              })
+              .catch(err => {
+                console.log('Err in displaying confirmed classes: ' + err)
+                res.render('temp_classes', {
+                  alert_message: 'Unable to submit classes for signup.',
+                  level: 'none'
+                })
+              })
+          })
+          .catch(err => {
+            console.log('Could not find email. Error: ' + err)
+            res.render('temp_classes', {
+              level: 'none',
+              alert_message: 'Could not find an email associated with that student.'
+            })
+          })
+        break
+      default:
+        console.log('Length of idSet not within [1,4]. idSet is ' + idSet + ' with length of ' + idSet.length)
+        res.render('temp_classes', {
+          alert_message: 'Class IDs not properly set. Classes NOT signed up for.',
+          level: 'none'
+        })
+        break
+    }
   }
 })
 

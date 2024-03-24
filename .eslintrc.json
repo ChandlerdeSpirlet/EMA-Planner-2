@@ -4,9 +4,9 @@
         "ecmaVersion": "latest"
     },
     "rules": {
-        "no-undef": 0,
         "no-unused-vars": 0,
-        "no-var": 0
+        "no-var": 0,
+        "no-redeclare": 0
     },
 
     "env": {
