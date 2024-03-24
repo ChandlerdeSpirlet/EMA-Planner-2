@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4.1.2
     - name: Install modules
       run: npm install
     - name: Install ESLint
@@ -25,7 +25,7 @@ jobs:
     if: github.event.pull_request.merged == true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.2
   
       - name: Run Trivy vulnerability scanner in fs mode
         uses: aquasecurity/trivy-action@master
@@ -39,7 +39,7 @@ jobs:
     if: github.event.pull_request.merged == true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.2
       - name: Create package-lock.json
         run: npm install
       - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
