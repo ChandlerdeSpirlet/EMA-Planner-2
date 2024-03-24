@@ -3,15 +3,15 @@ const bodyParser = require('body-parser')
 const nunjucks = require('nunjucks')
 const session = require('express-session')
 const path = require('path')
+const ics = require('ics')
 // const exp_val = require('express-validator')
 const { check, validationResult } = require('express-validator')
 const flash = require('connect-flash')
 const fs = require('fs')
-// const { writeFileSync, read } = require('fs')
-// const { readFileSync } = require('fs')
+const { writeFileSync } = require('fs')
+const { readFileSync } = require('fs')
 // const ics = require('ics')
 var cookieParser = require('cookie-parser')
-// const { writeFileSync, read } = require('fs')
 // const { readFileSync } = require('fs')
 'use strict';
 // const request = require('request')
@@ -1940,6 +1940,526 @@ router.get('/process_classes/(:stud_info)/(:stud_info2)/(:stud_info3)/(:stud_inf
         break
     }
   }
+})
+
+router.get('/class_confirmed/', (req, res) => {
+  res.render('class_confirmed', {
+    classes: '',
+    email: '',
+    student_name: '',
+    belt_group: '',
+    class_type: '',
+    num_events: '',
+    master_barcode: ''
+  })
+})
+
+router.post('/build_ics', (req, res) => {
+  const numIn = {
+    num_events: req.sanitize('num_events').trim(),
+    class_type: req.sanitize('class_type').trim(),
+    master_barcode: req.sanitize('master_barcode').trim()
+  }
+  switch (Number(numIn.num_events)) {
+    case 1:
+      var input = {
+        num_events: req.sanitize('num_events').trim(),
+        email: req.sanitize('email').trim(),
+        name: req.sanitize('student_name').trim(),
+        month: req.sanitize('month_num').trim(),
+        day: req.sanitize('day_num').trim(),
+        start_hour: req.sanitize('hour_num').trim(),
+        start_min: req.sanitize('min_num').trim(),
+        end_hour: req.sanitize('end_hour').trim(),
+        end_min: req.sanitize('end_min').trim()
+      }
+      break
+    case 2:
+      var input = {
+        num_events: req.sanitize('num_events').trim(),
+        email: req.sanitize('email').trim(),
+        name: req.sanitize('student_name').trim(),
+        month: req.sanitize('month_num').trim(),
+        day: req.sanitize('day_num').trim(),
+        start_hour: req.sanitize('hour_num').trim(),
+        start_min: req.sanitize('min_num').trim(),
+        end_hour: req.sanitize('end_hour').trim(),
+        end_min: req.sanitize('end_min').trim(),
+        month_1: req.sanitize('month_num_1').trim(),
+        day_1: req.sanitize('day_num_1').trim(),
+        hour_1: req.sanitize('hour_num_1').trim(),
+        min_1: req.sanitize('min_num_1').trim(),
+        end_hour_1: req.sanitize('end_hour_1').trim(),
+        end_min_1: req.sanitize('end_min_1').trim()
+      }
+      break
+    case 3:
+      var input = {
+        num_events: req.sanitize('num_events').trim(),
+        email: req.sanitize('email').trim(),
+        name: req.sanitize('student_name').trim(),
+        month: req.sanitize('month_num').trim(),
+        day: req.sanitize('day_num').trim(),
+        start_hour: req.sanitize('hour_num').trim(),
+        start_min: req.sanitize('min_num').trim(),
+        end_hour: req.sanitize('end_hour').trim(),
+        end_min: req.sanitize('end_min').trim(),
+        month_1: req.sanitize('month_num_1').trim(),
+        day_1: req.sanitize('day_num_1').trim(),
+        hour_1: req.sanitize('hour_num_1').trim(),
+        min_1: req.sanitize('min_num_1').trim(),
+        end_hour_1: req.sanitize('end_hour_1').trim(),
+        end_min_1: req.sanitize('end_min_1').trim(),
+        month_2: req.sanitize('month_num_2').trim(),
+        day_2: req.sanitize('day_num_2').trim(),
+        hour_2: req.sanitize('hour_num_2').trim(),
+        min_2: req.sanitize('min_num_2').trim(),
+        end_hour_2: req.sanitize('end_hour_2').trim(),
+        end_min_2: req.sanitize('end_min_2').trim()
+      }
+      break
+    case 4:
+      var input = {
+        num_events: req.sanitize('num_events').trim(),
+        email: req.sanitize('email').trim(),
+        name: req.sanitize('student_name').trim(),
+        month: req.sanitize('month_num').trim(),
+        day: req.sanitize('day_num').trim(),
+        start_hour: req.sanitize('hour_num').trim(),
+        start_min: req.sanitize('min_num').trim(),
+        end_hour: req.sanitize('end_hour').trim(),
+        end_min: req.sanitize('end_min').trim(),
+        month_1: req.sanitize('month_num_1').trim(),
+        day_1: req.sanitize('day_num_1').trim(),
+        hour_1: req.sanitize('hour_num_1').trim(),
+        min_1: req.sanitize('min_num_1').trim(),
+        end_hour_1: req.sanitize('end_hour_1').trim(),
+        end_min_1: req.sanitize('end_min_1').trim(),
+        month_2: req.sanitize('month_num_2').trim(),
+        day_2: req.sanitize('day_num_2').trim(),
+        hour_2: req.sanitize('hour_num_2').trim(),
+        min_2: req.sanitize('min_num_2').trim(),
+        end_hour_2: req.sanitize('end_hour_2').trim(),
+        end_min_2: req.sanitize('end_min_2').trim(),
+        month_3: req.sanitize('month_num_3').trim(),
+        day_3: req.sanitize('day_num_3').trim(),
+        hour_3: req.sanitize('hour_num_3').trim(),
+        min_3: req.sanitize('min_num_3').trim(),
+        end_hour_3: req.sanitize('end_hour_3').trim(),
+        end_min_3: req.sanitize('end_min_3').trim()
+      }
+      break
+    default:
+      console.log('No num events')
+      break
+  }
+  var alarms = []
+  alarms.push({
+    action: 'audio',
+    trigger: { hours: 2, minutes: 30, before: true },
+    repeat: 2,
+    attachType: 'VALUE=URI',
+    attach: 'Glass'
+  })
+  console.log('num events: ' + Number(numIn.num_events))
+  console.log('0: ' + input.start_hour)
+  console.log('1: ' + input.hour_1)
+  console.log('2: ' + input.hour_2)
+  const year = new Date().getFullYear()
+  if (numIn.class_type === 'swat') {
+    switch (Number(input.num_events)) {
+      case 1:
+        var { error, value } = ics.createEvents([
+          {
+            title: input.name + "'s Swat Class",
+            start: [year, Number(input.month), Number(input.day), Number(input.start_hour), Number(input.start_min)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          }
+        ])
+        if (error) {
+          console.log('Error creating calendar events: ' + error)
+        }
+        var filename = input.name.replace(/\s/g, '').toLowerCase() + '.ics'
+        writeFileSync(`${__dirname}/` + filename, value)
+        console.log('File path is ' + `${__dirname}/` + filename)
+        res.redirect('/cal_down/' + filename)
+        break
+      case 2:
+        var { error, value } = ics.createEvents([
+          {
+            title: input.name + "'s Swat Class",
+            start: [year, Number(input.month), Number(input.day), Number(input.start_hour), Number(input.start_min)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          },
+          {
+            title: input.name + "'s Swat Class",
+            start: [year, Number(input.month_1), Number(input.day_1), Number(input.hour_1), Number(input.min_1)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          }
+        ])
+        if (error) {
+          console.log('Error creating calendar events: ' + error)
+        }
+        var filename = input.name.replace(/\s/g, '').toLowerCase() + '.ics'
+        writeFileSync(`${__dirname}/` + filename, value)
+        console.log('File path is ' + `${__dirname}/` + filename)
+        res.redirect('/cal_down/' + filename)
+        break
+      case 3:
+        var { error, value } = ics.createEvents([
+          {
+            title: input.name + "'s Swat Class",
+            start: [year, Number(input.month), Number(input.day), Number(input.start_hour), Number(input.start_min)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          },
+          {
+            title: input.name + "'s Swat Class",
+            start: [year, Number(input.month_1), Number(input.day_1), Number(input.hour_1), Number(input.min_1)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          },
+          {
+            title: input.name + "'s Swat Class",
+            start: [year, Number(input.month_2), Number(input.day_2), Number(input.hour_2), Number(input.min_2)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [year, Number(input.month_2), Number(input.day_2), Number(input.end_hour_2), Number(input.end_min_2)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          }
+        ])
+        if (error) {
+          console.log('Error creating calendar events: ' + error)
+        }
+        var filename = input.name.replace(/\s/g, '').toLowerCase() + '.ics'
+        writeFileSync(`${__dirname}/` + filename, value)
+        console.log('File path is ' + `${__dirname}/` + filename)
+        res.redirect('/cal_down/' + filename)
+        break
+      case 4:
+        var { error, value } = ics.createEvents([
+          {
+            title: input.name + "'s Swat Class",
+            start: [year, Number(input.month), Number(input.day), Number(input.start_hour), Number(input.start_min)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          },
+          {
+            title: input.name + "'s Swat Class",
+            start: [year, Number(input.month_1), Number(input.day_1), Number(input.hour_1), Number(input.min_1)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          },
+          {
+            title: input.name + "'s Swat Class",
+            start: [year, Number(input.month_2), Number(input.day_2), Number(input.hour_2), Number(input.min_2)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [year, Number(input.month_2), Number(input.day_2), Number(input.end_hour_2), Number(input.end_min_2)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          },
+          {
+            title: input.name + "'s Swat Class",
+            start: [year, Number(input.month_3), Number(input.day_3), Number(input.hour_3), Number(input.min_3)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [year, Number(input.month_3), Number(input.day_3), Number(input.end_hour_3), Number(input.end_min_3)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          }
+        ])
+        if (error) {
+          console.log('Error creating calendar events: ' + error)
+        }
+        var filename = input.name.replace(/\s/g, '').toLowerCase() + '.ics'
+        writeFileSync(`${__dirname}/` + filename, value)
+        console.log('File path is ' + `${__dirname}/` + filename)
+        res.redirect('/cal_down/' + filename)
+        break
+      default:
+        console.log('No data to create ics')
+        res.render('temp_classes', {
+          alert_message: 'Could not create a calendar event',
+          level: 'calendar issue'
+        })
+    }
+  } else {
+    switch (Number(input.num_events)) {
+      case 1:
+        var { error, value } = ics.createEvents([
+          {
+            title: input.name + "'s Karate Class",
+            start: [year, Number(input.month), Number(input.day), Number(input.start_hour), Number(input.start_min)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          }
+        ])
+        if (error) {
+          console.log('Error creating calendar events: ' + error)
+        }
+        var filename = input.name.replace(/\s/g, '').toLowerCase() + '.ics'
+        writeFileSync(`${__dirname}/` + filename, value)
+        console.log('File path is ' + `${__dirname}/` + filename)
+        res.redirect('/cal_down/' + filename)
+        break
+      case 2:
+        var { error, value } = ics.createEvents([
+          {
+            title: input.name + "'s Karate Class",
+            start: [year, Number(input.month), Number(input.day), Number(input.start_hour), Number(input.start_min)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          },
+          {
+            title: input.name + "'s Karate Class",
+            start: [year, Number(input.month_1), Number(input.day_1), Number(input.hour_1), Number(input.min_1)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          }
+        ])
+        if (error) {
+          console.log('Error creating calendar events: ' + error)
+        }
+        var filename = input.name.replace(/\s/g, '').toLowerCase() + '.ics'
+        writeFileSync(`${__dirname}/` + filename, value)
+        console.log('File path is ' + `${__dirname}/` + filename)
+        res.redirect('/cal_down/' + filename)
+        break
+      case 3:
+        var { error, value } = ics.createEvents([
+          {
+            title: input.name + "'s Karate Class",
+            start: [year, Number(input.month), Number(input.day), Number(input.start_hour), Number(input.start_min)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          },
+          {
+            title: input.name + "'s Karate Class",
+            start: [year, Number(input.month_1), Number(input.day_1), Number(input.hour_1), Number(input.min_1)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          },
+          {
+            title: input.name + "'s Karate Class",
+            start: [year, Number(input.month_2), Number(input.day_2), Number(input.hour_2), Number(input.min_2)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [year, Number(input.month_2), Number(input.day_2), Number(input.end_hour_2), Number(input.end_min_2)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          }
+        ])
+        if (error) {
+          console.log('Error creating calendar events: ' + error)
+        }
+        var filename = input.name.replace(/\s/g, '').toLowerCase() + '.ics'
+        writeFileSync(`${__dirname}/` + filename, value)
+        console.log('File path is ' + `${__dirname}/` + filename)
+        res.redirect('/cal_down/' + filename)
+        break
+      case 4:
+        var { error, value } = ics.createEvents([
+          {
+            title: input.name + "'s Karate Class",
+            start: [year, Number(input.month), Number(input.day), Number(input.start_hour), Number(input.start_min)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          },
+          {
+            title: input.name + "'s Karate Class",
+            start: [year, Number(input.month_1), Number(input.day_1), Number(input.hour_1), Number(input.min_1)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          },
+          {
+            title: input.name + "'s Karate Class",
+            start: [year, Number(input.month_2), Number(input.day_2), Number(input.hour_2), Number(input.min_2)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [year, Number(input.month_2), Number(input.day_2), Number(input.end_hour_2), Number(input.end_min_2)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          },
+          {
+            title: input.name + "'s Karate Class",
+            start: [year, Number(input.month_3), Number(input.day_3), Number(input.hour_3), Number(input.min_3)],
+            startInputType: 'local',
+            startOutputType: 'local',
+            end: [year, Number(input.month_3), Number(input.day_3), Number(input.end_hour_3), Number(input.end_min_3)],
+            endInputType: 'local',
+            endOutputType: 'local',
+            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            busyStatus: 'BUSY',
+            status: 'CONFIRMED',
+            location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
+            alarms: alarms
+          }
+        ])
+        if (error) {
+          console.log('Error creating calendar events: ' + error)
+          
+        }
+        var filename = input.name.replace(/\s/g, '').toLowerCase() + '.ics'
+        writeFileSync(`${__dirname}/` + filename, value)
+        console.log('File path is ' + `${__dirname}/` + filename)
+        res.redirect('/cal_down/' + filename)
+        break
+      default:
+        console.log('No data to create ics')
+        res.render('temp_classes', {
+          alert_message: 'Could not create a calendar event',
+          level: 'calendar issue'
+        })
+    }
+  }
+})
+
+app.get('/cal_down/(:filename)', function (req, res) {
+  var data = readFileSync(__dirname + '/' + req.params.filename)
+  res.contentType('text/calendar')
+  res.send(data)
 })
 
 app.listen(port, () => {
