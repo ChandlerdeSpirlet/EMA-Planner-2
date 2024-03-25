@@ -14,28 +14,28 @@ const { readFileSync } = require('fs')
 var cookieParser = require('cookie-parser')
 // const { readFileSync } = require('fs')
 'use strict';
-// const request = require('request')
-// const crypto = require('crypto')
+const request = require('request')
+const crypto = require('crypto')
 // const Json2csvParser = require("json2csv").Parser
 // const csv = require('csv-parser')
 const fileUpload = require('express-fileupload')
 
-// const settings = {
-//   port: 8080,
-//   apiv4url: 'https://api.paysimple.com/v4',
-//   apiv4url_beta: 'https://sandbox-api.paysimple.com/v4',
-//   username: 'APIUser145350',
-//   username_beta: 'APIUser156358',
-//   apikey: process.env.ps_api,
-//   apikey_beta: process.env.ps_api_beta
-// }
+const settings = {
+  port: 8080,
+  apiv4url: 'https://api.paysimple.com/v4',
+  apiv4url_beta: 'https://sandbox-api.paysimple.com/v4',
+  username: 'APIUserRemoved_NeedUpdate',
+  username_beta: 'APIUser156358',
+  apikey: process.env.ps_api,
+  apikey_beta: process.env.ps_api_beta
+}
 
-// function getAuthHeader() {
-//   let time = (new Date()).toISOString()
-//   let hash = crypto.createHmac('SHA256', settings.apikey).update(time).digest('base64')
-//   return "PSSERVER" + " " + "accessid=" + settings.username + "; timestamp=" + time + "; signature=" + hash;
-// }
-// function getAuthHeader_beta() {
+function getAuthHeader () {
+  const time = (new Date()).toISOString()
+  const hash = crypto.createHmac('SHA256', settings.apikey).update(time).digest('base64')
+  return 'PSSERVER' + ' ' + 'accessid=' + settings.username + '; timestamp=' + time + '; signature=' + hash
+}
+// function getAuthHeader_beta () {
 //   let time = (new Date()).toISOString()
 //   let hash = crypto.createHmac('SHA256', settings.apikey_beta).update(time).digest('base64')
 //   return "PSSERVER" + " " + "accessid=" + settings.username_beta + "; timestamp=" + time + "; signature=" + hash;
@@ -89,6 +89,361 @@ function parseStudentInfo (info) {
 
 function convertTZ (date, tzString) {
   return new Date((typeof date === 'string' ? new Date(date) : date).toLocaleString('en-US', { timeZone: tzString }))
+}
+
+function parseBelt (currentColor, isPromotion) { // returns belt color, level, and belt_order value
+  var beltInfo = ['', '', 999]
+  if (isPromotion) {
+    switch (currentColor) {
+      case 'Dragons White':
+        beltInfo[0] = 'Dragons Gold'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Gold':
+        beltInfo[0] = 'Dragons Orange'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Orange':
+        beltInfo[0] = 'Dragons Green'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Green':
+        beltInfo[0] = 'Dragons Purple'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Purple':
+        beltInfo[0] = 'Dragons Blue'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Blue':
+        beltInfo[0] = 'Dragons Red'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Red':
+        beltInfo[0] = 'Dragons Brown'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Brown':
+        beltInfo[0] = 'White'
+        beltInfo[1] = 'Basic'
+        beltInfo[2] = 0
+        break
+      case 'White':
+        beltInfo[0] = 'Gold'
+        beltInfo[1] = 'Basic'
+        beltInfo[2] = 0
+        break
+      case 'Gold':
+        beltInfo[0] = 'Orange'
+        beltInfo[1] = 'Level 1'
+        beltInfo[2] = 1
+        break
+      case 'Orange':
+        beltInfo[0] = 'High Orange'
+        beltInfo[1] = 'Level 1'
+        beltInfo[2] = 1
+        break
+      case 'High Orange':
+        beltInfo[0] = 'Green'
+        beltInfo[1] = 'Level 1'
+        beltInfo[2] = 1
+        break
+      case 'Green':
+        beltInfo[0] = 'High Green'
+        beltInfo[1] = 'Level 1'
+        beltInfo[2] = 1
+        break
+      case 'High Green':
+        beltInfo[0] = 'Purple'
+        beltInfo[1] = 'Level 2'
+        beltInfo[2] = 2
+        break
+      case 'Purple':
+        beltInfo[0] = 'High Purple'
+        beltInfo[1] = 'Level 2'
+        beltInfo[2] = 2
+        break
+      case 'High Purple':
+        beltInfo[0] = 'Blue'
+        beltInfo[1] = 'Level 2'
+        beltInfo[2] = 2
+        break
+      case 'Blue':
+        beltInfo[0] = 'High Blue'
+        beltInfo[1] = 'Level 2'
+        beltInfo[2] = 2
+        break
+      case 'High Blue':
+        beltInfo[0] = 'Red'
+        beltInfo[1] = 'Level 3'
+        beltInfo[2] = 3
+        break
+      case 'Red':
+        beltInfo[0] = 'High Red'
+        beltInfo[1] = 'Level 3'
+        beltInfo[2] = 3
+        break
+      case 'High Red':
+        beltInfo[0] = 'Brown'
+        beltInfo[1] = 'Level 3'
+        beltInfo[2] = 3
+        break
+      case 'Brown':
+        beltInfo[0] = 'High Brown'
+        beltInfo[1] = 'Level 3'
+        beltInfo[2] = 3
+        break
+      case 'High Brown':
+        beltInfo = ['Prep', 'Black Belt', 4]
+        break
+      case 'Prep':
+        beltInfo = ['Conditional', 'Black Belt', 5]
+        break
+      case 'Conditional':
+        beltInfo = ['Conditional (pc)', 'Black Belt', 6]
+        break
+      case 'Conditional (pc)':
+        beltInfo = ['First Degree', 'Black Belt', 7]
+        break
+      case 'First Degree':
+        beltInfo = ['First Degree - White Bar', 'Black Belt', 8]
+        break
+      case 'First Degree - White Bar':
+        beltInfo = ['First Degree - Gold Bar', 'Black Belt', 9]
+        break
+      case 'First Degree - Gold Bar':
+        beltInfo = ['First Degree - Orange Bar', 'Black Belt', 10]
+        break
+      case 'First Degree - Orange Bar':
+        beltInfo = ['First Degree - Green Bar', 'Black Belt', 11]
+        break
+      case 'First Degree - Green Bar':
+        beltInfo = ['First Degree - Purple Bar', 'Black Belt', 12]
+        break
+      case 'First Degree - Purple Bar':
+        beltInfo = ['First Degree - Blue Bar', 'Black Belt', 13]
+        break
+      case 'First Degree - Blue Bar':
+        beltInfo = ['First Degree - Brown Bar', 'Black Belt', 14]
+        break
+      case 'First Degree - Brown Bar':
+        beltInfo = ['Second Degree', 'Black Belt', 15]
+        break
+      case 'Second Degree':
+        beltInfo = ['Second Degree (pc)', 'Black Belt', 16]
+        break
+      case 'Second Degree (pc)':
+        beltInfo = ['Third Degree', 'Black Belt', 17]
+        break
+      case 'Third Degree':
+        beltInfo = ['Third Degree (pc)', 'Black Belt', 18]
+        break
+      case 'Third Degree (pc)':
+        beltInfo = ['Fourth Degree', 'Black Belt', 19]
+        break
+      case 'Fourth Degree':
+        beltInfo = ['Fourth Degree (pc)', 'Black Belt', 20]
+        break
+      case 'Fourth Degree (pc)':
+        beltInfo = ['Fifth Degree', 'Black Belt', 21]
+        break
+      case 'Fifth Degree':
+        beltInfo = ['Fifth Degree (pc)', 'Black Belt', 22]
+        break
+      case 'Fifth Degree (pc)':
+        beltInfo = ['Sixth Degree', 'Black Belt', 23]
+        break
+      default:
+        console.log('Unknown belt color: ' + currentColor)
+        beltInfo = ['?', '?', 999]
+        break
+    }
+  } else {
+    switch (currentColor) {
+      case 'Dragons White':
+        beltInfo[0] = 'Dragons White'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Gold':
+        beltInfo[0] = 'Dragons Gold'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Orange':
+        beltInfo[0] = 'Dragons Orange'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Green':
+        beltInfo[0] = 'Dragons Green'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Purple':
+        beltInfo[0] = 'Dragons Purple'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Blue':
+        beltInfo[0] = 'Dragons Blue'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Red':
+        beltInfo[0] = 'Dragons Red'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'Dragons Brown':
+        beltInfo[0] = 'Dragons Brown'
+        beltInfo[1] = 'Dragons'
+        beltInfo[2] = -1
+        break
+      case 'White':
+        beltInfo[0] = 'White'
+        beltInfo[1] = 'Basic'
+        beltInfo[2] = 0
+        break
+      case 'Gold':
+        beltInfo[0] = 'Gold'
+        beltInfo[1] = 'Basic'
+        beltInfo[2] = 0
+        break
+      case 'Orange':
+        beltInfo[0] = 'Orange'
+        beltInfo[1] = 'Level 1'
+        beltInfo[2] = 1
+        break
+      case 'High Orange':
+        beltInfo[0] = 'High Orange'
+        beltInfo[1] = 'Level 1'
+        beltInfo[2] = 1
+        break
+      case 'Green':
+        beltInfo[0] = 'Green'
+        beltInfo[1] = 'Level 1'
+        beltInfo[2] = 1
+        break
+      case 'High Green':
+        beltInfo[0] = 'High Green'
+        beltInfo[1] = 'Level 1'
+        beltInfo[2] = 1
+        break
+      case 'Purple':
+        beltInfo[0] = 'Purple'
+        beltInfo[1] = 'Level 2'
+        beltInfo[2] = 2
+        break
+      case 'High Purple':
+        beltInfo[0] = 'High Purple'
+        beltInfo[1] = 'Level 2'
+        beltInfo[2] = 2
+        break
+      case 'Blue':
+        beltInfo[0] = 'Blue'
+        beltInfo[1] = 'Level 2'
+        beltInfo[2] = 2
+        break
+      case 'High Blue':
+        beltInfo[0] = 'High Blue'
+        beltInfo[1] = 'Level 2'
+        beltInfo[2] = 2
+        break
+      case 'Red':
+        beltInfo[0] = 'Red'
+        beltInfo[1] = 'Level 3'
+        beltInfo[2] = 3
+        break
+      case 'High Red':
+        beltInfo[0] = 'High Red'
+        beltInfo[1] = 'Level 3'
+        beltInfo[2] = 3
+        break
+      case 'Brown':
+        beltInfo[0] = 'Brown'
+        beltInfo[1] = 'Level 3'
+        beltInfo[2] = 3
+        break
+      case 'High Brown':
+        beltInfo[0] = 'High Brown'
+        beltInfo[1] = 'Level 3'
+        beltInfo[2] = 3
+        break
+      case 'Prep':
+        beltInfo = ['Prep', 'Black Belt', 4]
+        break
+      case 'Conditional':
+        beltInfo = ['Conditional', 'Black Belt', 5]
+        break
+      case 'Conditional (pc)':
+        beltInfo = ['Conditional (pc)', 'Black Belt', 6]
+        break
+      case 'First Degree':
+        beltInfo = ['First Degree', 'Black Belt', 7]
+        break
+      case 'First Degree - White Bar':
+        beltInfo = ['First Degree - White Bar', 'Black Belt', 8]
+        break
+      case 'First Degree - Gold Bar':
+        beltInfo = ['First Degree - Gold Bar', 'Black Belt', 9]
+        break
+      case 'First Degree - Orange Bar':
+        beltInfo = ['First Degree - Orange Bar', 'Black Belt', 10]
+        break
+      case 'First Degree - Green Bar':
+        beltInfo = ['First Degree - Green Bar', 'Black Belt', 11]
+        break
+      case 'First Degree - Purple Bar':
+        beltInfo = ['First Degree - Purple Bar', 'Black Belt', 12]
+        break
+      case 'First Degree - Blue Bar':
+        beltInfo = ['First Degree - Blue Bar', 'Black Belt', 13]
+        break
+      case 'First Degree - Brown Bar':
+        beltInfo = ['First Degree - Brown Bar', 'Black Belt', 14]
+        break
+      case 'Second Degree':
+        beltInfo = ['Second Degree', 'Black Belt', 15]
+        break
+      case 'Second Degree (pc)':
+        beltInfo = ['Second Degree (pc)', 'Black Belt', 16]
+        break
+      case 'Third Degree':
+        beltInfo = ['Third Degree', 'Black Belt', 17]
+        break
+      case 'Third Degree (pc)':
+        beltInfo = ['Third Degree (pc)', 'Black Belt', 18]
+        break
+      case 'Fourth Degree':
+        beltInfo = ['Fourth Degree', 'Black Belt', 19]
+        break
+      case 'Fourth Degree (pc)':
+        beltInfo = ['Fourth Degree (pc)', 'Black Belt', 20]
+        break
+      case 'Fifth Degree':
+        beltInfo = ['Fifth Degree', 'Black Belt', 21]
+        break
+      case 'Fifth Degree (pc)':
+        beltInfo = ['Fifth Degree (pc)', 'Black Belt', 22]
+        break
+      case 'Sixth Degree':
+        beltInfo = ['Sixth Degree', 'Black Belt', 23]
+        break
+      default:
+        console.log('Unknown belt color: ' + currentColor)
+        beltInfo = ['?', '?', 999]
+        break
+    }
+  }
+  return beltInfo
 }
 
 function parseID (idSet) {
@@ -2103,7 +2458,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2117,7 +2472,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2142,7 +2497,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2156,7 +2511,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2170,7 +2525,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_2), Number(input.day_2), Number(input.end_hour_2), Number(input.end_min_2)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2195,7 +2550,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2209,7 +2564,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2223,7 +2578,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_2), Number(input.day_2), Number(input.end_hour_2), Number(input.end_min_2)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2237,7 +2592,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_3), Number(input.day_3), Number(input.end_hour_3), Number(input.end_min_3)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2271,7 +2626,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2296,7 +2651,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2310,7 +2665,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2335,7 +2690,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2349,7 +2704,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2363,7 +2718,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_2), Number(input.day_2), Number(input.end_hour_2), Number(input.end_min_2)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2388,7 +2743,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2402,7 +2757,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2416,7 +2771,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_2), Number(input.day_2), Number(input.end_hour_2), Number(input.end_min_2)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2430,7 +2785,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_3), Number(input.day_3), Number(input.end_hour_3), Number(input.end_min_3)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-planner.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -2439,7 +2794,6 @@ router.post('/build_ics', (req, res) => {
         ])
         if (error) {
           console.log('Error creating calendar events: ' + error)
-          
         }
         var filename = input.name.replace(/\s/g, '').toLowerCase() + '.ics'
         writeFileSync(`${__dirname}/` + filename, value)
@@ -2460,6 +2814,354 @@ app.get('/cal_down/(:filename)', function (req, res) {
   var data = readFileSync(__dirname + '/' + req.params.filename)
   res.contentType('text/calendar')
   res.send(data)
+})
+
+router.get('/student_classes', (req, res) => {
+  res.render('student_classes'), {
+
+  }
+})
+
+router.get('/download_done/(:url)', (req, res) => {
+  fs.unlink(req.params.url, (err) => {
+    if (err) {
+      console.error(err)
+    }
+  })
+  res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_classes')
+})
+
+router.get('/student_portal_login', (req, res) => {
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login')
+  } else {
+    const portalQuery = 'select * from get_all_names()'
+    db.any(portalQuery)
+      .then(function (rows) {
+        res.render('student_portal_login', {
+          data: rows,
+          alert_message: ''
+        })
+      })
+      .catch(function (err) {
+        console.log('Could not find students: ' + err)
+        res.render('student_portal_login', {
+          data: '',
+          alert_message: 'Unable to find student. Please refresh the page and try agin.'
+        })
+      })
+  }
+})
+
+app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', (req, res) => {
+  const dropTest = 'delete from test_signups where session_id = $1 and barcode = $2;'
+  const dropClass = 'delete from class_signups where class_check = $1 and email = $2;'
+  const updateClassCount = 'update classes set student_count = student_count - 1 where class_id = $1;'
+  const updateCount = 'update classes set swat_count = swat_count - 1 where class_id = $1;'
+  switch (req.params.type) { // allows for addition of swat class
+    case 'test':
+      db.none(dropTest, [req.params.id, req.params.barcode])
+        .then(rows => {
+          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/student_portal/' + req.params.barcode)
+        })
+        .catch(err => {
+          console.log('Unable to delete test. ERR: ' + err)
+          res.render('classes_email', {
+            email: req.params.email,
+            class_data: '',
+            test_data: '',
+            alert_message: 'Unable to delete test. Please refresh and try again. Otherwise, please see a staff member.'
+          })
+        })
+      break
+    case 'class':
+      db.none(dropClass, [req.params.id, req.params.email.toLowerCase()])
+        .then(rows => {
+          db.none(updateClassCount, [req.params.item_id])
+            .then(row => {
+              res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/student_portal/' + req.params.barcode)
+            })
+            .catch(err => {
+              console.log('Could not reduce class count: ' + err)
+              res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/student_portal/' + req.params.barcode)
+            })
+        })
+        .catch(err => {
+          console.log('Unable to delete class. ERR: ' + err)
+          res.render('classes_email', {
+            email: req.params.email,
+            class_data: '',
+            test_data: '',
+            alert_message: 'Unable to delete class. Please refresh and try again. Otherwise, please see a staff member.'
+          })
+        })
+      break
+    case 'swat':
+      db.none(updateCount, [req.params.item_id])
+        .then(row => {
+          db.none(dropClass, [req.params.id, req.params.email.toLowerCase()])
+            .then(rows => {
+              res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/student_portal/' + req.params.barcode)
+            })
+            .catch(err => {
+              console.log('Unable to delete swat. ERR: ' + err)
+              res.render('classes_email', {
+                email: req.params.email,
+                class_data: '',
+                test_data: '',
+                alert_message: 'Unable to delete swat. Please refresh and try again. Otherwise, please see a staff member.'
+              })
+            })
+        })
+        .catch(err => {
+          console.log('Unable to update swat count. ERR: ' + err)
+          res.render('classes_email', {
+            email: req.params.email,
+            class_data: '',
+            test_data: '',
+            alert_message: 'Unable to delete swat count. Please refresh and try again. Otherwise, please see a staff member.'
+          })
+        })
+      break
+    default:
+      console.log('Unknown delete type.')
+      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/student_portal/' + req.params.barcode)
+      break
+  }
+})
+
+router.post('/student_portal_login', (req, res) => {
+  const item = {
+    student_info: req.sanitize('result').trim()
+  }
+  const studInfo = parseStudentInfo(item.student_info) // name, barcode
+  res.redirect('student_portal/' + studInfo[1])
+})
+
+router.get('/student_portal/(:barcode)', (req, res) => {
+  const studInfo = "select first_name, last_name, email, belt_order, belt_color, belt_size, to_char(last_visit, 'Month DD, YYYY') as last_visit, reg_class, spar_class, swat_count, month_1, month_2 from student_list where barcode = $1;"
+  const testQuery = "select s.student_name, s.session_id, s.test_id, to_char(i.test_date, 'Month') || ' ' || to_char(i.test_date, 'DD') || ' at ' || to_char(i.test_time, 'HH:MI PM') || ' ' || i.notes as test_instance, i.curriculum from test_signups s, test_instance i where s.barcode = $1 and i.id = s.test_id order by i.test_date;"
+  const classQuery = "select s.student_name, s.email, s.class_check, s.class_session_id, s.is_swat, to_char(c.starts_at, 'Month') || ' ' || to_char(c.starts_at, 'DD') || ' at ' || to_char(c.starts_at, 'HH:MI PM') as class_instance, c.starts_at, c.class_id from classes c, class_signups s where s.barcode = $1 and s.class_session_id = c.class_id and s.is_swat = false and c.starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date order by s.student_name, c.starts_at;"
+  const swatQuery = "select s.student_name, s.email, s.class_check, s.is_swat, s.class_session_id, to_char(c.starts_at, 'Month') || ' ' || to_char(c.starts_at, 'DD') || ' at ' || to_char(c.starts_at, 'HH:MI PM') as class_instance, c.starts_at, c.class_id from classes c, class_signups s where s.barcode = $1 and s.class_session_id = c.class_id and c.starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and s.is_swat = true order by c.starts_at;"
+  db.any(studInfo, [req.params.barcode])
+    .then(info => {
+      db.any(classQuery, [req.params.barcode])
+        .then(classes => {
+          db.any(testQuery, [req.params.barcode])
+            .then(tests => {
+              db.any(swatQuery, [req.params.barcode])
+                .then(swats => {
+                  const dateEvent = new Date()
+                  const options1 = {
+                    month: 'long',
+                    timeZone: 'America/Denver'
+                  }
+                  const month = dateEvent.toLocaleDateString('en-US', options1)
+                  res.render('student_portal', {
+                    studInfo: info,
+                    class_info: classes,
+                    test_info: tests,
+                    swat_info: swats,
+                    barcode: req.params.barcode,
+                    month: month,
+                    alert_message: ''
+                  })
+                })
+                .catch(err => {
+                  console.log('Could not get student swats with barcode. Error: ' + err)
+                  res.render('student_portal', {
+                    studInfo: '',
+                    class_info: '',
+                    test_info: '',
+                    swat_info: '',
+                    barcode: req.params.barcode,
+                    month: '?',
+                    alert_message: 'Could not find student swats with the barcode: ' + req.params.barcode + '. Please see an instructor to correct this.'
+                  })
+                })
+            })
+            .catch(err => {
+              console.log('Could not get student tests with barcode. Error: ' + err)
+              res.render('student_portal', {
+                studInfo: '',
+                class_info: '',
+                test_info: '',
+                swat_info: '',
+                barcode: req.params.barcode,
+                alert_message: 'Could not find student tests with the barcode: ' + req.params.barcode + '. Please see an instructor to correct this.'
+              })
+            })
+        })
+        .catch(err => {
+          console.log('Could not get student classes with barcode. Error: ' + err)
+          res.render('student_portal', {
+            studInfo: '',
+            class_info: '',
+            test_info: '',
+            swat_info: '',
+            barcode: req.params.barcode,
+            alert_message: 'Could not find student classes with the email: ' + req.params.barcode + '. Please see an instructor to correct this.'
+          })
+        })
+    })
+    .catch(err => {
+      console.log('Could not get student info with barcode. Error: ' + err)
+      res.render('student_portal', {
+        studInfo: '',
+        class_info: '',
+        test_info: '',
+        swat_info: '',
+        barcode: req.params.barcode,
+        alert_message: 'Could not find a student with the barcode: ' + req.params.barcode + '. Please see an instructor to correct this.'
+      })
+    })
+})
+
+router.get('/enrollStudent', (req, res) => {
+  if (req.session.loggedin) {
+    res.render('enrollStudent', {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      beltColor: '',
+      beltSize: '',
+      addr: '',
+      apt: '',
+      city: '',
+      zip: '',
+      bday: '',
+      alert_message: ''
+    })
+  } else {
+    res.render('login', {
+      username: '',
+      password: '',
+      go_to: '/enrollStudent',
+      alert_message: ''
+    })
+  }
+})
+
+router.post('/enrollStudent', (req, res) => {
+  var item = {
+    firstName: req.sanitize('firstName').trim(),
+    lastName: req.sanitize('lastName').trim(),
+    email: req.sanitize('email').trim(),
+    phone: req.sanitize('phone').trim(),
+    beltColor: req.sanitize('beltColor').trim(),
+    beltSize: req.sanitize('beltSize').trim(),
+    addr: req.sanitize('addr').trim(),
+    apt: req.sanitize('apt').trim(),
+    city: req.sanitize('city').trim(),
+    zip: req.sanitize('zip').trim(),
+    bday: req.sanitize('bday').trim()
+  }
+  if (item.apt === '') {
+    item.apt = null
+  }
+  if (item.email === '') {
+    item.email = 'no@email.com'
+  }
+  if (item.phone === '') {
+    item.phone = 1231231234
+  }
+  if (item.addr === '') {
+    item.addr = '123 Sesame St.'
+  }
+  if (item.city === '') {
+    item.city = 'None'
+  }
+  if (item.zip === '') {
+    item.zip = 12345
+  }
+  if (item.bday === '') {
+    item.bday = '1930-07-15'
+  }
+  const options = {
+    method: 'POST',
+    uri: settings.apiv4url + '/customer',
+    headers: {
+      Authorization: getAuthHeader()
+    },
+    json: true,
+    body: {
+      FirstName: item.firstName,
+      LastName: item.lastName,
+      ShippingSameAsBilling: true,
+      BillingAddress: {
+        StreetAddress1: item.addr,
+        StreetAddress2: item.apt,
+        City: item.city,
+        StateCode: 'CO',
+        ZipCode: item.zip
+      },
+      Phone: item.phone,
+      Email: item.email,
+      Notes: 'This person was created with EMA Side Kick - Lakewood'
+    }
+  }
+  request(options, function (error, response, body) {
+    if (!error && response && response.statusCode < 300) {
+      const barcode = body.Response.Id
+      const joinedOn = body.Response.CreatedOn
+      const info = joinedOn.substring(0, joinedOn.indexOf('T')) // MM-DD-YYYY
+      console.log('bday is ' + item.bday)
+      const levelInfo = parseBelt(item.beltColor, false) // returns belt color, level, and belt_order value
+      const newStudent = "insert into student_list (barcode, first_name, last_name, belt_color, belt_size, belt_order, addr, addr_2, email, level_name, join_date, bday) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, to_date($11, 'YYYY-MM-DD'), to_date($12, 'YYYY-MM-DD'));"
+      db.none(newStudent, [barcode, item.firstName, item.lastName, levelInfo[0], item.beltSize, levelInfo[2], item.addr, item.apt, item.email, levelInfo[1], info, item.bday])
+        .then(row => {
+          res.render('enrollStudent', {
+            firstName: '',
+            lastName: '',
+            email: '',
+            phone: '',
+            beltColor: '',
+            beltSize: '',
+            addr: '',
+            apt: '',
+            city: '',
+            zip: '',
+            bday: '',
+            alert_message: 'Successfully added ' + item.firstName + ' ' + item.lastName + ' to the student list'
+          })
+        })
+        .catch(err => {
+          res.render('enrollStudent', {
+            firstName: '',
+            lastName: '',
+            email: '',
+            phone: '',
+            beltColor: '',
+            beltSize: '',
+            addr: '',
+            apt: '',
+            city: '',
+            zip: '',
+            bday: '',
+            alert_message: 'ERROR! Unable to add ' + item.firstName + ' ' + item.lastName + ' to the student list. ERROR: ' + err
+          })
+        })
+        // res.status((response && response.statusCode) || 500).send(error);
+    } else {
+      console.log('ERROR in adding student: ' + error)
+      res.render('enrollStudent', {
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        beltColor: '',
+        beltSize: '',
+        addr: '',
+        apt: '',
+        city: '',
+        zip: '',
+        bday: '',
+        alert_message: 'ERROR! Unable to add ' + item.firstName + ' ' + item.lastName + ' to the student list. ERROR: ' + error
+      })
+      // res.status((response && response.statusCode) || 500).send(error);
+    }
+  })
 })
 
 app.listen(port, () => {

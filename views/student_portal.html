@@ -1,0 +1,437 @@
+<html>
+{% set local = 'Students' %}
+{% block content %}
+{% set is_bb = '' %}
+{% set bb_reg = 10 %}
+{% set bb_spar = 10 %}
+{% set bb_swat = 8 %}
+{% set email_addr = '' %}
+{% set level_num = 0 %}
+{% set curr = '' %}
+{% if alert_message != '' %}
+  <script>alert("{{ alert_message }}")</script>
+{% endif %}
+<title>Student Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
+<style>
+  * {
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #E7E5E3;
+  }
+
+  html {
+    background-image: linear-gradient(#3274C4, #2E353B);
+      -webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+      min-height: 100%;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 25px;
+  }
+
+  body {
+    font-size: 16px;
+  }
+
+  p,
+  li {
+    font-size: 14px;
+  }
+
+  form>div {
+    margin-bottom: 20px;
+  }
+
+  button {
+    display: block;
+    font-size: 100%;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 5px;
+    height: 30px;
+  }
+
+  label {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 5px;
+    height: 30px;
+  }
+
+  select {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    font-size: 100%;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 5px;
+    height: 60px;
+  }
+
+  .desc {
+    font-size: 14px;
+    display: inline;
+    font-weight: normal;
+  }
+  input[type="text"],
+  [type="first name"],
+  [type="last name"],
+  [type="email"],
+  [type="number"],
+  [type="submit"] {
+    box-shadow: inset 1px 1px 3px #716B5F;
+    border-radius: 5px;
+    display: block;
+    font-size: 100%;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 5px;
+    height: 30px;
+  }
+  label {
+    margin-bottom: 5px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  button {
+    width: 60%;
+    margin: 0 auto;
+    background-color: #181A1A;
+    color: #E7E5E3;
+  }
+  #pc_b {
+    width: 90%;
+    margin: 0 auto;
+    height: 45px;
+  }
+  .item {
+    display: block;
+    padding: 5px;
+  }
+  input[type=checkbox] {
+    display: inline;
+  }
+  #pc {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+  }
+  #pc th {
+    padding: 8px;
+    background-color: transparent;
+    text-align: center;
+  }
+  #tests {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+  }
+  #tests td, #tests th {
+    border: 1px solid #363F43;
+    padding: 8px;
+    background-color: transparent;
+    text-align: center;
+  }
+  #tests th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+    background-blend-mode: hue;
+  }
+  a:link {
+    color: #E7E5E3;
+  }
+  a:visited {
+    color: #E7E5E3;
+  }
+  a:hover {
+    color: #E7E5E3;
+  }
+  a:active {
+    color: #E7E5E3;
+  }
+</style>
+<head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3388621066074457"
+     crossorigin="anonymous"></script>
+  <h1>Student Portal</h1>
+  {% for student in stud_info %}
+    {% if student.belt_order | int >= 4 %}
+      {% set is_bb = 'true' %}
+    {% endif %}
+    {% set level_num = student.belt_order | int %}
+    <label>Student's Name: </label>{{ student.first_name }} {{ student.last_name }}<br>
+    <label>Student's Email: </label>{{ student.email }} {% set email_addr = student.email %}<br>
+    <label>Student's Belt Color and Size: </label>{{ student.belt_color }} - {{ student.belt_size }}<br>
+    <label>Last Visit: </label>{{ student.last_visit }}<br>
+    {% if is_bb == 'true' %}
+      <label>Class Numbers:</label><br>
+      &emsp;<b><mark>Class Requirements</mark>: This testing cycle, all black belts need to have {{ bb_reg }} regular classes, {{ bb_spar }} sparring classes, and {{ bb_swat }} SWATs.<b><br>
+      {% if student.reg_class >= bb_reg %}
+      &emsp;<i>Regular Classes: </i>{{ student.reg_class }}/<mark style="background-color: lightgreen;">{{ bb_reg }}</mark><br>
+      {% else %}
+      &emsp;<i>Regular Classes: </i>{{ student.reg_class }}/<mark style="background-color: lightcoral;">{{ bb_reg }}</mark><br>
+      {% endif %}
+      {% if student.spar_class >= bb_spar %}
+      &emsp;<i>Sparring Classes: </i>{{ student.spar_class }}/<mark style="background-color: lightgreen;">{{ bb_spar }}</mark><br>
+      {% else %}
+      &emsp;<i>Sparring Classes: </i>{{ student.spar_class }}/<mark style="background-color: lightcoral;">{{ bb_spar }}</mark><br>
+      {% endif %}
+      {% if student.swat_count >= bb_swat %}
+      &emsp;<i>SWATs: </i>{{ student.swat_count }}/<mark style="background-color: lightgreen;">{{ bb_swat }}</mark>
+      {% else %}
+      &emsp;<i>SWATs: </i>{{ student.swat_count }}/<mark style="background-color: lightcoral;">{{ bb_swat }}</mark>
+      {% endif %}
+    {% endif %}
+    <hr>
+  {% endfor %}
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3388621066074457"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+  <h2>Progress Check</h2>
+  {% for student in stud_info %}
+    <table id="pc">
+      <tr>
+        <th><a style="text-decoration: none;" href="/progress_check/month1/{{ barcode }}"><button id="pc_b">Month 1 (score {{ student.month_1 }}) </button></a></th>
+        <th><a style="text-decoration: none;" href="/progress_check/month2/{{ barcode }}"><button id="pc_b">Month 2 (score {{ student.month_2 }})</button></a></th>
+      </tr>
+    </table>
+  {% endfor %}
+  <hr>
+  <h2>Classes</h2>
+    <table id="tests">
+      <tr>
+        <th>Student Name</th>
+        <th>Class Day/Time</th>
+        <th>Drop Class</th>
+      </tr>
+      {% if class_info %}
+        {% for class in class_info %}
+          {% if class.is_swat == false %}
+            <tr>
+              <td>{{ class.student_name }}</td>
+              <td>{{ class.class_instance }}</td>
+              <td><a href="/delete_instance/{{ barcode }}/{{ class.class_session_id }}/{{ class.class_check }}/{{ email_addr }}/class">Drop This Class</a></td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+      {% if class_info.length == 0 %}
+          <tr>
+            <td>None</td>
+            <td>None</td>
+            <td>None</td>
+          </tr>
+      {% endif %}
+    </table>
+    <br>
+    {% if is_bb != 'true' %}
+      <h2>Tests</h2>
+      <table id="tests">
+        <tr>
+          <th>Student Name</th>
+          <th>Test Day/Time</th>
+          <th>Drop Test</th>
+        </tr>
+        {% if test_info %}
+          {% for test in test_info %}
+            <tr>
+              <td>{{ test.student_name }}</td>
+              <td>{{ test.test_instance }}</td>
+              <td><a href="/delete_instance/{{ barcode }}/{{ test.test_id }}/{{ test.session_id }}/{{ email_addr }}/test">Drop This Test</a></td>
+            </tr>
+          {% endfor %}
+        {% endif %}
+        {% if test_info.length == 0 %}
+            <tr>
+              <td>None</td>
+              <td>None</td>
+              <td>None</td>
+            </tr>
+        {% endif %}
+      </table>
+    {% endif %}
+    {% if is_bb == 'true' %}
+      {% if swat_info.length > 0 %}
+        <h2>Swats</h2>
+        <table id="tests">
+          <tr>
+            <th>Student Name</th>
+            <th>Class Day/Time</th>
+            <th>Drop Class</th>
+          </tr>
+          {% if swat_info %}
+          {% for class in swat_info %}
+            {% if class.is_swat == true %}
+              <tr>
+                <td>{{ class.student_name }}</td>
+                <td>{{ class.class_instance }}</td>
+                <td><a href="/delete_instance/{{ barcode }}/{{ class.class_session_id }}/{{ class.class_check }}/{{ email_addr }}/swat">Drop This Class</a></td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+        </table>
+      {% else %}
+        <h2>Swats</h2>
+        <table id="tests">
+          <tr>
+            <th>Student Name</th>
+            <th>Class Day/Time</th>
+            <th>Drop Class</th>
+          </tr>
+          {% if swat_info %}
+            <tr>
+              <td>None</td>
+              <td>None</td>
+              <td>None</td>
+            </tr>
+        {% endif %}
+        </table>
+      {% endif %}
+      <h2>Tests</h2>
+      <table id="tests">
+        <tr>
+          <th>Student Name</th>
+          <th>Test Day/Time</th>
+          <th>Drop Test</th>
+        </tr>
+        {% if test_info %}
+          {% for test in test_info %}
+          {% if test.curriculum == null %} {% set curr = '' %}
+            {% elif test.curriculum == 'choi_young' %} {% set curr = 'Choi Yong/Knife Defense' %}
+            {% elif test.curriculum == 'se_jong' %} {% set curr = 'Se Jong/Shotokan' %}
+            {% elif test.curriculum == 'kali_sticks' %} {% set curr = 'Kali Sticks 4' %}
+            {% elif test.curriculum == 'beethoven' %} {% set curr = 'Beethoven/BJJ Submissions' %}
+            {% elif test.curriculum == 'ko_dang' %} {% set curr = 'Ko Dang/Boxing' %}
+            {% elif test.curriculum == 'kenpo' %} {% set curr = 'Hawaiian Kenpo/Kenpo Self Defense' %}
+            {% elif test.curriculum == 'yoo_shin' %} {% set curr = 'Yoo Shin/Falls and Rolls' %}
+            {% elif test.curriculum == 'trilogy' %} {% set curr = 'Trilogy' %}
+            {% elif test.curriculum == 'ul_gi' %} {% set curr = 'Ul Gi/2 on 1 Sparring' %}
+            {% elif test.curriculum == 'granada' %} {% set curr = 'Granada' %}
+            {% elif test.curriculum == 'kwan_gye' %} {% set curr = 'Kwan Gye/Pressure Points' %}
+            {% elif test.curriculum == 'nunchaku' %} {% set curr = 'Nunchaku 2/Heian Godan' %}
+            {% elif test.curriculum == 'tong_il' %} {% set curr = 'Tong Il/Board Breaking' %}
+            {% elif test.curriculum == 'ju_che' %} {% set curr = 'Ju Che' %}
+            {% elif test.curriculum == 'bassa_dai' %} {% set curr = 'Bassai Dai/Kicking Set' %}
+            {% elif test.curriculum == 'choon_jang' %} {% set curr = 'Choon Jang/Pressure Points' %}
+            {% elif test.curriculum == 'so_san' %} {% set curr = 'So San/Kung Fu 1' %}
+            {% elif test.curriculum == 'moon_moo' %} {% set curr = 'Moon Moo' %}
+            {% elif test.curriculum == 'sam_il' %} {% set curr = 'Sam Il/Kung Fu 2' %}
+            {% elif test.curriculum == 'papohak_sho' %} {% set curr = 'Papohak Sho/Offense & Defense' %}
+            {% else %} {% set curr = '???' %} {% endif %}
+            <tr>
+              <td>{{ test.student_name }}</td>
+              <td>{{ test.test_instance }} {% if curr != '' %} - {{ curr }} {% endif %}</td>
+              <td><a href="/delete_instance/{{ barcode }}/{{ test.test_id }}/{{ test.session_id }}/{{ email_addr }}/test">Drop This Test</a></td>
+            </tr>
+          {% endfor %}
+        {% endif %}
+        {% if test_info.length == 0 %}
+            <tr>
+              <td>None</td>
+              <td>None</td>
+              <td>None</td>
+            </tr>
+        {% endif %}
+      </table>
+    {% endif %}
+    <br>
+    <hr>
+    <br>
+    <h2>Useful Links</h2>
+      {% if is_bb == 'true' %}
+        <table id="pc">
+          <tr>
+            <th><a style="text-decoration: none;" href="/student_classes"><button id="pc_b">Class Signup</button></a></th>
+            <th><a style="text-decoration: none;" href="/swat_signup"><button id="pc_b">SWAT Signup</button></a></th>
+            <th><a style="text-decoration: none;" href="/class_history_student/{{ barcode }}"><button id="pc_b">Class History</button></a></th>
+          </tr>
+          <tr>
+            <th><a style="text-decoration: none;" href="/testing_signup_blackbelt"><button id="pc_b">Black Belt Test</button></a></th>
+            <th><a style="text-decoration: none;" href="/test_history/{{ barcode }}"><button id="pc_b">Test History</button></a></th>
+          </tr>
+          <tr>
+            <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/Calendar.pdf"><button id="pc_b">Calendar</button></a></th>
+            <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/schedule.pdf"><button id="pc_b">Schedule</button></a></th>
+          </tr>
+        </table>
+      {% else %}
+        {% if level_num == 1 %}
+          <table id="pc">
+            <tr>
+              <th><a style="text-decoration: none;" href="/student_classes"><button id="pc_b">Class Signup</button></a></th>
+              <th><a style="text-decoration: none;" href="/student_tests"><button id="pc_b">Test Signup</button></a></th>
+            </tr>
+            <tr>
+              <th><a style="text-decoration: none;" href="https://ema-planner.herokuapp.com/Level_1_Manual.pdf"><button id="pc_b">Level 1 Manual</button></a></th>
+              <th><a style="text-decoration: none;" href="https://ema-planner.herokuapp.com/Level1Curriculum.pdf"><button id="pc_b">Level 1 Curriculum</button></a></th>
+            </tr>
+            <tr>
+              <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/Calendar.pdf"><button id="pc_b">{{ month }} Calendar</button></a></th>
+              <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/schedule.pdf"><button id="pc_b">Schedule</button></a></th>
+            </tr>
+          </table>
+        {% elif level_num == 2 %}
+          <table id="pc">
+            <tr>
+              <th><a style="text-decoration: none;" href="/student_classes"><button id="pc_b">Class Signup</button></a></th>
+              <th><a style="text-decoration: none;" href="/student_tests"><button id="pc_b">Test Signup</button></a></th>
+            </tr>
+            <tr>
+              <th><a style="text-decoration: none;" href="https://ema-planner.herokuapp.com/Level_2_Manual.pdf"><button id="pc_b">Level 2 Manual</button></a></th>
+              <th><a style="text-decoration: none;" href="https://ema-planner.herokuapp.com/Level2Curriculum.pdf"><button id="pc_b">Level 2 Curriculum</button></a></th>
+            </tr>
+            <tr>
+              <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/Calendar.pdf"><button id="pc_b">{{ month }} Calendar</button></a></th>
+              <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/schedule.pdf"><button id="pc_b">Schedule</button></a></th>
+            </tr>
+          </table>
+        {% elif level_num == 3 %}
+          <table id="pc">
+            <tr>
+              <th><a style="text-decoration: none;" href="/student_classes"><button id="pc_b">Class Signup</button></a></th>
+              <th><a style="text-decoration: none;" href="/student_tests"><button id="pc_b">Test Signup</button></a></th>
+            </tr>
+            <tr>
+              <th><a style="text-decoration: none;" href="https://ema-planner.herokuapp.com/Level_3_Manual.pdf"><button id="pc_b">Level 3 Manual</button></a></th>
+              <th><a style="text-decoration: none;" href="https://ema-planner.herokuapp.com/Level3Curriculum.pdf"><button id="pc_b">Level 3 Curriculum</button></a></th>
+            </tr>
+            <tr>
+              <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/Calendar.pdf"><button id="pc_b">{{ month }} Calendar</button></a></th>
+              <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/schedule.pdf"><button id="pc_b">Schedule</button></a></th>
+            </tr>
+          </table>
+        {% else %}
+          <table id="pc">
+            <tr>
+              <th><a style="text-decoration: none;" href="/student_classes"><button id="pc_b">Class Signup</button></a></th>
+              <th><a style="text-decoration: none;" href="/student_tests"><button id="pc_b">Test Signup</button></a></th>
+            </tr>
+            <tr>
+              <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/Calendar.pdf"><button id="pc_b">{{ month }} Calendar</button></a></th>
+              <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/schedule.pdf"><button id="pc_b">Schedule</button></a></th>
+              <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/yearly_calendar.pdf"><button id="pc_b">{{ month }} Yearly Calendar</button></a></th>
+            </tr>
+          </table>
+        {% endif %}
+      {% endif %}
+</body>
+{% endblock %}
+</html>
