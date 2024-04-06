@@ -265,6 +265,27 @@
         }
     </style>
     <head>
+        <script>
+            (function () {
+              var script=document.createElement('script');
+              script.src="https://analyze.corbado.com/assets/bundle.js";
+              script.defer=true
+              var head=document.getElementsByTagName('head')[0]
+              var done=false
+            
+              script.onload=script.onreadystatechange = function(){
+                if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete') ) {
+                  done=true;
+                  tracking.visit({
+                    projectID: 'pro-8312347741793039246',
+                  })
+                  script.onload = script.onreadystatechange = null;
+                  head.removeChild(script);
+                }
+              };
+              head.appendChild(script);
+            })()
+            </script>
         <h1>{% if level == -1 %} Little Dragons {% elif level == 0 %} Basic {% elif level == 0.5 %} Basic (Floor 2) {% elif level == 1 %} Level 1 {% elif level == 1.5 %} Level 1 (Floor 2)  {% elif class.level == 1.51 %} Level 1 (Green/High Green) {% elif class.level == 1.53 %} Level 1 (Floor 2) (Orange/High Orange) {% elif class.level == 1.54 %} Level 1 (Floor 2) (Green/High Green) {% elif level == 2 %} Level 2 {% elif level == 3 %} Level 3 {% elif level == 4 %} Prep/Conditional Belt {% elif level == 5 %} Black Belt {% elif level == 6 %} Open Mat {% elif level == 7 %} Weapons {% elif level == 8 %} Women's Fight Club {% elif level == 9 %} Beginner's BJJ {% else %} Unknown {% endif %}</h1>
         <h3>{{ time }}</h3>
         <h4 style="text-align: center;">Class Type: {% if class_type == 'reg' %}Regular {% elif class_type == 'spar' %}Sparring {% else %}Unrecognized Class Type {% endif %}</h4>
