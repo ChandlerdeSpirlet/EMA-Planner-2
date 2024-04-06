@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile</title>
+
+    <link
+            rel="stylesheet"
+            href="https://unpkg.com/@corbado/web-js@latest/dist/bundle/index.css"
+    />
+    <script src="https://unpkg.com/@corbado/web-js@latest/dist/bundle/index.js"></script>
+</head>
+
+<body>
+<div>
+    <h1>Profile Page</h1>
+    <div>
+        <p id="info"></p>
+        <button id="auth-button"></button>
+    </div>
+</div>
+<script type="module">
+    await Corbado.load({
+        projectId: "{{ project_id }}",
+    })
+
+    const createButton = (text, clickHandler) => {
+        const buttonElement = document.getElementById('auth-button');
+        buttonElement.innerHTML = text;
+        buttonElement.onclick = clickHandler;
+        return buttonElement;
+    }
+
+    const addLoginButton = () => {
+        return createButton('Login', () => {
+            window.location.href = '/index.html';
+        })
+    }
+
+    const addLogoutButton = () => {
+        return createButton('Logout', async () => {
+            await Corbado.logout();
+            window.location.href = '/index.html';
+        })
+    }
+
+    if (!Corbado.user) {
+        // User is not authenticated
+        document.getElementById('info').innerHTML = `This content is only available to logged in users. You can log in here:`
+        addLoginButton();
+    } else {
+        // User is authenticated
+        document.getElementById('info').innerHTML = `
+    User-ID: ${Corbado.user.sub}
+    <br/>
+    Email: ${Corbado.user.email}
+    `;
+        addLogoutButton();
+    }
+</script>
+</body>
+</html>

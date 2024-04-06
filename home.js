@@ -19,6 +19,13 @@ const crypto = require('crypto')
 // const Json2csvParser = require("json2csv").Parser
 // const csv = require('csv-parser')
 const fileUpload = require('express-fileupload')
+const Corbado = require('@corbado/node-sdk');
+
+const projectID = process.env.PROJECT_ID;
+const apiSecret = process.env.API_SECRET;
+
+const config = new Corbado.Config(projectID, apiSecret);
+const sdk = new Corbado.SDK(config);
 
 const settings = {
   port: 8080,
@@ -479,12 +486,52 @@ app.get('/', (req, res) => {
   }
 })
 
+app.get('/setCookie', async (_req, res) => {
+  res.cookie(
+    'cbo_short_session',
+    'eyJhbGciOiJSUzI1NiIsImtpZCI6InBraS04OTc5Mjk2NzI3NDc1MTEzNjI1IiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2F1dGguY29yYmFkby5jb20iLCJzdWIiOiJ1c3ItMTM1OTEwNjU3MDExNzcxMDAzNzgiLCJleHAiOjE3MDU2NTg3MDIsIm5iZiI6MTcwNTY1ODM5MiwiaWF0IjoxNzA1NjU4NDAyLCJqdGkiOiJZY3JMWlFrVkw3ZE5YdktZMnY0YjUyamlDZlVkWUIiLCJuYW1lIjoiU2FtIE9kdW0iLCJvcmlnIjoic2FtLm9kdW1AY29yYmFkby5jb20iLCJlbWFpbCI6InNhbS5vZHVtQGNvcmJhZG8uY29tIiwidmVyc2lvbiI6MX0.0V6dfc9RQg7jCrTibJkoATCFwdbhWBWE44fOAFthb7Ch8E4XVXb6TFSa6cGyIzn_KQxeotUaRIueJKINY-BB2aA-DnrPP7NAue2N76NdBsjoJLH3CyCbNNZ506UlLpTbgvM5KWdDQhHL2uN36qiH_tfHMVrvVALwecmMjMWPsKT7HwZmTL3WzDud6IZcWXVOi0LgyrbDV0pg5Q2g1XWcnQ_NZq0Pg9AYTrl89CLQFPvQbGVO8hPiasZfXcfghOiceD_U8Mg4DJ2nqX2DIUhCTgwfXWItfhwJLXFGE-3cuyHGpiBuRLmfsO9nps3kITNg9JCTSP3gztvSh02za4TTOg',
+    { maxAge: 5400000, httpOnly: false },
+  );
+  res.send('Cookie set!');
+});
+
+app.get('/logged-in', async (req, res) => {
+  try {
+    const shortSession = await req.cookies.cbo_short_session;
+    const user = await sdk.sessions().getCurrentUser(shortSession);
+
+    if (user.authenticated) {
+      // User is authenticated
+      res.write('User is authenticated!\n');
+      res.write(`User ID: ${user.id}\n`);
+      res.write(`User full name: ${user.name}\n`)
+      res.write(`User email: ${user.email}\n`)
+
+      const response = await sdk.users().get(user.id, null)
+      res.write(`User created: ${response.data.created}\n`)
+      res.write(`User updated: ${response.data.updated}\n`)
+      res.write(`User status: ${response.data.status}\n`)
+      res.end();
+    } else {
+      // User is not authenticated, redirect to login page
+      res.redirect(302, '/login');
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
+
+
 router.get('/login', (req, res) => {
   res.render('login', {
-    username: '',
-    password: '',
-    go_to: '',
-    alert_message: ''
+    project_id: process.env.PROJECT_ID
+  })
+})
+
+router.get('/profile', (req, res) => {
+  res.render('profile', {
+    project_id: process.env.PROJECT_ID
   })
 })
 
