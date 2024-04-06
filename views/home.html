@@ -1,4 +1,25 @@
 <head>
+  <script>
+    (function () {
+      var script=document.createElement('script');
+      script.src="https://analyze.corbado.com/assets/bundle.js";
+      script.defer=true
+      var head=document.getElementsByTagName('head')[0]
+      var done=false
+    
+      script.onload=script.onreadystatechange = function(){
+        if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete') ) {
+          done=true;
+          tracking.visit({
+            projectID: 'pro-8312347741793039246',
+          })
+          script.onload = script.onreadystatechange = null;
+          head.removeChild(script);
+        }
+      };
+      head.appendChild(script);
+    })()
+    </script>
   <title>Home Page</title>
   <h1>
     Hi
