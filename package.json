@@ -11,7 +11,11 @@
   "author": "Chandler de Spirlet",
   "license": "ISC",
   "dependencies": {
-    "api": "^6.1.1",
+    "@corbado/node-sdk": "^2.0.0",
+    "@corbado/web-js": "^2.4.0-alpha.0",
+    "api": "^2.6.0",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "connect-flash": "^0.1.1",
     "connect-redis": "^7.1.1",
@@ -40,6 +44,7 @@
     "path": "^0.12.7",
     "pg-promise": "^11.5.4",
     "redis": "^4.6.12",
+    "sequelize": "^6.37.2",
     "strip-final-newline": "^4.0.0",
     "tough-cookie": "^4.1.3"
   }
