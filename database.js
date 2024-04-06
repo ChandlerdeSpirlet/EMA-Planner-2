@@ -1,6 +1,6 @@
 const pgp = require('pg-promise')()
 const { Sequelize } = require('sequelize')
-import initUserModel from './models/user.model'
+import initUserModel from './models/user.model.mjs'
 
 const connectionConf = {
   connectionString: process.env.DATABASE_URL,
