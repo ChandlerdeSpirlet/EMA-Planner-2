@@ -1,9 +1,7 @@
 {
     "extends": "eslint:recommended",
     "parserOptions": {
-        "ecmaVersion": "latest",
-        "allowImportExportEverywhere": true,
-        "sourceType": "module"
+        "ecmaVersion": "latest"
     },
     "rules": {
         "no-unused-vars": 0,
