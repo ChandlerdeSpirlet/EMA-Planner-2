@@ -18,15 +18,7 @@ const request = require('request')
 const crypto = require('crypto')
 // const Json2csvParser = require("json2csv").Parser
 // const csv = require('csv-parser')
-const bcrypt = require('bcryptjs')
 const fileUpload = require('express-fileupload')
-const {Configuration, SDK} = require('@corbado/node-sdk')
-import db_user from './database'
-
-const projectID = process.env.PROJECT_ID
-const apiSecret = process.env.API_SECRET
-const config = new Configuration(projectID, apiSecret)
-const corbado = new SDK(config)
 
 const settings = {
   port: 8080,
@@ -489,89 +481,12 @@ app.get('/', (req, res) => {
 
 router.get('/login', (req, res) => {
   res.render('login', {
+    username: '',
+    password: '',
     go_to: '',
     alert_message: ''
   })
 })
-
-
-const User = db_user.user
-
-export const create = async (name, email, password = null) => {
-  let hashedPassword = null
-  if (password) {
-    const saltRounds = 10
-    hashedPassword = await bcrypt.hash(password, saltRounds)
-  }
-  const user = {
-    name,
-    email,
-    password: hashedPassword
-  }
-  return User.create(user)
-}
-
-export const findByEmail = async (email) => {
-  try {
-    const response = await User.findOne({ where: { email }})
-    return response
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-export const findById = async(id) => {
-  try {
-    const response = await User.findOne({ where: { id }})
-    return response
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-router.get('/api/redirect', authRedirect)
-
-export const authRedirect = async (req, res) => {
-  try {
-    const { email, name } = await corbado.session.getCurrentUser(req)
-    try {
-      const user = await findByEmail(email)
-      if (!user) {
-        try {
-          const newUser = await create(name, email)
-          console.log('Local user successfully created')
-          res.redirect('/profile')
-        } catch (err) {
-          console.log(err)
-          res.status(500).send('Server Error')
-        }
-      }
-    } catch (err) {
-      console.log(err)
-      res.status(500).send('Server Error')
-    }
-  } catch (err) {
-    res.status(401).json({})
-  }
-}
-
-export const profile = async (req, res) => {
-  const { authenticated, email } = await corbado.session.getCurrentUser(req)
-  if (!authenticated) {
-    return res.redirect('/logout')
-  }
-  try {
-    const user = await User.findByEmail(email)
-    if (!user) {
-      res.redirect('/logout')
-    } else {
-      res.render('profile', { username: user.email, userFullName: user.name })
-    }
-  } catch (error) {
-    console.error(error)
-    res.status(500).send('Server Error')
-  }
-}
 
 router.get('/login_success', (req, res) => {
   console.log('req.session.loggedin = ' + req.session.loggedin)
