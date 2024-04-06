@@ -477,10 +477,7 @@ app.get('/', (req, res) => {
       })
     } else {
       res.render('login', {
-        username: '',
-        password: '',
-        go_to: '/',
-        alert_message: ''
+        project_id: process.env.PROJECT_ID
       })
     }
   }
