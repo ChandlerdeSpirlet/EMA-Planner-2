@@ -20,6 +20,7 @@ const crypto = require('crypto')
 // const csv = require('csv-parser')
 const fileUpload = require('express-fileupload')
 const Passage = require('@passageidentity/passage-node')
+const passageJS = require('@passageidentity/passage-js')
 
 const passageConfig = {
   appID: process.env.PASSAGE_ID,
@@ -82,7 +83,8 @@ const db = require('./database')
 app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
 
 let passage = new Passage(passageConfig)
-const passageSession  = passage.getCurrentSession()
+let passageJ = new passageJS(passageConfig)
+const passageSession  = passageJ.getCurrentSession()
 const authToken = passageSession.getAuthToken()
 let passageAuthMiddleware = (() => {
   return async (req, res, next) => {
