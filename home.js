@@ -82,6 +82,8 @@ const db = require('./database')
 app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
 
 let passage = new Passage(passageConfig)
+const passageSession  = passage.getCurrentSession()
+const authToken = passageSession.getAuthToken()
 let passageAuthMiddleware = (() => {
   return async (req, res, next) => {
     try {
@@ -484,11 +486,11 @@ function parseID (idSet) {
 }
 
 app.get('/', passageAuthMiddleware, async(req, res) => {
-  let userID = res.userID
+  // let userID = res.userID
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
-    if (userID) {
+    if (authToken) {
       res.render('home.html', {
       })
     } else {
