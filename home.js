@@ -91,8 +91,9 @@ let passageAuthMiddleware = (() => {
         next()
       }
     } catch (e) {
+      res.status(401).render('login')
       console.log('Error authenticating: ' + e)
-      res.status(401).send('Could not authenticate user!')
+      //res.status(401).send('Could not authenticate user!')
     }
   }
 })()
