@@ -19,6 +19,11 @@ const crypto = require('crypto')
 // const Json2csvParser = require("json2csv").Parser
 // const csv = require('csv-parser')
 const fileUpload = require('express-fileupload')
+import Passage from '@passageidentity/passage-node'
+
+const passageConfig = {
+  appID: process.env.PASSAGE_ID
+}
 
 const settings = {
   port: 8080,
@@ -74,6 +79,22 @@ const db = require('./database')
 // const { resolveObjectURL } = require('buffer')
 
 app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
+
+let passage = new pgPromise(passageConfig)
+let passageAuthMiddleware = (() => {
+  return async (req, res, next) => {
+    try {
+      let userID = await passage.authenticateRequest(req)
+      if (userID) {
+        res.userID = userID
+        next()
+      }
+    } catch (e) {
+      console.log('Error authenticating: ' + e)
+      res.status(401).send('Could not authenticate user!')
+    }
+  }
+})()
 
 function parseStudentInfo (info) {
   const studInfo = ['', 0]
@@ -461,19 +482,16 @@ function parseID (idSet) {
   return setId
 }
 
-app.get('/', (req, res) => {
+app.get('/', passageAuthMiddleware, async(req, res) => {
+  let userID = res.userID
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
-    if (req.session.loggedin) {
+    if (userID) {
       res.render('home.html', {
       })
     } else {
       res.render('login', {
-        username: '',
-        password: '',
-        go_to: '/',
-        alert_message: ''
       })
     }
   }
