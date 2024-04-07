@@ -19,7 +19,7 @@ const crypto = require('crypto')
 // const Json2csvParser = require("json2csv").Parser
 // const csv = require('csv-parser')
 const fileUpload = require('express-fileupload')
-import Passage from '@passageidentity/passage-node'
+const Passage = require('@passageidentity/passage-node')
 
 const passageConfig = {
   appID: process.env.PASSAGE_ID
@@ -80,7 +80,7 @@ const db = require('./database')
 
 app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
 
-let passage = new pgPromise(passageConfig)
+let passage = new Passage(passageConfig)
 let passageAuthMiddleware = (() => {
   return async (req, res, next) => {
     try {
