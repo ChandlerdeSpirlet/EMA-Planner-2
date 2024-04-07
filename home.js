@@ -484,11 +484,12 @@ function parseID (idSet) {
 }
 
 app.get('/', passageAuthMiddleware, async(req, res) => {
-  // let userID = res.userID
+  let userID = res.userID
+  console.log('userID: ' + userID)
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
-    if (req.cookies.psg_auth_token) {
+    if (req.cookies.psg_auth_token && userID) {
       res.render('home.html', {
       })
     } else {
