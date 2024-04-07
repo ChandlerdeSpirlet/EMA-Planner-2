@@ -22,7 +22,8 @@ const fileUpload = require('express-fileupload')
 const Passage = require('@passageidentity/passage-node')
 
 const passageConfig = {
-  appID: process.env.PASSAGE_ID
+  appID: process.env.PASSAGE_ID,
+  apiKey: process.env.PASSAGE_API
 }
 
 const settings = {
