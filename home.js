@@ -20,7 +20,6 @@ const crypto = require('crypto')
 // const csv = require('csv-parser')
 const fileUpload = require('express-fileupload')
 const Passage = require('@passageidentity/passage-node')
-const passageJS = require('@passageidentity/passage-js')
 
 const passageConfig = {
   appID: process.env.PASSAGE_ID,
@@ -83,9 +82,6 @@ const db = require('./database')
 app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
 
 let passage = new Passage(passageConfig)
-let passageJ = new passageJS(passageConfig)
-const passageSession  = passageJ.getCurrentSession()
-const authToken = passageSession.getAuthToken()
 let passageAuthMiddleware = (() => {
   return async (req, res, next) => {
     try {
@@ -492,7 +488,7 @@ app.get('/', passageAuthMiddleware, async(req, res) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
-    if (authToken) {
+    if (req.cookies.psg_auth_token) {
       res.render('home.html', {
       })
     } else {
