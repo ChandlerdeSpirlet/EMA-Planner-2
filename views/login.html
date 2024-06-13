@@ -1,32 +1,12 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <title>Login</title>
-
-    <link
-            rel="stylesheet"
-            href="https://unpkg.com/@corbado/web-js@latest/dist/bundle/index.css"
-    />
-    <script src="https://unpkg.com/@corbado/web-js@latest/dist/bundle/index.js"></script>
-
-</head>
-<body>
-<div id="corbado-auth"></div>
-
-<script type="module">
-    await Corbado.load({
-        projectId: "{{ project_id }}",
-    })
-
-    const authElement = document.getElementById('corbado-auth');
-
-    Corbado.mountAuthUI(authElement, {
-        onLoggedIn: () => {
-            window.location.href = './profile.html';
-        },
-        isDevMode: true,
-    });
-</script>
-</body>
+    <head>
+        <title>Login</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.jpeg">
+        <script src="https://psg.so/web.js"></script>
+    </head>
+    <body>
+        <passage-auth app-id="tpKsZ7PltBAfuzDXbyG6bHFp"></passage-auth>
+    </body>
 </html>
