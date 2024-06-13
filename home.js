@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 const express = require('express')
 const bodyParser = require('body-parser')
 const nunjucks = require('nunjucks')
@@ -30,9 +31,9 @@ const settings = {
   port: 8080,
   apiv4url: 'https://api.paysimple.com/v4',
   apiv4url_beta: 'https://sandbox-api.paysimple.com/v4',
-  username: 'APIUserRemoved_NeedUpdate',
+  username: process.env.API_USER,
   username_beta: 'APIUser156358',
-  apikey: process.env.ps_api,
+  apikey: process.env.PS_API,
   apikey_beta: process.env.ps_api_beta
 }
 
@@ -41,6 +42,9 @@ function getAuthHeader () {
   const hash = crypto.createHmac('SHA256', settings.apikey).update(time).digest('base64')
   return 'PSSERVER' + ' ' + 'accessid=' + settings.username + '; timestamp=' + time + '; signature=' + hash
 }
+const sdk = require('api')('@paysimple-developer-portal/v1.1#fv6vw4al5ip3eo1')
+const auth_header = getAuthHeader()
+sdk.auth(auth_header)
 // function getAuthHeader_beta () {
 //   let time = (new Date()).toISOString()
 //   let hash = crypto.createHmac('SHA256', settings.apikey_beta).update(time).digest('base64')
@@ -491,8 +495,139 @@ app.get('/', passageAuthMiddleware, async(req, res) => {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
     if (req.cookies.psg_auth_token && userID) {
-      res.render('home.html', {
-      })
+      var event = new Date();
+      var options_1 = { 
+        month: 'long',
+        timeZone: 'America/Denver'
+      };
+      var options_2 = { 
+        day: 'numeric',
+        timeZone: 'America/Denver'
+      };
+      var options_3 = { 
+        year: 'numeric',
+        timeZone: 'America/Denver'
+      };
+      const month = event.toLocaleDateString('en-US', options_1);
+      const day = event.toLocaleDateString('en-US', options_2);
+      const year = event.toLocaleDateString('en-US', options_3);
+      const student_query = 'select level_name, count(level_name), belt_order from student_list group by level_name, belt_order order by belt_order;'
+      const p_count = 'select count(belt_order) as num from student_list where belt_order = 4;'
+      const c_count = 'select count(belt_order) as num from student_list where belt_order >= 5 and belt_order <= 6;'
+      const b_count = 'select count(belt_order) as num from student_list where belt_order >= 7;'
+      const total_new_student_list = "select count(barcode) as new_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year')));"
+      const karate_new_student_list = "select count(barcode) as karate_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year'))) and karate_student = true;"
+      const kickbox_new_student_list = "select count(barcode) as kickbox_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year'))) and kickboxer = true;"
+      const find_missing = 'select count(barcode) as num_barcodes from temp_payments;'
+      db.any(student_query)
+        .then(function (rows) {
+          // const stripe = require('stripe')(process.env.STRIPE_API_KEY)
+          // stripe.balance.retrieve((err, balance) => {
+          //  if (balance) {
+          const failure_query = 'select count(id_failed) as failed_num from failed_payments'
+          db.one(failure_query)
+            .then(function (row) {
+              const checked_in_query = "select count(class_session_id) as week_count from class_signups where class_session_id in (select class_id from classes where starts_at >= (now() - interval '7 hours') - interval '7 days' and starts_at < (now() + interval '17 hours'));";
+              db.any(checked_in_query)
+                .then(checked_week => {
+                  const day_query = "select count(class_session_id) as day_count from class_signups where class_session_id in (select class_id from classes where starts_at >= (now() - interval '7 hours') - interval '24 hours' and starts_at < (now() - interval '7 hours'));"
+                  db.any(day_query)
+                    .then(days => {
+                      const belt_count = "select count(belt_size) as belt_count from student_list where belt_size = -1;"
+                      db.any(belt_count)
+                        .then(belt_row => {
+                          db.any(total_new_student_list, [month, year])
+                            .then(stud_list => {
+                              db.any(karate_new_student_list, [month, year])
+                                .then(karate_list => {
+                                  db.any(kickbox_new_student_list, [month, year])
+                                    .then(kickbox_list => {
+                                      db.any(find_missing)
+                                        .then(missing => {
+                                          db.one(p_count)
+                                            .then(p_num => {
+                                              db.one(c_count)
+                                                .then(c_num => {
+                                                  db.one(b_count)
+                                                    .then(b_num => {
+                                                      res.render('home.html', {
+                                                        balance_available: '0',
+                                                        balance_pending: '0',
+                                                        checked_today: days,
+                                                        belt_counts: belt_row,
+                                                        checked_week: checked_week,
+                                                        student_data: rows,
+                                                        p_count: p_num,
+                                                        c_count: c_num,
+                                                        b_count: b_num,
+                                                        failure_num: row,
+                                                        month: month,
+                                                        day: day,
+                                                        year: year,
+                                                        student_list: stud_list,
+                                                        karate_list: karate_list,
+                                                        kickbox_list: kickbox_list,
+                                                        missing_names: missing
+                                                      })
+                                                    })
+                                                    .catch(err => {
+                                                      console.log('Could not get black belt counts ' + err);
+                                                      res.render('home.html');
+                                                    })
+                                                })
+                                                .catch(err => {
+                                                  console.log('Could not get conditional counts ' + err);
+                                                  res.render('home.html');
+                                                })
+                                            })
+                                            .catch(err => {
+                                              console.log('Could not get prep counts ' + err);
+                                              res.render('home.html');
+                                            })
+                                        })
+                                        .catch(err => {
+                                          console.log('Could not get missing students ' + err);
+                                          res.render('home.html');
+                                        })
+                                    })
+                                    .catch(err => {
+                                      console.log('Could not get new kickboxer list ' + err);
+                                      res.render('home.html')
+                                    })
+                                })
+                                .catch(err => {
+                                  console.log('Cound not get new karate list ' + err);
+                                  res.render('home.html')
+                                })
+                            })
+                            .catch(err => {
+                              console.log('Could not get new student list ' + err);
+                              res.render('home.html');
+                            })
+                        })
+                        .catch(err => {
+                          console.log('Could not get belt count nums ' + err);
+                          res.render('home.html');
+                        })
+                    })
+                    .catch(err => {
+                      console.log('Could not get checked in day numbers ' + err);
+                      res.render('home.html');
+                    })
+                })
+                .catch(err => {
+                  console.log('Could not get checked in week numbers ' + err);
+                  res.render('home.html');
+                })
+            })
+            .catch(function (err) {
+              console.log('Could not get failed_payment count ' + err)
+              res.render('home.html')
+            })
+            .catch(function (err) {
+              console.log('Could not run query to count students: ' + err)
+            })
+        })
     } else {
       res.render('login', {
       })
@@ -3183,6 +3318,133 @@ router.post('/enrollStudent', (req, res) => {
       // res.status((response && response.statusCode) || 500).send(error);
     }
   })
+})
+
+request.post({
+  uri: 'https://api.paysimple.com/ps/webhook/subscription',
+  //uri: 'https://sandbox-api.paysimple.com/ps/webhook/subscription',
+  "url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.com/ps_webhook',
+  "event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
+  "is_active": 'true',
+  headers: {
+    Authorization: 'basic ' + settings.username + ':' + process.env.ps_api,
+    "content-type": "application/json; charset=utf-8",
+  },
+  body: JSON.stringify({
+    "url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.com/ps_webhook',
+    "event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
+    "is_active": 'true',
+  })
+}, function(e,r,b){
+});
+
+app.post('/ps_webhook', (req, res) => {
+  let event = req.body.event_type;
+  try {
+    console.log('webhook received. - ' + event);
+  } catch (err) {
+    res.status(400).send();
+  }
+  switch (event) {
+    case 'customer_created':
+      var fname = req.body.data.first_name;
+      fname = fname.replace("'","");
+      var lname = req.body.data.last_name;
+      lname = lname.replace("'",'');
+      var email = req.body.data.email;
+      if (email == '' || email == null){
+        email = 'no@email.available'
+      }
+      const barcode = req.body.data.customer_id
+      var date_event = new Date(req.body.created_at);
+      var options_1 = { 
+        month: 'long',
+        timeZone: 'America/Denver'
+      };
+      var options_2 = { 
+        day: 'numeric',
+        timeZone: 'America/Denver'
+      };
+      var options_3 = {
+          year: 'numeric',
+          timeZone: 'America/Denver'
+      };
+      var month = date_event.toLocaleDateString('en-US', options_1);
+      var day = date_event.toLocaleDateString('en-US', options_2);
+      var year = date_event.toLocaleDateString('en-US', options_3);
+      var date_added = month + ' ' + day + ', ' + year;
+      const add_query = "insert into student_list (barcode, first_name, last_name, belt_color, belt_size, email, level_name, belt_order, join_date) values ($1, $2, $3, $4, $5, $6, $7, $8, to_date($9, 'Month DD, YYYY')) on conflict (barcode) do nothing;"
+      db.none(add_query, [barcode, fname, lname, 'White', -1, email, 'Basic', 0, date_added])
+        .then(row => {
+          console.log('Added a new student');
+          res.status(200).send();
+        })
+        .catch(err => {
+          console.log('Could not add a new student - webhook error: ' + err);
+          res.status(400).send();
+        })
+      res.status(200).send();
+      break;
+    case 'payment_created':
+      res.status(200).send();
+      break;
+    case 'customer_deleted':
+      const removeCode = req.body.data.customer_id;
+      const del_query = 'delete from student_list where barcode = $1';
+      db.none(del_query, [removeCode])
+        .then(row => {
+          console.log('Deleted student with barcode: ' + removeCode);
+          res.status(200).send();
+        })
+        .catch(err => {
+          console.log('Unable to delete student - webhook error: ' + err);
+          res.status(400).send();
+        })
+      res.status(200).send();
+      break;
+    case 'customer_updated':
+      const update_customer = 'update student_list set first_name = $1, last_name = $2, email = $3 where barcode = $4;';
+      db.none(update_customer, [req.body.data.first_name, req.body.data.last_name, req.body.data.email, req.body.data.customer_id])
+        .then(update_row => {
+          console.log('Updated student with barcode: ' + req.body.data.customer_id);
+          res.status(200).send();
+        })
+        .catch(err => {
+          console.log('Could not update student - webhook error: ' + err);
+          res.status(400).send();
+        })
+      res.status(200).send();
+      break;
+    case 'payment_failed':
+      const amount = req.body.data.amount;
+      const customer = req.body.data.customer_id;
+      const reason = req.body.data.failure_reason;
+      const payment_id = req.body.data.payment_id;
+      const failed_query = 'insert into failed_payments (customer, amount, reason, email, id_failed) values ($1, $2, $3, (select email from student_list where barcode = $4), $5) on conflict (id_failed) do nothing;'
+      const assign_code = 'update student_list set failed_charge = true where barcode = $1';
+      db.any(failed_query, [customer, amount, reason, customer, payment_id])
+        .then(function (row) {
+          db.none(assign_code, [customer])
+            .then(num1 => {
+              console.log('Added a charge.failed webhook')
+              res.status(200).send();
+            })
+            .catch(err => {
+              console.log('charge.failed ended with err ' + err);
+              res.status(400).send();
+            })
+        })
+        .catch(function (err) {
+          console.log('charge.failed ended with err ' + err)
+          res.status(400).send();
+        })
+        res.status(200).send();
+        break;
+    default:
+      res.status(400).send();
+      break;
+  }
+  res.status(200).send();
 })
 
 app.listen(port, () => {
