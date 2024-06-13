@@ -61,3 +61,4 @@ jobs:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: "ema-sidekick-lakewood" #Must be unique in Heroku
           heroku_email: ${{secrets.HEROKU_EMAIL}}
+          branch: 'main'
