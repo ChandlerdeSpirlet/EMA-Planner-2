@@ -4,6 +4,11 @@
     {% block content %}
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.jpeg">
+    {% if authLevel == 'STAFF' %}
+        <meta http-equiv="refresh" content="1.5;url=https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login">
+        {% elif authLevel == 'STUDENT' %}
+        <meta http-equiv="refresh" content="1.5;url=https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com">
+        {% endif %}
     <!--<meta http-equiv="refresh" content="1;url=https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com{{ go_to }}">-->
     <style>
         html {
