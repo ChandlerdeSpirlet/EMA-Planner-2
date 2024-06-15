@@ -1,11 +1,10 @@
 <html>
     <title>Login Success</title>
-    {% set local = 'Tests' %}
     {% extends 'nav_bar.html' %}
     {% block content %}
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.jpeg">
-    <meta http-equiv="refresh" content="1;url=https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com{{ go_to }}">
+    <!--<meta http-equiv="refresh" content="1;url=https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com{{ go_to }}">-->
     <style>
         html {
             background-image: linear-gradient(#3274C4, #2E353B);
@@ -119,6 +118,12 @@
     </style>
     <head>
         <h1>Login Successful</h1>
+        <h2>Now redirecting</h2>
+        {% if authLevel == 'STAFF' %}
+        <meta http-equiv="refresh" content="1.5;url=https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login">
+        {% elif authLevel == 'STUDENT' %}
+        <meta http-equiv="refresh" content="1.5;url=https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com">
+        {% endif %}
     </head>
     <body>
     </body>

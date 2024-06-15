@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  {% if alert_message != '' %}
+    <script>alert({{ alert_message }})</script>
+  {% endif %}
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv = "refresh" content = "5; url = https://ema-planner.herokuapp.com/student_portal/{{ barcode }}"/>
+  <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
+  <title>Test Confirmed</title>
+  <style>
+    * {
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #E7E5E3;
+  }
+  html {
+    background-image: linear-gradient(#3274C4, #2E353B);
+      -webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+      min-height: 100%;
+    }
+    p {
+        font-size: 15px;
+    }
+    label {
+        font-weight: bold;
+    }
+    button {
+      display: block;
+            font-size: 100%;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 5px;
+            height: 60px;
+            align-content: center;
+            background-color: transparent;
+            border: 1px solid #92856C;
+    }
+  </style>
+  <head>
+
+  </head>
+  <body>
+    <div id="page-container">
+      <div id="content-wrap">
+        <p><label>{{ student_name }}</label>, you are signed up for testing on <label>{{ test_instance }}</label>. You are testing for <label>{{ belt_color }}</label>.</p>
+        <a href="https://ema-planner.herokuapp.com/student_portal/{{ barcode }}"><button type="button">You can view your test here</button></a><br>
+        <p><i>This page will return to your student portal in 5 seconds.</i></p>
+      </div>
+    </div>
+  </body>
+</html>
