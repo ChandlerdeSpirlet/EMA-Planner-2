@@ -636,7 +636,7 @@ app.get('/logged-in', passageAuthMiddleware, async(req, res) => {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
     if (req.cookies.psg_auth_token && userID) {
-      const staffArray = JSON.parse('[' + process.env.STAFF_USER_ID + ']')
+      const staffArray = process.env.STAFF_USER_ID.split(',')
       const authLevel = ''
       if (staffArray.includes(userID)) {
         const authLevel = 'STAFF'
