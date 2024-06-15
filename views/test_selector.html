@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+    {% set local = 'Tests' %}
+    {% extends 'nav_bar.html' %}
+    {% block content %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
+    <title>Select a Test</title>
+    <style>
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            color: #E7E5E3;
+        }
+        head {
+            padding-bottom: 25px;
+        }
+        html {
+            background-image: linear-gradient(#3274C4, #2E353B);
+      -webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+      min-height: 100%;
+        }
+        h1, h3 {
+            text-align: center;
+        }
+        .wrapper {
+            text-align: center;
+        }
+
+        button {
+            color: black;
+            border: 4px solid #8A8276;
+        }
+        
+        .button{
+            width: 60%;
+            align-self: center;
+            background-color: transparent;
+        }
+
+        button:hover {
+            background-color: #555555;
+            color: white;
+        }
+    </style>
+    <head>
+        <h1>Test Check-In</h1>
+        <h3>Select a test to check students in.</h3>
+    </head>
+    <body>
+        <div class="wrapper">
+        {% if data %}
+            {% for test in data %}
+                {% if test.level < 8 %}
+                    <a href="/test_checkin/{{ test.id }}/{{ test.level }}"><button class="button"><br>
+                        {% if test.notes == '' %}
+                            <h2 style="font-size: xx-large;">{% if test.level == -1 %} Little Dragons {% elif test.level == 0 %} Basic {% elif test.level == 0.5 %} Basic (Floor 2) {% elif test.level == 1 %} Level 1 {% elif test.level == 1.5 %} Level 1 (Floor 2) {% elif test.level == 2 %} Level 2 {% elif test.level == 3 %} Level 3 {% elif test.level == 4 %} Prep Belt {% elif test.level == 5 %} Black Belt {% elif test.level == 6 %} Open Mat {% elif test.level == 7 %} Weapons {% elif test.level == 8 %} Black Belt {% else %} Unknown {% endif %}</h2>
+                        {% else %}
+                            <h2 style="font-size: xx-large;">{% if test.level == -1 %} Little Dragons ({{ test.notes }}) {% elif test.level == 0 %} Basic ({{ test.notes }}) {% elif test.level == 0.5 %} Basic ({{ test.notes }}) (Floor 2) {% elif test.level == 1 %} Level 1 ({{ test.notes }}) {% elif test.level == 1.5 %} Level 1 ({{ test.notes }}) (Floor 2) {% elif test.level == 2 %} Level 2 ({{ test.notes }}) {% elif test.level == 3 %} Level 3 ({{ test.notes }}) {% elif test.level == 4 %} Prep Belt ({{ test.notes }}) {% elif test.level == 5 %} Black Belt ({{ test.notes }}) {% elif test.level == 6 %} Open Mat ({{ test.notes }}) {% elif test.level == 7 %} Weapons ({{ test.notes }}) {% elif test.level == 8 %} Black Belt ({{ test.notes }}) {% else %} Unknown {% endif %}</h2>
+                        {% endif %}
+                        <h3 style="font-size: x-large;">{{ test.test_month }} {{ test.test_day }}</h3> <h3>{{ test.testing_time }}</h3>
+                    </button></a><br>
+                {% else %}
+                    <a href="/test_checkin_blackbelt/{{ test.id }}/{{ test.level }}"><button class="button"><br>
+                        <h2 style="font-size: xx-large;">{% if test.level == -1 %} Little Dragons {% elif test.level == 0 %} Basic {% elif test.level == 0.5 %} Basic (Floor 2) {% elif test.level == 1 %} Level 1 {% elif test.level == 1.5 %} Level 1 (Floor 2) {% elif test.level == 2 %} Level 2 {% elif test.level == 3 %} Level 3 {% elif test.level == 4 %} Prep Belt {% elif test.level == 5 %} Black Belt {% elif test.level == 6 %} Open Mat {% elif test.level == 7 %} Weapons {% elif test.level == 8 %} Black Belt {% else %} Unknown {% endif %}</h2>
+                        <h3 style="font-size: x-large;">{{ test.test_month }} {{ test.test_day }}</h3> <h3>{{ test.testing_time }}</h3>
+                    </button></a><br>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        {% if data.length == 0 %}
+            No classes can be found. Error: c_s:Test
+        {% endif %}
+        </div>
+    </body>
+</html>
+{% endblock %}

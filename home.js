@@ -117,6 +117,148 @@ function parseStudentInfo (info) {
 function convertTZ (date, tzString) {
   return new Date((typeof date === 'string' ? new Date(date) : date).toLocaleString('en-US', { timeZone: tzString }))
 }
+function parseBB(currentColor, isPromotion) { //returns belt color, level, and belt_order
+  var beltInfo = ['', '', 999]
+  if (isPromotion){
+    switch (currentColor) {
+      case 'High Brown': 
+        beltInfo = ['Prep', 'Black Belt', 4]
+        break;
+      case 'Prep':
+        beltInfo = ['Conditional', 'Black Belt', 5]
+        break;
+      case 'Conditional': 
+        beltInfo = ['Conditional (pc)', 'Black Belt', 6]
+        break;
+      case 'Conditional (pc)':
+        beltInfo = ['First Degree', 'Black Belt', 7]
+        break;
+      case 'First Degree':
+        beltInfo = ['First Degree - White Bar', 'Black Belt', 8]
+        break;
+      case 'First Degree - White Bar':
+        beltInfo = ['First Degree - Gold Bar', 'Black Belt', 9]
+        break;
+      case 'First Degree - Gold Bar':
+        beltInfo = ['First Degree - Orange Bar', 'Black Belt', 10]
+        break;
+      case 'First Degree - Orange Bar':
+        beltInfo = ['First Degree - Green Bar', 'Black Belt', 11]
+        break;
+      case 'First Degree - Green Bar':
+        beltInfo = ['First Degree - Purple Bar', 'Black Belt', 12]
+        break;
+      case 'First Degree - Purple Bar':
+        beltInfo = ['First Degree - Blue Bar', 'Black Belt', 13]
+        break;
+      case 'First Degree - Blue Bar':
+        beltInfo = ['First Degree - Brown Bar', 'Black Belt', 14]
+        break;
+      case 'First Degree - Brown Bar':
+        beltInfo = ['Second Degree', 'Black Belt', 15]
+        break;
+      case 'Second Degree':
+        beltInfo = ['Second Degree (pc)', 'Black Belt', 16]
+        break;
+      case 'Second Degree (pc)':
+        beltInfo = ['Third Degree', 'Black Belt', 17]
+        break;
+      case 'Third Degree':
+        beltInfo = ['Third Degree (pc)', 'Black Belt', 18]
+        break;
+      case 'Third Degree (pc)':
+        beltInfo = ['Fourth Degree', 'Black Belt', 19]
+        break;
+      case 'Fourth Degree':
+        beltInfo = ['Fourth Degree (pc)', 'Black Belt', 20]
+        break;
+      case 'Fourth Degree (pc)':
+        beltInfo = ['Fifth Degree', 'Black Belt', 21]
+        break;
+      case 'Fifth Degree':
+        beltInfo = ['Fifth Degree (pc)', 'Black Belt', 22]
+        break;
+      case 'Fifth Degree (pc)':
+        beltInfo = ['Sixth Degree', 'Black Belt', 23]
+        break;
+      default:
+        console.log('Unknown belt color: ' + currentColor)
+        beltInfo = ['?', '?', 999];
+        break;
+    }
+  } else {
+    switch (currentColor) {
+      case 'High Brown':
+        beltInfo = ['High Brown', 'Level 3', 3]
+        break;
+      case 'Prep':
+        beltInfo = ['Prep', 'Black Belt', 4]
+        break;
+      case 'Conditional': 
+        beltInfo = ['Conditional', 'Black Belt', 5]
+        break;
+      case 'Conditional (pc)':
+        beltInfo = ['Conditional (pc)', 'Black Belt', 6]
+        break;
+      case 'First Degree':
+        beltInfo = ['First Degree', 'Black Belt', 7]
+        break;
+      case 'First Degree - White Bar':
+        beltInfo = ['First Degree - White Bar', 'Black Belt', 8]
+        break;
+      case 'First Degree - Gold Bar':
+        beltInfo = ['First Degree - Gold Bar', 'Black Belt', 9]
+        break;
+      case 'First Degree - Orange Bar':
+        beltInfo = ['First Degree - Orange Bar', 'Black Belt', 10]
+        break;
+      case 'First Degree - Green Bar':
+        beltInfo = ['First Degree - Green Bar', 'Black Belt', 11]
+        break;
+      case 'First Degree - Purple Bar':
+        beltInfo = ['First Degree - Purple Bar', 'Black Belt', 12]
+        break;
+      case 'First Degree - Blue Bar':
+        beltInfo = ['First Degree - Blue Bar', 'Black Belt', 13]
+        break;
+      case 'First Degree - Brown Bar':
+        beltInfo = ['First Degree - Brown Bar', 'Black Belt', 14]
+        break;
+      case 'Second Degree':
+        beltInfo = ['Second Degree', 'Black Belt', 15]
+        break;
+      case 'Second Degree (pc)':
+        beltInfo = ['Second Degree (pc)', 'Black Belt', 16]
+        break;
+      case 'Third Degree':
+        beltInfo = ['Third Degree', 'Black Belt', 17]
+        break;
+      case 'Third Degree (pc)':
+        beltInfo = ['Third Degree (pc)', 'Black Belt', 18]
+        break;
+      case 'Fourth Degree':
+        beltInfo = ['Fourth Degree', 'Black Belt', 19]
+        break;
+      case 'Fourth Degree (pc)':
+        beltInfo = ['Fourth Degree (pc)', 'Black Belt', 20]
+        break;
+      case 'Fifth Degree':
+        beltInfo = ['Fifth Degree', 'Black Belt', 21]
+        break;
+      case 'Fifth Degree (pc)':
+        beltInfo = ['Fifth Degree (pc)', 'Black Belt', 22]
+        break;
+      case 'Sixth Degree':
+        beltInfo = ['Sixth Degree', 'Black Belt', 23]
+        break;
+      default:
+        console.log('Unknown belt color: ' + currentColor);
+        beltInfo = ['?', '?', 999];
+        break;
+    }
+  }
+  return beltInfo;
+}
 
 function parseBelt (currentColor, isPromotion) { // returns belt color, level, and belt_order value
   var beltInfo = ['', '', 999]
@@ -488,6 +630,29 @@ function parseID (idSet) {
   return setId
 }
 
+app.get('/logged-in', passageAuthMiddleware, async(req, res) => {
+  let userID = res.userID
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+  } else {
+    if (req.cookies.psg_auth_token && userID) {
+      const staffArray = JSON.parse('[' + process.env.STAFF_USER_ID + ']')
+      const authLevel = ''
+      if (staffArray.includes(userID)) {
+        const authLevel = 'STAFF'
+      } else {
+        const authLevel = 'STUDENT'
+      }
+      res.render('logged-in', {
+        authLevel: authLevel
+      })
+    } else {
+      res.render('login', {
+      })
+    }
+  }
+})
+
 app.get('/', passageAuthMiddleware, async(req, res) => {
   let userID = res.userID
   console.log('userID: ' + userID)
@@ -643,34 +808,6 @@ app.get('/setCookie', async (_req, res) => {
   );
   res.send('Cookie set!');
 });
-
-app.get('/logged-in', async (req, res) => {
-  try {
-    const shortSession = await req.cookies.cbo_short_session;
-    const user = await sdk.sessions().getCurrentUser(shortSession);
-
-    if (user.authenticated) {
-      // User is authenticated
-      res.write('User is authenticated!\n');
-      res.write(`User ID: ${user.id}\n`);
-      res.write(`User full name: ${user.name}\n`)
-      res.write(`User email: ${user.email}\n`)
-
-      const response = await sdk.users().get(user.id, null)
-      res.write(`User created: ${response.data.created}\n`)
-      res.write(`User updated: ${response.data.updated}\n`)
-      res.write(`User status: ${response.data.status}\n`)
-      res.end();
-    } else {
-      // User is not authenticated, redirect to login page
-      res.redirect(302, '/login');
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(500).send(err.message);
-  }
-});
-
 
 router.get('/login', (req, res) => {
   res.render('login', {
@@ -3049,6 +3186,718 @@ router.get('/student_portal_login', (req, res) => {
   }
 })
 
+router.get('/testing_signup_dragons', (req, res) => {
+  if (req.headers['x-forwarded-proto'] != 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_dragons');
+  } else {
+    const name_query = "select * from signup_names(-1);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = -1 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_dragons', {
+              names: rows_names,
+              belts: '',
+              tests: rows
+            })
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_dragons');
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_dragons');
+      })
+  }
+})
+
+router.get('/testing_signup_basic', (req, res) => {
+  if (req.headers['x-forwarded-proto'] != 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_basic');
+  } else {
+    const name_query = "select * from signup_names(0);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 0 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_basic', {
+              names: rows_names,
+              belts: '',
+              tests: rows
+            })
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_basic');
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_basic');
+      })
+  }
+})
+
+router.get('/testing_signup_level1', (req, res) => {
+  if (req.headers['x-forwarded-proto'] != 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_level1');
+  } else {
+    const name_query = "select * from signup_names(0);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 1 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_level1', {
+              names: rows_names,
+              belts: '',
+              tests: rows
+            })
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_level1');
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_level1');
+      })
+  }
+})
+
+router.get('/testing_signup_level2', (req, res) => {
+  if (req.headers['x-forwarded-proto'] != 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_level2');
+  } else {
+    const name_query = "select * from signup_names(0);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 2 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_level2', {
+              names: rows_names,
+              belts: '',
+              tests: rows
+            })
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_level2');
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_level2');
+      })
+  }
+})
+
+router.get('/testing_signup_level3', (req, res) => {
+  if (req.headers['x-forwarded-proto'] != 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_level3');
+  } else {
+    const name_query = "select * from signup_names(0);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 3 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_level3', {
+              names: rows_names,
+              belts: '',
+              tests: rows
+            })
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_level3');
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_level3');
+      })
+  }
+})
+
+router.get('/testing_signup_weapons', (req, res) => {
+  if (req.headers['x-forwarded-proto'] != 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_weapons');
+  } else {
+    const name_query = "select * from signup_names(0);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 7 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_weapons', {
+              names: rows_names,
+              belts: '',
+              tests: rows
+            })
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_weapons');
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_weapons');
+      })
+  }
+})
+
+router.get('/testing_signup_blackbelt', (req, res) => {
+  if (req.headers['x-forwarded-proto'] != 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_blackbelt');
+  } else {
+    const name_query = "select * from signup_names(4);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes, curriculum from test_instance where level = 8 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_blackbelt', {
+              names: rows_names,
+              belts: '',
+              tests: rows
+            })
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_blackbelt');
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_blackbelt');
+      })
+  }
+})
+
+router.post('/testing_signup_dragons', (req, res) => {
+  const item = {
+    student_name: req.sanitize('result').trim(),
+    belt_color: req.sanitize('belts').trim(),
+    test_id: req.sanitize('test_selection').trim()
+  };
+  console.log('item.test_id: ' + item.test_id);
+  const test_instance = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance from test_instance where id = $1;";
+  const data = parseStudentInfo(item.student_name); //name, barcode
+  db.any(test_instance, [item.test_id])
+    .then(rows => {
+      res.render('testing_preview', {
+        test_info: rows,
+        barcode: data[1],
+        test_id: item.test_id,
+        student_name: data[0],
+        belt_color: item.belt_color
+      })
+    })
+    .catch(err => {
+      console.log('Could not find test with given id. ERROR: ' + err);
+      req.flash('error', 'Unable to verify the test you are signed up for.');
+      res.redirect('/testing_signup_dragons');
+    })
+})
+
+router.post('/testing_signup_basic', (req, res) => {
+  const item = {
+    student_name: req.sanitize('result').trim(),
+    belt_color: req.sanitize('belts').trim(),
+    test_id: req.sanitize('test_selection').trim()
+  };
+  console.log('item.test_id: ' + item.test_id);
+  const test_instance = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance from test_instance where id = $1;";
+  const data = parseStudentInfo(item.student_name); //name, barcode
+  db.any(test_instance, [item.test_id])
+    .then(rows => {
+      res.render('testing_preview', {
+        test_info: rows,
+        barcode: data[1],
+        test_id: item.test_id,
+        student_name: data[0],
+        belt_color: item.belt_color
+      })
+    })
+    .catch(err => {
+      console.log('Could not find test with given id. ERROR: ' + err);
+      req.flash('error', 'Unable to verify the test you are signed up for.');
+      res.redirect('/testing_signup_basic');
+    })
+})
+
+router.post('/testing_signup_level1', (req, res) => {
+  const item = {
+    student_name: req.sanitize('result').trim(),
+    belt_color: req.sanitize('belts').trim(),
+    test_id: req.sanitize('test_selection').trim()
+  };
+  console.log('item.test_id: ' + item.test_id);
+  const test_instance = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance from test_instance where id = $1;";
+  const data = parseStudentInfo(item.student_name); //name, barcode
+  console.log('Student data is ' + data);
+  db.any(test_instance, [item.test_id])
+    .then(rows => {
+      res.render('testing_preview', {
+        test_info: rows,
+        barcode: data[1],
+        test_id: item.test_id,
+        student_name: data[0],
+        belt_color: item.belt_color
+      })
+    })
+    .catch(err => {
+      console.log('Could not find test with given id. ERROR: ' + err);
+      req.flash('error', 'Unable to verify the test you are signed up for.');
+      res.redirect('/testing_signup_level1');
+    })
+})
+
+router.post('/testing_signup_level2', (req, res) => {
+  const item = {
+    student_name: req.sanitize('result').trim(),
+    belt_color: req.sanitize('belts').trim(),
+    test_id: req.sanitize('test_selection').trim()
+  };
+  console.log('item.test_id: ' + item.test_id);
+  const test_instance = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance from test_instance where id = $1;";
+  const data = parseStudentInfo(item.student_name); //name, barcode
+  db.any(test_instance, [item.test_id])
+    .then(rows => {
+      res.render('testing_preview', {
+        test_info: rows,
+        barcode: data[1],
+        test_id: item.test_id,
+        student_name: data[0],
+        belt_color: item.belt_color
+      })
+    })
+    .catch(err => {
+      console.log('Could not find test with given id. ERROR: ' + err);
+      req.flash('error', 'Unable to verify the test you are signed up for.');
+      res.redirect('/testing_signup_level2');
+    })
+})
+
+router.post('/testing_signup_level3', (req, res) => {
+  const item = {
+    student_data: req.sanitize('result').trim(),
+    belt_color: req.sanitize('belts').trim(),
+    test_id: req.sanitize('test_selection').trim()
+  };
+  console.log('item.test_id: ' + item.test_id);
+  const test_instance = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance from test_instance where id = $1;";
+  const data = parseStudentInfo(item.student_data); //name, barcode
+  db.any(test_instance, [item.test_id])
+    .then(rows => {
+      res.render('testing_preview', {
+        test_info: rows,
+        barcode: data[1],
+        test_id: item.test_id,
+        student_name: data[0],
+        belt_color: item.belt_color
+      })
+    })
+    .catch(err => {
+      console.log('Could not find test with given id. ERROR: ' + err);
+      req.flash('error', 'Unable to verify the test you are signed up for.');
+      res.redirect('/testing_signup_level3');
+    })
+})
+
+router.post('/testing_signup_weapons', (req, res) => {
+  const item = {
+    student_name: req.sanitize('result').trim(),
+    belt_color: req.sanitize('belts').trim(),
+    test_id: req.sanitize('test_selection').trim()
+  };
+  console.log('item.test_id: ' + item.test_id);
+  const test_instance = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance from test_instance where id = $1;";
+  const data = parseStudentInfo(item.student_name); //name, barcode
+  db.any(test_instance, [item.test_id])
+    .then(rows => {
+      res.render('testing_preview', {
+        test_info: rows,
+        barcode: data[1],
+        test_id: item.test_id,
+        student_name: data[0],
+        belt_color: item.belt_color
+      })
+    })
+    .catch(err => {
+      console.log('Could not find test with given id. ERROR: ' + err);
+      req.flash('error', 'Unable to verify the test you are signed up for.');
+      res.redirect('/testing_signup_weapons');
+    })
+})
+
+router.post('/testing_signup_blackbelt', (req, res) => {
+  const item = {
+    student_name: req.sanitize('result').trim(),
+    test_id: req.sanitize('test_selection').trim(),
+    belt_color: req.sanitize('belts').trim()
+  }
+  const data = parseStudentInfo(item.student_name); //name, barcode
+  const test_instance = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance from test_instance where id = $1;";
+  const current_belt = "select belt_color from student_list where barcode = $1;"
+  db.any(test_instance, [item.test_id])
+    .then(rows => {
+      db.any(current_belt, [data[1]])
+        .then(belt => {
+          res.render('testing_preview_blackbelt', {
+            test_info: rows,
+            barcode: data[1],
+            test_id: item.test_id,
+            student_name: data[0],
+            belt_color: item.belt_color,
+            current_belt: belt
+          })
+        })
+        .catch(err => {
+          console.log('Could not find current belt. ERROR: ' + err);
+          res.redirect('/testing_signup_blackbelt')
+        })
+      })
+    .catch(err => {
+      console.log('Could not find test with given id. ERROR: ' + err);
+      res.redirect('/testing_signup_blackbelt')
+    })
+})
+
+router.get('/testing_preview', (req, res) => {
+  res.render('testing_preview', {
+    test_info: '',
+    test_id: '',
+    student_name: '',
+    barcode: '',
+    belt_color: ''
+  })
+})
+
+function belt_parser(color) {
+  const regex_dragon = /Dragons/g;
+  const regex_basic = /^White|^Gold/g;
+  const regex_level1 = /^Orange|^High Orange|^Green|^High Green/g;
+  const regex_level2 = /^Purple|^High Purple|^Blue|^High Blue/g;
+  const regex_level3 = /^Red|^High Red|^Brown|^High Brown/g;
+  const regex_weapons = /^Weapons/g;
+  if (regex_dragon.test(color)) {
+    return 'Dragons';
+  } else if (regex_basic.test(color)) {
+    return 'Basic';
+  } else if (regex_level1.test(color)) {
+    return 'Level 1';
+  } else if (regex_level2.test(color)) {
+    return 'Level 2';
+  } else if (regex_level3.test(color)) {
+    return 'Level 3';
+  } else if (regex_weapons.test(color)) {
+    return 'Weapons';
+  } else {
+    return 'Unknown';
+  }
+}
+
+router.post('/test_preview_blackbelt', (req, res) => {
+  const item = {
+    student_name: req.sanitize('student_name').trim(),
+    belt_color: req.sanitize('belt_color').trim(),
+    test_id: req.sanitize('test_id').trim(),
+    barcode: req.sanitize('barcode').trim(),
+    button: req.sanitize('button').trim(),
+    current_belt: req.sanitize('current_belt').trim()
+  };
+  if (item.button == 'Submit'){
+    const test_instance = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance from test_instance where id = $1;";
+    db.any(test_instance, [item.test_id])
+      .then(rows => {
+        var belt_id = item.belt_color.replace(' ', '').toLowerCase()
+        const insert_query = "insert into test_signups (student_name, test_id, belt_color, barcode, testing_for) values ($1, $2, $3, $4, $5) on conflict(session_id) do nothing;";
+        db.any(insert_query, [item.student_name, item.test_id, item.current_belt, item.barcode, item.belt_color])
+          .then(rows => {
+            res.render('testing_confirmed_blackbelt', {
+              student_name: item.student_name,
+              barcode: item.barcode,
+              belt_color: item.belt_color,
+              test_instance: rows,
+              alert_message: 'You have successfully signed up for testing!'
+            })
+          })
+          .catch(err => {
+            console.log('Could not add to test_signups. ERROR: ' + err);
+            res.redirect('/student_tests')
+          })
+      })
+  } else {
+    const name_query = "select * from signup_names(4);"
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id from test_instance where level = 8 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_blackbelt', {
+              names: rows_names,
+              belts: '',
+              tests: rows
+            })
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.redirect('/testing_signup_blackbelt')
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        res.redirect('/testing_signup_blackbelt')
+      })
+  }
+})
+
+router.post('/test_preview', (req, res) => {
+  const item = {
+    student_name: req.sanitize('student_name').trim(),
+    belt_color: req.sanitize('belt_color').trim(),
+    test_id: req.sanitize('test_id').trim(),
+    barcode: req.sanitize('barcode').trim(),
+    button: req.sanitize('button')
+  };
+  if (item.button == 'Submit') {
+    const test_instance = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance from test_instance where id = $1;";
+    db.any(test_instance, [item.test_id])
+      .then(rows => {
+        if (item.student_name == 'Matt Young') {
+          res.render('testing_confirmed', {
+            student_name: 'Master Young',
+            barcode: item.barcode,
+            belt_color: item.belt_color,
+            test_instance: rows
+          })
+        } else {
+          var belt_id = item.belt_color.replace(' ', '').toLowerCase()
+          const insert_query = "insert into test_signups (student_name, test_id, belt_color, barcode) values ($1, $2, $3, $4) on conflict(session_id) do nothing;";
+          const add_belt = "update belt_inventory set quantity = quantity + 1 where belt_id = $1 || (select belt_size from student_list where barcode = $2)::text"
+          console.log('preview submit name: ' + item.student_name);
+          console.log('preview submit barcode: ' + item.barcode);
+          db.any(insert_query, [item.student_name, item.test_id, item.belt_color, item.barcode])
+            .then(rows => {
+              db.any(add_belt, [belt_id, item.barcode])
+                .then(row => {
+                  res.render('testing_confirmed', {
+                    student_name: item.student_name,
+                    barcode: item.barcode,
+                    belt_color: item.belt_color,
+                    test_instance: rows,
+                    alert_message: 'You have successfully signed up for testing!'
+                  })
+                })
+                .catch(err => {
+                  console.log('Could not add belt. Err: ' + err);
+                  res.redirect('/student_tests');
+                })
+            })
+            .catch(err => {
+              console.log('Could not add to test_signups. ERROR: ' + err);
+              res.redirect('/student_tests');
+            })
+        }
+      })
+      .catch(err => {
+        console.log('Could not confirm test. ERROR: ' + err);
+        req.flash('error', 'Cound not complete signup. Please see staff member.');
+        res.redirect('/student_tests');
+      })
+  } else {
+    const name_query = "select * from signup_names($1);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id from test_instance where level = $1 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    switch (belt_parser(item.belt_color)) {
+      case 'Dragons':
+        db.any(name_query, [-1])
+          .then(rows_names => {
+            db.any(tests, [-1])
+              .then(rows => {
+                res.render('testing_signup_dragons', {
+                  names: rows_names,
+                  belts: item.belt_color,
+                  tests: rows
+                })
+              })
+              .catch(err => {
+                console.log('Could not get tests. Error: ' + err);
+                res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+                res.redirect('/testing_signup_dragons');
+              })
+          })
+          .catch(err => {
+            console.log('Could not get names. Error: ' + err);
+            req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+            res.redirect('/testing_signup_dragons');
+          })
+        break;
+      case 'Basic':
+        db.any(name_query, [0])
+          .then(rows_names => {
+            db.any(tests, [0])
+              .then(rows => {
+                res.render('testing_signup_basic', {
+                  names: rows_names,
+                  belts: item.belt_color,
+                  tests: rows
+                })
+              })
+              .catch(err => {
+                console.log('Could not get tests. Error: ' + err);
+                res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+                res.redirect('/testing_signup_basic');
+              })
+          })
+          .catch(err => {
+            console.log('Could not get names. Error: ' + err);
+            req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+            res.redirect('/testing_signup_basic');
+          })
+        break;
+      case 'Level 1':
+        db.any(name_query, [1])
+          .then(rows_names => {
+            db.any(tests, [1])
+              .then(rows => {
+                res.render('testing_signup_level1', {
+                  names: rows_names,
+                  belts: item.belt_color,
+                  tests: rows
+                })
+              })
+              .catch(err => {
+                console.log('Could not get tests. Error: ' + err);
+                res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+                res.redirect('/testing_signup_level1');
+              })
+          })
+          .catch(err => {
+            console.log('Could not get names. Error: ' + err);
+            req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+            res.redirect('/testing_signup_level1');
+          })
+        break;
+      case 'Level 2':
+        db.any(name_query, [2])
+          .then(rows_names => {
+            db.any(tests, [2])
+              .then(rows => {
+                res.render('testing_signup_level2', {
+                  names: rows_names,
+                  belts: item.belt_color,
+                  tests: rows
+                })
+              })
+              .catch(err => {
+                console.log('Could not get tests. Error: ' + err);
+                res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+                res.redirect('/testing_signup_level2');
+              })
+          })
+          .catch(err => {
+            console.log('Could not get names. Error: ' + err);
+            req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+            res.redirect('/testing_signup_level2');
+          })
+        break;
+      case 'Level 3':
+        db.any(name_query, [3])
+          .then(rows_names => {
+            db.any(tests, [3])
+              .then(rows => {
+                res.render('testing_signup_level3', {
+                  names: rows_names,
+                  belts: item.belt_color,
+                  tests: rows
+                })
+              })
+              .catch(err => {
+                console.log('Could not get tests. Error: ' + err);
+                res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+                res.redirect('/testing_signup_level3');
+              })
+          })
+          .catch(err => {
+            console.log('Could not get names. Error: ' + err);
+            req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+            res.redirect('/testing_signup_level3');
+          })
+        break;
+      case 'Weapons':
+        db.any(name_query, [7])
+          .then(rows_names => {
+            db.any(tests, [7])
+              .then(rows => {
+                res.render('testing_signup_weapons', {
+                  names: rows_names,
+                  belts: item.belt_color,
+                  tests: rows
+                })
+              })
+              .catch(err => {
+                console.log('Could not get tests. Error: ' + err);
+                res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+                res.redirect('/testing_signup_weapons');
+              })
+          })
+          .catch(err => {
+            console.log('Could not get names. Error: ' + err);
+            req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+            res.redirect('/testing_signup_weapons');
+          })
+        break;
+      default:
+        console.log('Unknown level for Edit');
+        break;
+    }
+  }
+})
+
+router.get('/refresh_belts', (req, res) => {
+  if (req.session.loggedin) {
+    const belt_query = "update belt_inventory set quantity = 0;"
+    db.none(belt_query)
+      .then(row => {
+        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/belt_inventory');
+      })
+      .catch(err => {
+        console.log('Could not refresh belts');
+        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/belt_inventory');
+      })
+  } else {
+    res.render('login', {
+      username: '',
+      password: '',
+      go_to: '/refresh_belts',
+      alert_message: ''
+    })
+  }
+})
+
 app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', (req, res) => {
   const dropTest = 'delete from test_signups where session_id = $1 and barcode = $2;'
   const dropClass = 'delete from class_signups where class_check = $1 and email = $2;'
@@ -3123,6 +3972,867 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', (req, r
       console.log('Unknown delete type.')
       res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/student_portal/' + req.params.barcode)
       break
+  }
+})
+
+router.get('/test_selector_force/(:month)/(:day)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && req.userID) {
+    console.log('logged in as ' + req.session.user);
+    let temp_date = new Date();
+    let year = String(temp_date.getFullYear());
+    const date_conversion = req.params.month + ' ' + req.params.day;
+    const test_info = "select to_char(test_date, 'Month') as test_month, to_char(test_date, 'DD') as test_day, to_char(test_time, 'HH:MI PM') as testing_time, id, level, notes from test_instance where to_char(test_date, 'Month DD') = to_char(to_date($1, 'Month DD'), 'Month DD') and to_char(test_date, 'YYYY') = to_char(to_date($2, 'YYYY'), 'YYYY');"
+    db.any(test_info, [date_conversion, year])
+      .then(rows => {
+        res.render('test_selector', {
+          data: rows
+        })
+      })
+      .catch(err => {
+        console.log('error in getting tests ' + err);
+        res.redirect('home');
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/test_checkin_blackbelt/(:id)/(:level)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && req.userID) {
+    //if (req.session.user == 'Authorized'){
+      const belt_counts = 'select testing_for, count(*) as "num" from test_signups where test_id = $1 group by testing_for;'
+      const test_info = "select to_char(test_date, 'Month DD') as test_day, to_char(test_time, 'HH:MI PM') as testing_time, level, notes from test_instance where id = $1;"
+      const student_query = "select distinct session_id, student_name, barcode, testing_for, belt_color, pass_status from test_signups where test_id = $1;";
+      const pass_status = "select distinct session_id, student_name, barcode, belt_color, pass_status from test_signups where test_id = $1 and pass_status is not null;";
+      const stud_names = "select * from bb_names(3);"
+      db.any(pass_status, [req.params.id])
+      .then(pass_status => {
+        db.any(student_query, [req.params.id])
+        .then(stud_rows => {
+          db.any(test_info, [req.params.id])
+            .then(rows => {
+              db.any(stud_names, [req.params.level])
+              .then(name_data => {
+                db.any(belt_counts, [req.params.id])
+                  .then(counts => {
+                    res.render('test_checkin_blackbelt', {
+                      test_info: rows,
+                      name_data: name_data,
+                      pass_status: pass_status,
+                      stud_info: stud_rows,
+                      test_id: req.params.id,
+                      level: req.params.level,
+                      counts: counts
+                    })
+                  })
+                  .catch(err => {
+                    console.log('Could not get belt counts. ' + err);
+                    res.redirect('home');
+                  })
+              })
+              .catch(err => {
+                console.log('Could not get names for search bar. ' + err);
+                res.redirect('home');
+              })
+            })
+            .catch(err => {
+              console.log('Could not get test info with id ' + req.params.id);
+              res.redirect('home');
+            })
+        })
+        .catch(err => {
+          console.log('Could not find tests with id ' + req.params.id);
+          res.redirect('home');
+        })
+      })
+      .catch(err => {
+        console.log('Could not get pass_status: ' + err);
+        res.redirect('home');
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/test_checkin/(:id)/(:level)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && req.userID) {
+    const test_info = "select to_char(test_date, 'Month DD') as test_day, to_char(test_time, 'HH:MI PM') as testing_time, level, notes from test_instance where id = $1;";
+    const student_query = "select distinct session_id, student_name, barcode, belt_color, pass_status from test_signups where test_id = $1 and pass_status is null;";
+    const pass_status = "select distinct session_id, student_name, barcode, belt_color, pass_status from test_signups where test_id = $1 and pass_status is not null;";
+    var stud_names = "select * from get_names($1);";
+    if (req.params.level == '7') {
+      var stud_names = "select * from get_all_names();";
+    }
+    db.any(pass_status, [req.params.id])
+      .then(pass_status => {
+        db.any(student_query, [req.params.id])
+        .then(stud_rows => {
+          db.any(test_info, [req.params.id])
+            .then(rows => {
+              db.any(stud_names, [req.params.level])
+              .then(name_data => {
+                res.render('test_checkin', {
+                  test_info: rows,
+                  name_data: name_data,
+                  pass_status: pass_status,
+                  stud_info: stud_rows,
+                  test_id: req.params.id,
+                  level: req.params.level
+                })
+              })
+              .catch(err => {
+                console.log('Could not get names for search bar. ' + err);
+                res.redirect('home');
+              })
+            })
+            .catch(err => {
+              console.log('Could not get test info with id ' + req.params.id);
+              res.redirect('home');
+            })
+        })
+        .catch(err => {
+          console.log('Could not find tests with id ' + req.params.id);
+          res.redirect('home');
+        })
+      })
+      .catch(err => {
+        console.log('Could not get pass_status: ' + err);
+        res.redirect('home');
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.post('/test_checkin', (req, res) => {
+  const item = {
+    test_id: req.sanitize('test_id').trim(),
+    stud_data: req.sanitize('result').trim(),
+    level: req.sanitize('level').trim()
+  }
+  console.log('item.stud_data: ' + item.stud_data);
+  const stud_info = parseStudentInfo(item.stud_data);//name, barcode
+  console.log('stud_info: ' + stud_info);
+  const insert_query = "insert into test_signups (student_name, test_id, belt_color, barcode) values ($1, $2, (select x.belt_color from student_list x where x.barcode = $3), $4) on conflict (session_id) do nothing;";
+  db.any(insert_query, [stud_info[0], item.test_id, stud_info[1], stud_info[1], stud_info[1]])
+    .then(rows => {
+      res.redirect('test_checkin/' + item.test_id + '/' + item.level);
+    })
+    .catch(err => {
+      res.redirect('home');
+      console.log('Could not checkin to test. Error: ' + err);
+    })
+})
+
+router.post('/test_checkin_blackbelt', (req, res) => {
+  const item = {
+    test_id: req.sanitize('test_id').trim(),
+    stud_data: req.sanitize('result').trim(),
+    level: req.sanitize('level').trim(),
+    testing_for: req.sanitize('belts').trim()
+  }
+  console.log('item.stud_data: ' + item.stud_data);
+  const stud_info = parseStudentInfo(item.stud_data);//name, barcode
+  console.log('stud_info: ' + stud_info);
+  const insert_query = "insert into test_signups (student_name, test_id, belt_color, barcode, testing_for) values ($1, $2, (select x.belt_color from student_list x where x.barcode = $3), $4, $5) on conflict (session_id) do nothing;";
+  db.any(insert_query, [stud_info[0], item.test_id, stud_info[1], stud_info[1], item.testing_for])
+    .then(rows => {
+      res.redirect('test_checkin_blackbelt/' + item.test_id + '/' + item.level);
+    })
+    .catch(err => {
+      res.redirect('home');
+      console.log('Could not checkin to test. Error: ' + err);
+    })
+})
+
+router.get('/test_remove/(:barcode)/(:test_id)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && req.userID) {
+    const remove_query = "delete from test_signups where barcode = $1 and test_id = $2;";
+    db.any(remove_query, [req.params.barcode, req.params.test_id])
+      .then(rows => {
+        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.barcode);
+      })
+      .catch(err => {
+        console.log('Could not remove person from test: ' + req.params.test_id + ', ' + req.params.barcode);
+        console.log('test_remove_error: ' + err);
+        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_selector_force');
+      });
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/test_remove_blackbelt/(:barcode)/(:test_id)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && req.userID) {
+    const remove_query = "delete from test_signups where barcode = $1 and test_id = $2;";
+    db.any(remove_query, [req.params.barcode, req.params.test_id])
+      .then(rows => {
+        res.redirect('/test_checkin_blackbelt/' + req.params.test_id + '/' + req.params.barcode);
+      })
+      .catch(err => {
+        console.log('Could not remove person from test: ' + req.params.test_id + ', ' + req.params.barcode);
+        console.log('test_remove_error: ' + err);
+        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_selector_force');
+      });
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/update_test_checkin/(:barcode)/(:session_id)/(:test_id)/(:level)', passageAuthMiddleware, async(req, res) => {
+  if (req.session.loggedin) {
+    const insert_query = "insert into student_tests (test_id, barcode) values ($1, $2) on conflict (session_id) do nothing;";
+    const update_status = "update test_signups set checked_in = true where session_id = $1";
+    db.any(insert_query, [req.params.test_id, req.params.barcode])
+      .then(rows => {
+        db.none(update_status, [req.params.session_id])
+          .then(rows => {
+            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+          })
+          .catch(err => {
+            console.log('Could not update checked_in status of ' + req.params.session_id + ': ' + err);
+            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+          })
+      })
+      .catch(err => {
+        console.log('Could not check in person with test_id, barcode ' + req.params.test_id + ', ' + req.params.barcode);
+        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_selector_force');
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/pass_test_bb/(:belt_color)/(:barcode)/(:test_id)/(:level)/(:testing_for)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && req.userID) {
+    const update_status = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";//color, level, order
+    const belt_info = parseBB(req.params.testing_for, false);
+    console.log('belt color was: ' + req.params.belt_color);
+    console.log('belt color is ' + belt_info);
+    const update_info = "update student_list set belt_color = $1, level_name = $2, belt_order = $3 where barcode = $4;";
+    const regex = /\(pc\)/i;
+    var rank = req.params.testing_for.replace(regex, '- Progress Check');
+    const test_update_query = "insert into test_records (rank, barcode, pass_status, test_date, test_id) values ($1, $2, $3, now(), $4);"
+    db.any(update_status, [req.params.barcode, req.params.test_id])
+      .then(rows => {
+        db.any(update_info, [belt_info[0], belt_info[1], belt_info[2], req.params.barcode])
+          .then(rows => {
+            db.any(test_update_query, [rank, req.params.barcode, true, String(req.params.barcode) + String(req.params.test_id)])
+              .then(row => {
+                console.log('Test added for BB - PASS')
+                res.redirect('/test_checkin_blackbelt/' + req.params.test_id + '/' + req.params.level);
+              })
+              .catch(err => {
+                console.log('ERROR: could not add passing test to test_record: err: ' + err);
+                res.redirect('/test_checkin_blackbelt/' + req.params.test_id + '/' + req.params.level);
+              })
+          })
+          .catch(err => {
+            console.log('Could not update belt info of student ' + req.params.barcode);
+            console.log('Success error: ' + err);
+            res.redirect('/test_checkin_blackbelt/' + req.params.test_id + '/' + req.params.level);
+          })
+      })
+      .catch(err => {
+        console.log('Could not update test status of student ' + req.params.barcode);
+        console.log('Could not update test status. Error: ' + err);
+        res.redirect('home');
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/pass_test/(:belt_color)/(:barcode)/(:test_id)/(:level)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && req.userID) {
+    if (req.params.level == '7') {
+      const false_update = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";
+      db.one(false_update, [req.params.barcode, req.params.test_id])
+        .then(row => {
+          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+        })
+        .catch(err => {
+          console.log("Unable to fake pass student in weapons " + err);
+          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+        })
+    } else {
+      const update_status = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";//color, level, order
+      const belt_info = parseBelt(req.params.belt_color, true);
+      console.log('belt color was: ' + req.params.belt_color);
+      console.log('belt color is ' + belt_info);
+      const update_info = "update student_list set belt_color = $1, level_name = $2, belt_order = $3 where barcode = $4;";
+      db.any(update_status, [req.params.barcode, req.params.test_id])
+        .then(rows => {
+          db.any(update_info, [belt_info[0], belt_info[1], belt_info[2], req.params.barcode])
+            .then(rows => {
+              res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+            })
+            .catch(err => {
+              console.log('Could not update belt info of student ' + req.params.barcode);
+              console.log('Success error: ' + err);
+              res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+            })
+        })
+        .catch(err => {
+          console.log('Could not update test status of student ' + req.params.barcode);
+          console.log('Could not update test status. Error: ' + err);
+          res.redirect('home');
+        })
+    }
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/fail_test/(:barcode)/(:test_id)/(:level)/(:belt_color)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && req.userID) {
+    const update_status = "update test_signups set pass_status = false where barcode = $1 and test_id = $2;";
+    const make_up_test = "insert into test_signups (student_name, test_id, belt_color, barcode) values ((select first_name || ' ' || last_name from student_list where barcode = $2), (select id from test_instance where level = $3 and test_date >= now() and notes = 'Make Up Testing' limit 1), $1, $2);"
+    db.any(update_status, [req.params.barcode, req.params.test_id])
+      .then(rows => {
+        db.any(make_up_test, [req.params.belt_color, req.params.barcode, req.params.level])
+          .then(rows => {
+            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+          })
+          .catch(err => {
+            console.log("Could not sign up for make up testing. ERR: " + err);
+            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+          })
+      })
+      .catch(err => {
+        console.log("Could not update test status of student " + req.params.barcode);
+        res.redirect('home');
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/fail_test_blackbelt/(:barcode)/(:test_id)/(:level)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && req.userID) {
+    const update_status = "update test_signups set pass_status = false where barcode = $1 and test_id = $2;";
+    const regex_fail = /\(pc\)/i;
+    var rank_fail = req.params.level.replace(regex_fail, '- Progress Check');
+    const test_update_query_fail = "insert into test_records (rank, barcode, pass_status, test_date, test_id) values ($1, $2, $3, now(), $4);"
+    db.any(update_status, [req.params.barcode, req.params.test_id])
+      .then(rows => {
+        db.any(test_update_query_fail, [rank_fail, req.params.barcode, false, String(req.params.barcode) + String(req.params.test_id)])
+          .then(row => {
+            console.log('Test added for BB - FAIL');
+            res.redirect('/test_checkin_blackbelt/' + req.params.test_id + '/' + req.params.level);
+          })
+          .catch(err => {
+            console.log('ERROR: could not add failing test to test_record: err: ' + err);
+            res.redirect('/test_checkin_blackbelt/' + req.params.test_id + '/' + req.params.level);
+          })
+      })
+      .catch(err => {
+        console.log("Could not update test status of student " + req.params.barcode);
+        res.redirect('home');
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.post('/class_lookup', (req, res) => {
+  const item = {
+    month: req.sanitize('month_select').trim(),
+    day: req.sanitize('day_select').trim()
+  }
+  const redir_link = 'class_selector_force/' + item.month + '/' + item.day
+  res.redirect(redir_link)
+})
+
+router.get('/belt_resolved/(:stud_name)/(:barcode)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && req.userID) {
+    res.redirect('/student_lookup');
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/student_lookup', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && req.userID) {
+    const name_query = "select * from get_all_names()"
+    db.any(name_query)
+      .then(function (rows) {
+        res.render('student_lookup', {
+          data: rows,
+          alert_message: ''
+        })
+      })
+      .catch(function (err) {
+        console.log('Could not find students: ' + err)
+        res.render('student_lookup', {
+          data: '',
+          alert_message: 'Unable to find student. Please refresh the page and try agin.'
+        })
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/lookup_message/(:alert_message)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && req.userID) {
+    const name_query = "select * from get_all_names()"
+    db.any(name_query)
+      .then(function (rows) {
+        res.render('student_lookup', {
+          data: rows,
+          alert_message: req.params.alert_message
+        })
+      })
+      .catch(function (err) {
+        console.log('Could not find students: ' + err)
+        res.render('student_lookup', {
+          data: '',
+          alert_message: 'Unable to find student. Please refresh the page and try agin.'
+        })
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/student_data', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && req.userID) {
+    res.render('student_data', {
+      data: '',
+      name: '',
+      barcode: '',
+      addr: '',
+      addr_2: '',
+      city: '',
+      zip: -1,
+      bday: ''
+    })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/json_data', (req, res) => {
+  let options = {
+    method: "GET",
+    uri: settings.apiv4url + '/payment',
+    headers: {
+      Authorization: getAuthHeader(),
+    },
+    json: true,
+  }
+  request(options, function(error, response, body) {
+    res.render('json_data', {
+      data: JSON.stringify(body, null, 2),
+      data2: JSON.stringify(body.Response, null, 2)
+    })
+  })
+})
+
+router.get('/student_data_loading/(:name)/(:barcode)', passageAuthMiddleware, async(req, res) => {
+  let userID = req.userID
+  if (req.cookies.psg_auth_token && userID) {
+    var name = req.params.name;
+    var barcode = req.params.barcode;
+    let options4 = {
+      method: "GET",
+      uri: settings.apiv4url + '/customer/' + barcode + '/payments?sortby=id&direction=desc',
+      headers: {
+        Authorization: getAuthHeader(),
+      },
+      json: true
+    };
+    request(options4, function(error, response, body) {
+      if (!error && response && response.statusCode < 300) {
+        console.log(body.Response);
+      }
+      return;
+    })
+    const studentInfoQuery = "select barcode, first_name, last_name, email, belt_size, belt_color, to_char(last_visit, 'Month DD, YYYY') as last_visit, to_char(join_date, 'Month DD, YYYY') as join_date, reg_class, spar_class, swat_count, addr, addr_2, zip, city, to_char(bday::date, 'MM-DD-YYYY') as bday from student_list where barcode = $1 and first_name || ' ' || last_name = $2;";
+    let options = {
+      method: "GET",
+      uri: settings.apiv4url + '/customer/' + barcode + '/payments',
+      headers: {
+          Authorization: getAuthHeader(),
+      },
+      json: true,
+  };
+    db.any(studentInfoQuery, [barcode, name])
+      .then(rows => {
+        console.log('In .then for /student_lookup')
+        request(options, function(error, response, body) {
+          if (!error && response && response.statusCode < 300) {
+            //res.status((response && response.statusCode) || 500).send(error);
+            res.render('student_data', {
+              data: rows,
+              name: name,
+              barcode: barcode,
+              stud_data: body.Response
+            })
+          } else {
+            //res.status((response && response.statusCode) || 500).send(error);
+            res.render('student_data_no_billing', {
+              data: rows,
+              name: name,
+              barcode: barcode,
+              stud_data: ''
+            })
+          }
+        });
+      })
+      .catch(err => {
+        res.render('student_lookup', {
+          data: '',
+          alert_message: "Error: Could not retrieve student info for " + name + ". Please refresh the page and try again. Error: " + err
+        })
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.post('/count_update', (req, res) => {
+  var items = {
+    barcode: req.sanitize('barcode').trim(),
+    reg_class: req.sanitize('reg_class').trim(),
+    spar_class: req.sanitize('spar_class').trim(),
+    swat_class: req.sanitize('swat_class').trim() 
+  }
+  const count_update = 'update student_list set reg_class = $1, spar_class = $2, swat_count = $3 where barcode = $4';
+  db.any(count_update, [items.reg_class, items.spar_class, items.swat_class, items.barcode])
+    .then(rows => {
+      const name_query = "select * from get_all_names()"
+      db.any(name_query)
+        .then(names => {
+          res.render('student_lookup', {
+            data: names,
+            alert_message: "Student has been updated with \nregular classes = " + items.reg_class + "\nsparring classes = " + items.spar_class + "\nswat classes = " + items.swat_class
+          })
+        })
+        .catch(err => {
+          console.log('Could not find students: ' + err)
+          res.render('student_lookup', {
+            data: '',
+            alert_message: 'Could not find any students. Please refresh the page and try again.'
+          })
+        })
+    })
+    .catch(err => {
+      console.log('Could not update student counts');
+      res.render('student_lookup', {
+        data: '',
+        alert_message: 'Could not update the counts. Please refresh page and try again.'
+      })
+    })
+})
+
+router.post('/student_data', (req, res) => {
+  var items = {
+    barcode: req.sanitize('barcode').trim(),
+    first_name: req.sanitize('first_name').trim(),
+    last_name:  req.sanitize('last_name').trim(),
+    email: req.sanitize('email').trim(),
+    belt_size: req.sanitize('beltSize').trim(),
+    belt_color: req.sanitize('beltColor').trim(),
+    addr: req.sanitize('addr').trim(),
+    addr_2: req.sanitize('addr_2').trim(),
+    city: req.sanitize('city').trim(),
+    zip: req.sanitize('zip').trim(),
+    bday: req.sanitize('bday').trim()
+  }
+  console.log('parseBelt input = ' + items.belt_color);
+  var level_info = parseBelt(items.belt_color, false);
+  console.log('level_info: ' + level_info);
+  console.log('Bday is ' + items.bday)
+  const update_query = "update student_list set first_name = $1, last_name = $2, belt_color = $3, belt_size = $4, email = $5, level_name = $6, belt_order = $7, addr = $8, addr_2 = $9, city = $10, zip = $11, bday = to_date($12, 'MM-DD-YYYY') where barcode = $13;";
+  db.none(update_query, [items.first_name, items.last_name, level_info[0], Number(items.belt_size), items.email, level_info[1], level_info[2], items.addr, items.addr_2, items.city, Number(items.zip), items.bday, items.barcode])
+    .then(rows_update => {
+      const name_query = "select * from get_all_names()"
+      if (items.addr_2 == ''){
+        items.addr_2 = null
+      }
+      if (items.addr == ''){
+        items.addr = 'None'
+      }
+      if (items.city == ''){
+        items.city = 'None'
+      }
+      if (items.zip == ''){
+        items.zip = -1
+      }
+      if (items.bday == ''){
+        items.bday = '1930-01-01'
+      }
+      if (items.belt_size == ''){
+        items.belt_size = -1
+      }
+      console.log('items: ' + JSON.safeStringify(items));
+      var bday_string = "Birthday is " + items.bday;
+      console.log('Bday is ' + items.bday)
+      db.any(name_query)
+        .then(function (rows) {
+          let options = {
+            method: "PUT",
+            uri: settings.apiv4url + '/customer',
+            headers: {
+                Authorization: getAuthHeader(),
+            },
+            body: {
+            "Id": items.barcode,
+            "FirstName": items.first_name,
+            "LastName": items.last_name,
+            "ShippingSameAsBilling": true,
+            "BillingAddress": {
+              "StreetAddress1": items.addr,
+              "StreetAddress2": items.addr_2,
+              "City": items.city,
+              "ZipCode": items.zip,
+              "StateCode": 'CO'
+            },
+            "Notes": bday_string
+            },
+            json: true,
+          };
+          request(options, function(error, response, body) {
+            if (!error && response && response.statusCode < 300) {
+              var temp_message = 'Successfully updated ' + items.first_name + ' ' + items.last_name + ' in EMA Side Kick and on PaySimple!';
+              res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/lookup_message/' + temp_message);
+              return;
+            }
+            if (error){
+              console.log('Customer put API error: ' + error);
+            }
+            var temp_message = 'Successfully updated ' + items.first_name + ' ' + items.last_name + ' in EMA Side Kick and on PaySimple!';
+            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/lookup_message/' + temp_message);
+            //res.status((response && response.statusCode) || 500).send(error);
+        
+          });
+        })
+        .catch(function (err) {
+          console.log('Could not find students: ' + err)
+          res.render('student_lookup', {
+            data: '',
+            alert_message: 'Could not find any students. Please refresh the page and try again.'
+          })
+        })
+    })
+    .catch(err => {
+      console.log('Could not update student: ' + err)
+      res.render('student_lookup', {
+        data: '',
+        alert_message: 'Could not update the student ' + items.first_name + ' ' + items.last_name + '. Please make a note of this and contact the admin.'
+      })
+    })
+})
+
+router.get('/create_test', passageAuthMiddleware, async(req, res) => {
+  let userID = res.userID
+  if (req.cookies.psg_auth_token && userID) {
+    const testQueryAll = "select id, level, to_char(test_date, 'Mon DD, YYYY') || ' - ' || to_char(test_time, 'HH:MI PM') as test_day, notes, curriculum from test_instance where test_date > CURRENT_DATE - INTERVAL '1 months' AND test_date < CURRENT_DATE + INTERVAL '2 months' order by test_date, test_time;"
+    db.any(testQueryAll)
+      .then(tests => {
+        res.render('create_test', {
+          alert_message: '',
+          test_data: tests
+        })
+      })
+      .catch(err => {
+        res.render('create_test', {
+          alert_message: 'Could not gather any test info. ' + err,
+          test_data: ''
+        })
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/delete_test/(:id)/(:level)', (req, res) => {
+  var test_delete = "delete from test_instance where id = $1 and level = $2;"
+  var signup_delete = "delete from test_signups where test_id = $1;"
+  db.any(test_delete, [req.params.id, req.params.level])
+    .then(test => {
+      db.any(signup_delete, [req.params.test_id])
+        .then(tests => {
+          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/create_test')
+        })
+        .catch(err => {
+          console.log('Could not delete any test_signups. ERR: ' + err)
+          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/create_test')
+        })
+    })
+    .catch(error => {
+      console.log('Could not delete test_instance with id: ' + req.params.id + '. ERROR: ' + error)
+      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/create_test')
+    })
+})
+
+router.post('/create_test', (req, res) => {
+  const item = {
+    level: req.sanitize('level_select').trim(),
+    month: req.sanitize('month_select').trim(),
+    day: req.sanitize('day_select').trim(),
+    time: req.sanitize('time_select').trim(),
+    curr: req.sanitize('curriculum_select').trim()
+  }
+  var notes = ''
+  switch (item.level) {
+    case '0.1':
+      item.level = '0'
+      notes = 'White Belts'
+      break;
+    case '0.2':
+      item.level = '0'
+      notes = 'Gold Belts'
+      break;
+    case '1.1':
+      item.level = '1'
+      notes = 'Orange and High Orange Belts'
+      break;
+    case '1.2':
+      item.level = '1'
+      notes = 'Green and High Green Belts'
+      break;
+    case '2.1':
+      item.level = '2'
+      notes = 'Purple and High Purple Belts'
+      break;
+    case '2.2':
+      item.level = '2'
+      notes = 'Blue and High Blue Belts'
+      break;
+    default:
+      notes = ''
+      break;
+  }
+  let temp_date = new Date();
+  let year = temp_date.getFullYear();
+  const built_date = item.month + ' ' + item.day + ', ' + year;
+  console.log('item.level: ' + item.level);
+  console.log('built_date: ' + built_date);
+  console.log('item.time: ' + item.time);
+  if (item.level == '9'){
+    console.log('creating a make-up test')
+    notes = 'Make Up Testing'
+    const levelArr = ['-1', '0', '1', '2']
+    const makeupQuery = "insert into test_instance (level, test_date, test_time, notes) values (($1)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4), (($5)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4), (($6)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4), (($7)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4)";
+    db.any(makeupQuery, [levelArr[0], built_date, item.time, notes, levelArr[1], levelArr[2], levelArr[3]])
+      .then(row => {
+        console.log('Make up test created');
+        const testQueryAll = "select id, level, to_char(test_date, 'Mon DD, YYYY') || ' - ' || to_char(test_time, 'HH:MI PM') as test_day, notes, curriculum from test_instance where test_date > CURRENT_DATE - INTERVAL '1 months' AND test_date < CURRENT_DATE + INTERVAL '2 months' order by test_date, test_time;"
+        db.any(testQueryAll)
+          .then(data => {
+            res.render('create_test', {
+              test_data: data,
+              alert_message: 'Make up test created on ' + built_date + ' at ' + item.time
+            })
+          })
+          .catch(err => {
+            res.render('create_test', {
+              test_data: '',
+              alert_message: 'CANNOT SHOW FUTURE TESTS. PLEASE REFRESH PAGE.'
+            })
+          })
+      })
+      .catch(err => {
+        console.log('Makeup testing query issue: ' + err);
+        var passing = false
+      })
+  } else {
+    const new_test_query = "insert into test_instance (level, test_date, test_time, notes, curriculum) values (($1)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4, $5)";
+    db.any(new_test_query, [item.level, built_date, item.time, notes, item.curr])
+      .then(function (rows) {
+        const test_Query_All = "select id, level, to_char(test_date, 'Mon DD, YYYY') || ' - ' || to_char(test_time, 'HH:MI PM') as test_day, notes, curriculum from test_instance where test_date > CURRENT_DATE - INTERVAL '1 months' AND test_date < CURRENT_DATE + INTERVAL '2 months' order by test_date, test_time;"
+        db.any(test_Query_All)
+          .then(function (test_data) {
+
+        switch (item.level) {
+          case '-1':
+            res.render('create_test', {
+              alert_message: 'Test created for Little Dragons on ' + built_date + ' at ' + item.time,
+              test_data: test_data
+            })
+            break;
+          case '0':
+            res.render('create_test', {
+              alert_message: 'Test created for Basic on ' + built_date + ' at ' + item.time,
+              test_data: test_data
+            })
+            break;
+          case '1':
+            res.render('create_test', {
+              alert_message: 'Test created for Level 1 on ' + built_date + ' at ' + item.time,
+              test_data: test_data
+            })
+            break;
+          case '2':
+            res.render('create_test', {
+              alert_message: 'Test created for Level 2 on ' + built_date + ' at ' + item.time,
+              test_data: test_data
+            })
+            break;
+          case '3':
+            res.render('create_test', {
+              alert_message: 'Test created for Level 3 on ' + built_date + ' at ' + item.time,
+              test_data: test_data
+            })
+            break;
+          case '7':
+            res.render('create_test', {
+              alert_message: 'Test created for Exclusive on ' + built_date + ' at ' + item.time,
+              test_data: test_data
+            })
+            break;
+          case '8':
+            res.render('create_test', {
+              alert_message: 'Test created for Black Belt on ' + built_date + ' at ' + item.time,
+              test_data: test_data
+            })
+            break;
+          case '9':
+            res.render('create_test', {
+              alert_message: 'Make up created for little dragons, basic, level 1, and level 2 on ' + built_date + ' at ' + item.time,
+              test_data: test_data
+            })
+            break;
+          default:
+            req.flash('error', 'Test Not Created! with data: (level: ' + item.level + ', built_date: ' + built_date + ', time: ' + item.time + ')');
+            console.log('Test Not Created! with data: (level: ' + item.level + ', built_date: ' + built_date + ', time: ' + item.time + ')');
+            res.redirect('/create_test');
+            break;
+        }
+      })
+      .catch(function (err) {
+        res.render('create_test', {
+          alert_message: 'Could not show future tests. Please refresh page.' + err,
+          test_data: ''
+        })
+      })
+      })
+      .catch(function (err) {
+        console.log("Error in creating test: " + err);
+        req.flash('error', 'Test not created. ERR: ' + err);
+        res.render('create_test', {
+          alert_message: 'Test not created. Error: ' + err
+        })
+      })
   }
 })
 
@@ -3213,8 +4923,9 @@ router.get('/student_portal/(:barcode)', (req, res) => {
     })
 })
 
-router.get('/enrollStudent', (req, res) => {
-  if (req.session.loggedin) {
+router.get('/enrollStudent', passageAuthMiddleware, async(req, res) => {
+  let userID = res.userID
+  if (req.cookies.psg_auth_token && userID) {
     res.render('enrollStudent', {
       firstName: '',
       lastName: '',
@@ -3231,10 +4942,6 @@ router.get('/enrollStudent', (req, res) => {
     })
   } else {
     res.render('login', {
-      username: '',
-      password: '',
-      go_to: '/enrollStudent',
-      alert_message: ''
     })
   }
 })
