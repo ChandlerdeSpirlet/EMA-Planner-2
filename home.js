@@ -639,9 +639,9 @@ app.get('/logged-in', passageAuthMiddleware, async(req, res) => {
       const staffArray = process.env.STAFF_USER_ID.split(',')
       const authLevel = ''
       if (staffArray.includes(userID)) {
-        const authLevel = 'STAFF'
+        const authLevel = '/'
       } else {
-        const authLevel = 'STUDENT'
+        const authLevel = '/student_portal_login'
       }
       res.render('logged-in', {
         authLevel: authLevel
