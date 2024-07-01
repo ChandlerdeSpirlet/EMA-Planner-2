@@ -35,7 +35,7 @@
     "ics": "^3.7.2",
     "js-datepicker": "^5.18.0",
     "json2csv": "^5.0.6",
-    "nodemailer": "^6.9.8",
+    "nodemailer": "^6.9.14",
     "npm": "^10.5.1",
     "nunjucks": "^3.2.2",
     "path": "^0.12.7",
