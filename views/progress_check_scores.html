@@ -1,0 +1,209 @@
+<html>
+    <title>Progress Check Scores</title>
+    {% set local = 'Students' %}
+    {% extends 'nav_bar.html' %}
+    {% block content %}
+    {% if alert_message != '' %}
+        <script>alert('{{ alert_message }}')</script>
+    {% endif %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
+    <style>
+        html {
+            background-image: linear-gradient(#3274C4, #2E353B);
+      -webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+      min-height: 100%;
+        }
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            box-sizing: border-box;
+            color: #E7E5E3;
+        }
+        form > div {
+            margin-bottom: 20px;
+        }
+        button, label, input[type="submit"] {
+            display: block;
+            font-size: 100%;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 5px;
+            height: 60px;
+            align-content: center;
+            background-color: transparent;
+      border: 1px solid #8A8276;
+      color: #E7E5E3;
+        }
+        
+        select {
+            -webkit-appearance: none;
+            appearance: none;
+            display: block;
+            font-size: 100%;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 5px;
+            height: 60px;
+        }
+        .select-wrapper {
+            position: relative;
+        }
+        .select-wrapper::after {
+            content: "▼";
+            font-size: 1rem;
+            top: 24px;
+            right: 10px;
+            position: absolute;
+        }
+        select {
+            box-shadow: inset 1px 1px 3px #ccc;
+            border-radius: 5px;
+            background-color: transparent;
+        }
+        label {
+            margin-bottom: 5px;
+        }
+        button, input[type="submit"] {
+            width: 60%;
+            margin: 0 auto;
+            color: #E7E5E3;
+        }
+        label{
+            font-weight: bold;
+        }
+        p {
+            font-size: 16px;
+        }
+        h1, h3 {
+            text-align: center;
+        }
+        .column1 {
+            float: left;
+            width: 50%;
+            height: 100%;
+            padding-left: 10px;
+            padding-right: 5px;
+        }
+        .column2 {
+            float: right;
+            width: 50%;
+            height: 100%;
+            padding-right: 10px;
+            padding-left: 5px;
+        }
+        #page-container {
+            min-height: 90vh;
+            min-width: 95%;
+            vertical-align: middle;
+        }
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        .row {
+            height: 10%;
+            min-width: 90%;
+            padding-top: 60px;
+        }
+        .end {
+            max-width: 95%;
+            padding-left: 10px;
+            padding-right: 10px;
+            vertical-align: middle;
+        }
+        .autocomplete {
+            /*the container must be positioned relative:*/
+            position: relative;
+            display: inline-block;
+        }
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid black;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            /*position the autocomplete items to be the same width as the container:*/
+            top: 100%;
+            left: 0;
+            right: 0;
+        }
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: lightblue; 
+            border-bottom: 1px solid #d4d4d4; 
+        }
+        .autocomplete-items div:hover {
+            /*when hovering an item:*/
+            background-color: darkcyan; 
+        }
+        .autocomplete-active {
+            /*when navigating through the items using the arrow keys:*/
+            background-color: blue !important; 
+            color: black; 
+        }
+        td, th {
+            border: 1px solid #8A8276;
+            padding: 8px;
+            background-color: transparent;
+            text-align: center;
+            padding: 8px;
+        }
+        table {
+            width: 90%;
+            align-content: center;
+            margin-left: auto;
+            margin-right: auto
+        }
+        a:visited, a:link {
+            text-decoration: none;
+            color: #E7E5E3;
+        }
+    </style>
+    <head>
+        <h1>Progress Check Tool</h1>
+        <button onclick="refresh_scores()">Reset Scores</button><br>
+        <form name="Form" action="/build_pcs" method="POST">
+            <input type="submit" name="Submit" value="Download Scores">
+        </form>
+    </head>
+    <body>
+        <table>
+            {% if pc_data %}
+            <tr>
+                <th>Student Name</th>
+                <th>Month 1 Score/Splits</th>
+                <th>Month 2 Score/Splits</th>
+            </tr>
+                {% for pc in pc_data %}
+                    <tr>
+                        <td>{{ pc.student_name }}</td>
+                        <td>{{ pc.month_1 }}/{{ pc.month_1_splits }}</td>
+                        <td>{{ pc.month_2 }}/{{ pc.month_2_splits }}</td>
+                    </tr>
+                {% endfor %}
+            {% elif pc_data.length == 0 or pc_data == '' %}
+                <h3>No progress check data to display</h3>
+            {% else %}
+                <h3>An error occured</h3>
+            {% endif %}
+        </table>
+    </body>
+</html>
+<script>
+    function refresh_scores() {
+        var ask = window.confirm("Are you sure you want to reset the scores? This action will set all scores to 0 for month 1 and month 2");
+        if (ask) {
+            window.location.href = "/refresh_scores";
+        }
+    }
+</script>
+{% endblock %}
