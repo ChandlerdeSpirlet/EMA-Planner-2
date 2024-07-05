@@ -1,0 +1,486 @@
+<html>
+  {% if alert_message != '' %}
+    <script>alert("{{ alert_message }}")</script>
+  {% endif %}
+  {% if month_val == 'month1' %}
+    <title>Progress Check &mdash; Month 1</title>
+  {% elif month_val == 'month2' %}
+    <title>Progress Check &mdash; Month 2</title>
+  {% else %}
+    <title>Progress Check</title>
+  {% endif %}
+  <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #E7E5E3;
+    }
+    html {
+      background-image: linear-gradient(#3274C4, #2E353B);
+      -webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+      min-height: 100%;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    body {
+      font-size: 16px;
+    }
+    p, li {
+      font-size: 16px;
+    }
+    form > div {
+      margin-bottom: 20px;
+    }
+    button, label {
+      display: block;
+      font-size: 100%;
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+      width: 100%;
+      padding: 5px;
+      height: 30px;
+    }
+    select {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .desc {
+      font-size: 14px;
+      display: inline;
+      font-weight: normal;
+    }
+    .select-wrapper {
+      position: relative;
+    }
+    .select-wrapper::after {
+      content: "▼";
+      font-size: 1rem;
+      top: 6px;
+      right: 10px;
+      position: absolute;
+    }
+    input[type="text"], input[type="number"], [type="first name"], [type="last name"], [type="email"], [type="submit"] {
+      box-shadow: inset 1px 1px 3px #8A8276;
+      border-radius: 5px;
+      display: block;
+      font-size: 100%;
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+      width: 100%;
+      padding: 5px;
+      height: 30px;
+      background-color: #181A1B;
+      color: #E7E5E3;
+    }
+    label {
+      margin-bottom: 5px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    button {
+      width: 100%;
+      margin: 0 auto;
+      background-color: #181A1B;
+      color: #E7E5E3;
+    }
+    .item {
+      display: block; 
+      padding: 5px;
+    }
+    input[type=checkbox] {
+      display: inline;
+    }
+    a:link {
+      color: #E7E5E3;
+    }
+    a:visited {
+      color: #E7E5E3;
+    }
+    a:hover {
+      color: #E7E5E3;
+    }
+    a:active {
+      color: #E7E5E3;
+    }
+    .select-wrapper {
+    position: relative;
+    }
+    select {
+      -webkit-appearance: none;
+      appearance: none;
+      display: block;
+      font-size: 100%;
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+      width: 100%;
+      padding: 5px;
+      height: 60px;
+    }
+    select {
+      box-shadow: inset 1px 1px 3px #8A8276;
+      border-radius: 5px;
+      display: block;
+      font-size: 100%;
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+      width: 100%;
+      padding: 5px;
+      height: 30px;
+      background-color: #181A1B;
+      color: #E7E5E3;
+    }
+
+    .select-wrapper::after {
+      content: "▼";
+      font-size: 1rem;
+      top: 6px;
+      right: 10px;
+      position: absolute;
+      color: #E7E5E3;
+    }
+    .exercise {
+      /*the container must be positioned relative:*/
+      position: relative;
+      padding-left: 5%;
+      padding-right: 5%;
+      /*display: inline-block;*/
+    }
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid black;
+      border-bottom: none;
+      border-top: none;
+      z-index: 99;
+      /*position the autocomplete items to be the same width as the container:*/
+      top: 100%;
+      left: 0;
+      right: 0;
+    }
+    .autocomplete-items div {
+      padding: 10px;
+      cursor: pointer;
+      background-color: lightblue; 
+      border-bottom: 1px solid #d4d4d4; 
+    }
+    .autocomplete-items div:hover {
+      /*when hovering an item:*/
+      background-color: darkcyan; 
+    }
+    .autocomplete-active {
+      /*when navigating through the items using the arrow keys:*/
+      background-color: blue !important; 
+      color: black; 
+    }
+  </style>
+  <head>
+  {% if month_val == 'month1' %}
+    <h1>Progress Check &mdash; Month 1</h1>
+    <h2>{{ student_data[0].student_name }}</h2>
+    {% if student_data[0].month_1 != 0 %}
+      <p style="text-align: center;"><strong>Month 1 Score: {{ student_data[0].month_1 }}</strong></p>
+    {% endif %}
+  {% elif month_val == 'month2' %}
+    <h1>Progress Check &mdash; Month 2</h1>
+    <h2>{{ student_data[0].student_name }}</h2>
+    <p style="text-align: center;"><strong>Month 1 Score: {{ student_data[0].month_1 }}</strong></p>
+    {% if student_data[0].month_2 != 0 %}
+      <p style="text-align: center;"><strong>Month 2 Score: {{ student_data[0].month_2 }}</strong></p>
+    {% endif %}
+  {% else %}
+    <h1>Progress Check</h1>
+    <h2>{{ student_data[0].student_name }}</h2>
+  {% endif %}
+  {% if student_data[0].level_name == 'Dragons' or student_data[0].level_name == 'Basic' %}
+    <p style="text-align: center;">Dragons/Basic Fitness Goals</p>
+    <table style="border: transparent; align-content: center; text-align: center; margin-left: auto; margin-right: auto;">
+      <tr>
+        <th>Excercise</th>
+        <th>Goal</th>
+      </tr>
+      <tr>
+        <td>Jumping Jacks</td>
+        <td>25</td>
+      </tr>
+      <tr>
+        <td>Push Ups</td>
+        <td>10</td>
+      </tr>
+      <tr>
+        <td>Leg Lifts</td>
+        <td>10</td>
+      </tr>
+      <tr>
+        <td>Front Kicks</td>
+        <td>80</td>
+      </tr>
+      <tr>
+        <td>Splits</td>
+        <td>0:30</td>
+      </tr>
+    </table>
+  {% elif student_data[0].level_name == 'Level 1' %}
+    <p style="text-align: center;">Level 1 Fitness Goals</p>
+    <table style="border: transparent; align-content: center; text-align: center; margin-left: auto; margin-right: auto;">
+      <tr>
+        <th>Excercise</th>
+        <th>Goal</th>
+      </tr>
+      <tr>
+        <td>Jumping Jacks</td>
+        <td>50</td>
+      </tr>
+      <tr>
+        <td>Push Ups</td>
+        <td>20</td>
+      </tr>
+      <tr>
+        <td>Leg Lifts</td>
+        <td>20</td>
+      </tr>
+      <tr>
+        <td>Front Kicks</td>
+        <td>100</td>
+      </tr>
+      <tr>
+        <td>Splits</td>
+        <td>1:00</td>
+      </tr>
+    </table>
+  {% elif student_data[0].level_name == 'Level 2' %}
+    <p style="text-align: center;">Level 2 Fitness Goals</p>
+    <table style="border: transparent; align-content: center; text-align: center; margin-left: auto; margin-right: auto;">
+      <tr>
+        <th>Excercise</th>
+        <th>Goal</th>
+      </tr>
+      <tr>
+        <td>Jumping Jacks</td>
+        <td>70</td>
+      </tr>
+      <tr>
+        <td>Push Ups</td>
+        <td>25</td>
+      </tr>
+      <tr>
+        <td>Leg Lifts</td>
+        <td>30</td>
+      </tr>
+      <tr>
+        <td>Front Kicks</td>
+        <td>120</td>
+      </tr>
+      <tr>
+        <td>Splits</td>
+        <td>1:30</td>
+      </tr>
+    </table>
+  {% elif student_data[0].level_name == 'Level 3' %}
+    <p style="text-align: center;">Level 3 Fitness Goals</p>
+    <table style="border: transparent; align-content: center; text-align: center; margin-left: auto; margin-right: auto;">
+      <tr>
+        <th>Excercise</th>
+        <th>Goal</th>
+      </tr>
+      <tr>
+        <td>Jumping Jacks</td>
+        <td>90</td>
+      </tr>
+      <tr>
+        <td>Push Ups</td>
+        <td>30</td>
+      </tr>
+      <tr>
+        <td>Leg Lifts</td>
+        <td>40</td>
+      </tr>
+      <tr>
+        <td>Front Kicks</td>
+        <td>130</td>
+        <tr>
+          <td>Splits</td>
+          <td>2:00</td>
+        </tr>
+      </tr>
+    </table>
+  {% else %}
+    <p style="text-align: center;">Fitness Goals</p>
+    <table style="border: transparent; align-content: center; text-align: center; margin-left: auto; margin-right: auto;">
+      <tr>
+        <th>Excercise</th>
+        <th>Goal</th>
+      </tr>
+      <tr>
+        <td>Jumping Jacks</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td>Push Ups</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td>Leg Lifts</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td>Front Kicks</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td>Splits</td>
+        <td>0:00</td>
+      </tr>
+    </table>
+  {% endif %}
+  </head>
+  <body>
+    <form onsubmit="return validate(this);" name="Form" action="/progress_check" method="POST">
+      <input type="hidden" name="month_val" value="{{ month_val }}">
+      <input type="hidden" name="barcode" value="{{ barcode }}">
+      <input type="hidden" name="month_1_val" value="{{ student_data[0].month_1 }}">
+      <input type="hidden" name="month_2_val" value="{{ student_data[0].month_2 }}">
+      <div class="exercise">
+        <label>Jumping Jacks</label><input id="jj" name="jj" type="number" placeholder="Jumping Jacks" pattern="[0-9]{1,}" oninput="InvalidMsg(this);" oninvalid="InvalidMsg(this);" inputmode="numeric" required>
+      </div>
+      <br>
+      <div class="exercise">
+        <label>Push Ups</label><input id="pu" name="pu" type="number" placeholder="Push Ups" pattern="[0-9]{1,}" oninput="InvalidMsg(this);" oninvalid="InvalidMsg(this);" inputmode="numeric" required>
+      </div>
+      <br>
+      <div class="exercise">
+        <label>Leg Lifts</label><input id="ll" name="ll" type="number" placeholder="Leg Lifts" pattern="[0-9]{1,}" oninput="InvalidMsg(this);" oninvalid="InvalidMsg(this);" inputmode="numeric" required>
+      </div>
+      <br>
+      <div class="exercise">
+        <label>Front Kicks</label><input id="fk" name="fk" type="number" placeholder="Front Kicks" pattern="[0-9]{1,}" oninput="InvalidMsg(this);" oninvalid="InvalidMsg(this);" inputmode="numeric" required>
+      </div>
+      <br>
+      <div class="exercise">
+        <label>Splits</label>
+        {% if student_data[0].level_name == 'Dragons' or student_data.level_name == 'Basic' %}
+          <div class="select-wrapper">
+            <select id="select" name="sp" required oninput="InvalidMsg(this);" oninvalid="InvalidMsg(this);">
+              <option value="" disabled>Splits Time</option>
+              {% for s in range(0, 9 + 1) -%}
+                <option value="0:0{{ s }}">{{ s }} seconds</option>
+              {%- endfor %}
+              {% for s in range(10, 30 + 1) -%}
+                <option value="0:{{ s }}">{{ s }} seconds</option>
+              {%- endfor %}
+            </select>
+          </div>
+        {% elif student_data[0].level_name == 'Level 1' %}
+          <div class="select-wrapper">
+            <select id="select" name="sp" required oninput="InvalidMsg(this);" oninvalid="InvalidMsg(this);">
+              <option value="" disabled>Splits Time</option>
+              {% for s in range(0, 9 + 1) -%}
+                <option value="0:0{{ s }}">{{ s }} seconds</option>
+              {%- endfor %}
+              {% for s in range(10, 59 + 1) -%}
+                <option value="0:{{ s }}">{{ s }} seconds</option>
+              {%- endfor %}
+              <option value="1:00">1 minute 0 seconds</option>
+            </select>
+          </div>
+        {% elif student_data[0].level_name == 'Level 2' %}
+          <div class="select-wrapper">
+            <select id="select" name="sp" required oninput="InvalidMsg(this);" oninvalid="InvalidMsg(this);">
+              <option value="" disabled>Splits Time</option>
+              {% for s in range(0, 9 + 1) -%}
+                <option value="0:0{{ s }}">{{ s }} seconds</option>
+              {%- endfor %}
+              {% for s in range(10, 59 + 1) -%}
+                <option value="0:{{ s }}">{{ s }} seconds</option>
+              {%- endfor %}
+              {% for s in range(0, 9 + 1) -%}
+                <option value="1:0{{ s }}">1 minute {{ s }} seconds</option>
+              {%- endfor %}
+              {% for s in range(10, 30 + 1) -%}
+                <option value="1:{{ s }}">1 minute {{ s }} seconds</option>
+              {%- endfor %}
+            </select>
+          </div>
+        {% else %}
+          <div class="select-wrapper">
+            <select id="select" name="sp" required oninput="InvalidMsg(this);" oninvalid="InvalidMsg(this);">
+              <option value="" disabled>Splits Time</option>
+              {% for s in range(0, 9 + 1) -%}
+                <option value="0:0{{ s }}">{{ s }} seconds</option>
+              {%- endfor %}
+              {% for s in range(10, 59 + 1) -%}
+                <option value="0:{{ s }}">{{ s }} seconds</option>
+              {%- endfor %}
+              {% for s in range(0, 9 + 1) -%}
+                <option value="1:0{{ s }}">1 minute {{ s }} seconds</option>
+              {%- endfor %}
+              {% for s in range(10, 59 + 1) -%}
+                <option value="1:{{ s }}">1 minute {{ s }} seconds</option>
+              {%- endfor %}
+              <option value="2:00">2 minutes 0 seconds</option>
+            </select>
+          </div>
+        {% endif %}
+      </div>
+      <br>
+      <div>
+        <input type="submit" name="Submit" value="Submit"/>
+      </div>
+    </form>
+    <a href="/student_portal/{{ student_data[0].barcode }}"><button>Student Portal</button></a>
+  </body>
+</html>
+<script>
+  function InvalidMsg(textbox) {
+    if(textbox.validity.patternMismatch){
+        textbox.setCustomValidity("Enter only a number.");
+    }    
+    else {
+        textbox.setCustomValidity('');
+    }
+    return true;
+  }
+  function validate(form) {
+      valid = true;
+      var jj = document.getElementById('jj');
+      var pu = document.getElementById('pu');
+      var ll = document.getElementById('ll');
+      var sp = document.getElementById('sp');
+      var fk = document.getElementById('fk');
+      if (jj == null || jj == ''){
+        alert("Jumping jacks can't be empty");
+        valid = false;
+      }
+      if (pu == null || pu == ''){
+        alert("Push ups can't be empty");
+        valid = false;
+      }
+      if (ll == null || ll == ''){
+        alert("Leg lifts can't be empty");
+        valid = false;
+      }
+      if (!sp.value){
+        alert("Splits can't be empty");
+        valid = false;
+      }
+      if (fk == null || fk == ''){
+        alert("Front kicks can't be empty");
+        valid = false;
+      }
+      if(!valid) {
+          alert('Please correct the errors in the form!');
+          return false;
+      }
+      else {
+          return confirm('Are you ready to submit your scores? Only your highest score will be kept.');
+      }
+  }
+  </script>

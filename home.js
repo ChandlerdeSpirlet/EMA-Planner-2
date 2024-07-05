@@ -3976,7 +3976,7 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', (req, r
 })
 
 router.get('/test_selector_force/(:month)/(:day)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && req.userID) {
+  if (req.cookies.psg_auth_token && res.userID) {
     console.log('logged in as ' + req.session.user);
     let temp_date = new Date();
     let year = String(temp_date.getFullYear());
@@ -3999,7 +3999,7 @@ router.get('/test_selector_force/(:month)/(:day)', passageAuthMiddleware, async(
 })
 
 router.get('/test_checkin_blackbelt/(:id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && req.userID) {
+  if (req.cookies.psg_auth_token && res.userID) {
     //if (req.session.user == 'Authorized'){
       const belt_counts = 'select testing_for, count(*) as "num" from test_signups where test_id = $1 group by testing_for;'
       const test_info = "select to_char(test_date, 'Month DD') as test_day, to_char(test_time, 'HH:MI PM') as testing_time, level, notes from test_instance where id = $1;"
@@ -4057,7 +4057,7 @@ router.get('/test_checkin_blackbelt/(:id)/(:level)', passageAuthMiddleware, asyn
 })
 
 router.get('/test_checkin/(:id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && req.userID) {
+  if (req.cookies.psg_auth_token && res.userID) {
     const test_info = "select to_char(test_date, 'Month DD') as test_day, to_char(test_time, 'HH:MI PM') as testing_time, level, notes from test_instance where id = $1;";
     const student_query = "select distinct session_id, student_name, barcode, belt_color, pass_status from test_signups where test_id = $1 and pass_status is null;";
     const pass_status = "select distinct session_id, student_name, barcode, belt_color, pass_status from test_signups where test_id = $1 and pass_status is not null;";
@@ -4149,7 +4149,7 @@ router.post('/test_checkin_blackbelt', (req, res) => {
 })
 
 router.get('/test_remove/(:barcode)/(:test_id)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && req.userID) {
+  if (req.cookies.psg_auth_token && res.userID) {
     const remove_query = "delete from test_signups where barcode = $1 and test_id = $2;";
     db.any(remove_query, [req.params.barcode, req.params.test_id])
       .then(rows => {
@@ -4167,7 +4167,7 @@ router.get('/test_remove/(:barcode)/(:test_id)', passageAuthMiddleware, async(re
 })
 
 router.get('/test_remove_blackbelt/(:barcode)/(:test_id)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && req.userID) {
+  if (req.cookies.psg_auth_token && res.userID) {
     const remove_query = "delete from test_signups where barcode = $1 and test_id = $2;";
     db.any(remove_query, [req.params.barcode, req.params.test_id])
       .then(rows => {
@@ -4185,7 +4185,7 @@ router.get('/test_remove_blackbelt/(:barcode)/(:test_id)', passageAuthMiddleware
 })
 
 router.get('/update_test_checkin/(:barcode)/(:session_id)/(:test_id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.session.loggedin) {
+  if (req.cookies.psg_auth_token && res.userID) {
     const insert_query = "insert into student_tests (test_id, barcode) values ($1, $2) on conflict (session_id) do nothing;";
     const update_status = "update test_signups set checked_in = true where session_id = $1";
     db.any(insert_query, [req.params.test_id, req.params.barcode])
@@ -4209,8 +4209,375 @@ router.get('/update_test_checkin/(:barcode)/(:session_id)/(:test_id)/(:level)', 
   }
 })
 
+router.get('/progress_check/(:month_val)/(:barcode)', (req, res) => {
+  const student_data = "select first_name || ' ' || last_name as student_name, month_1, month_2, barcode, level_name from student_list where barcode = $1;"
+  db.any(student_data, [req.params.barcode])
+    .then(data => {
+      res.render('progress_check', {
+        student_data: data,
+        month_val: req.params.month_val,
+        barcode: req.params.barcode,
+        alert_message: ''
+      })
+    })
+})
+
+router.post('/progress_check', (req, res) => {
+  const student_data_pc = "select first_name || ' ' || last_name as student_name, month_1, month_2, barcode, level_name from student_list where barcode = $1;"
+  var data = {
+    month_val: req.sanitize('month_val').trim(),
+    barcode: req.sanitize('barcode').trim(),
+    month_1_val: req.sanitize('month_1_val').trim(),
+    month_2_val: req.sanitize('month_2_val').trim(),
+    jj: req.sanitize('jj').trim(),
+    pu: req.sanitize('pu').trim(),
+    ll: req.sanitize('ll').trim(),
+    sp: req.sanitize('sp').trim(),
+    fk: req.sanitize('fk').trim()
+  }
+  var score_total = Number(data.jj) + Number(data.pu) + Number(data.ll) + Number(data.fk);
+  var score_total = Number(score_total);
+  console.log('score_total is ' + score_total);
+  console.log('month_1 data = ' + data.month_1_val);
+  if (data.month_val == 'month1'){
+    if (Number(data.month_1_val) > score_total){
+      db.any(student_data_pc, [data.barcode])
+        .then(values => {
+          res.render('progress_check_results', {
+            student_data: values,
+            fitness_data: data,
+            score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'Your previous month 1 score of ' + String(data.month_1_val) + ' was kept because it was ' + String(Number(data.month_1_val) - score_total) + ' points higher than your previous score.'
+          })
+        })
+        .catch(err => {
+          res.render('progress_check_results', {
+            student_data: '',
+            fitness_data: data,
+            score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'Unable to fetch student data (higher previous) in month 1. ERROR: ' + err
+          })
+      })
+    } else if (Number(data.month_1_val) == 0){
+      const month_1_update = "update student_list set month_1 = $1, month_1_splits = $2 where barcode = $3;";
+      db.any(month_1_update, [score_total, data.sp, data.barcode])
+        .then(update => {
+          db.any(student_data_pc, [data.barcode])
+            .then(values => {
+              res.render('progress_check_results', {
+                student_data: values,
+                fitness_data: data,
+                score_total: score_total,
+                month_val: data.month_val,
+                barcode: data.barcode,
+                alert_message: 'Your new month 1 score is ' + String(score_total)
+              })
+            })
+            .catch(err => {
+              res.render('progress_check_results', {
+                student_data: '',
+                fitness_data: data,
+            score_total: score_total,
+                month_val: data.month_val,
+                barcode: data.barcode,
+                alert_message: 'Unable to fetch student data (new higher) in month 1. ERROR: ' + err
+              })
+            })
+          })
+        .catch(err => {
+          res.render('progress_check_results', {
+            student_data: '',
+            fitness_data: data,
+            score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'Unable to set new score for month 1. ERROR: ' + err
+          })
+        })
+    } else if (Number(data.month_1_val) < score_total){
+      const month_1_update = "update student_list set month_1 = $1, month_1_splits = $2 where barcode = $3;";
+      db.any(month_1_update, [score_total, data.sp, data.barcode])
+        .then(update => {
+          db.any(student_data_pc, [data.barcode])
+            .then(values => {
+              if (score_total - Number(data.month_1_val) == 1){
+                res.render('progress_check_results', {
+                  student_data: values,
+                  fitness_data: data,
+            score_total: score_total,
+                  month_val: data.month_val,
+                  barcode: data.barcode,
+                  alert_message: 'Your new month 1 score of ' + String(score_total) + ' is ' + String(score_total - Number(data.month_1_val)) + ' point higher than your previous score!'
+                })
+              } else {
+                res.render('progress_check_results', {
+                  student_data: values,
+                  fitness_data: data,
+            score_total: score_total,
+                  month_val: data.month_val,
+                  barcode: data.barcode,
+                  alert_message: 'Your new month 1 score of ' + String(score_total) + ' is ' + String(score_total - Number(data.month_1_val)) + ' points higher than your previous score!'
+                })
+              }
+            })
+            .catch(err => {
+              res.render('progress_check_results', {
+                student_data: '',
+                fitness_data: data,
+            score_total: score_total,
+                month_val: data.month_val,
+                barcode: data.barcode,
+                alert_message: 'Unable to fetch student data (new higher) in month 1. ERROR: ' + err
+              })
+            })
+          })
+        .catch(err => {
+          res.render('progress_check_results', {
+            student_data: '',
+            fitness_data: data,
+            score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'Unable to set new score for month 1. ERROR: ' + err
+          })
+        })
+    } else {
+      db.any(student_data_pc, [data.barcode])
+        .then(values => {
+          res.render('progress_check_results', {
+            student_data: values,
+            fitness_data: data,
+            score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'You tied with your previous month 1 score!'
+          })
+        })
+        .catch(err => {
+          res.render('progress_check_results', {
+            student_data: '',
+            fitness_data: data,
+            score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'Unable to fetch student data (tie) in month 1. ERROR: ' + err
+          })
+      })
+    }
+  } else if (data.month_val == 'month2'){
+    if (Number(data.month_2_val) > score_total){
+      db.any(student_data_pc, [data.barcode])
+        .then(values => {
+          res.render('progress_check_results', {
+            student_data: values,
+            fitness_data: data,
+            score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'Your previous month 2 score of ' + String(data.month_2_val) + ' was kept because it was ' + String(Number(data.month_2_val) - score_total) + ' points higher than your previous score.'
+          })
+        })
+        .catch(err => {
+          res.render('progress_check_results', {
+            student_data: '',
+            fitness_data: data,
+            score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'Unable to fetch student data (higher previous) in month 2. ERROR: ' + err
+          })
+      })
+    } else if (Number(data.month_2_val) == 0){
+      const month_2_update = "update student_list set month_2 = $1, month_2_splits = $2 where barcode = $3;";
+      db.any(month_2_update, [score_total, data.sp, data.barcode])
+        .then(update => {
+          db.any(student_data_pc, [data.barcode])
+            .then(values => {
+              res.render('progress_check_results', {
+                student_data: values,
+                fitness_data: data,
+            score_total: score_total,
+                month_val: data.month_val,
+                barcode: data.barcode,
+                alert_message: 'Your new month 2 score is ' + String(score_total)
+              })
+            })
+            .catch(err => {
+              res.render('progress_check_results', {
+                student_data: '',
+                fitness_data: data,
+            score_total: score_total,
+                month_val: data.month_val,
+                barcode: data.barcode,
+                alert_message: 'Unable to fetch student data (new higher) in month 2. ERROR: ' + err
+              })
+            })
+          })
+        .catch(err => {
+          res.render('progress_check_results', {
+            student_data: '',
+            fitness_data: data,
+            score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'Unable to set new score for month 2. ERROR: ' + err
+          })
+        })
+    } else if (Number(data.month_2_val) < score_total){
+      const month_2_update = "update student_list set month_2 = $1, month_2_splits = $2 where barcode = $3;";
+      db.any(month_2_update, [score_total, data.sp, data.barcode])
+        .then(update => {
+          db.any(student_data_pc, [data.barcode])
+            .then(values => {
+              if (score_total - data.month_2_val == 1){
+                res.render('progress_check_results', {
+                  student_data: values,
+                  fitness_data: data,
+            score_total: score_total,
+                  month_val: data.month_val,
+                  barcode: data.barcode,
+                  alert_message: 'Your new month 2 score of ' + String(score_total) + ' is ' + String(score_total - Number(data.month_2_val)) + ' point higher than your previous score!'
+                })
+              } else {
+                res.render('progress_check_results', {
+                  student_data: values,
+                  fitness_data: data,
+            score_total: score_total,
+                  month_val: data.month_val,
+                  barcode: data.barcode,
+                  alert_message: 'Your new month 2 score of ' + String(score_total) + ' is ' + String(score_total - Number(data.month_2_val)) + ' points higher than your previous score!'
+                })
+              }
+            })
+            .catch(err => {
+              res.render('progress_check_results', {
+                student_data: '',
+                fitness_data: data,
+            score_total: score_total,
+                month_val: data.month_val,
+                barcode: data.barcode,
+                alert_message: 'Unable to fetch student data (new higher) in month 2. ERROR: ' + err
+              })
+            })
+          })
+        .catch(err => {
+          res.render('progress_check_results', {
+            values: '',
+            fitness_data: data,
+            score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'Unable to set new score for month 2. ERROR: ' + err
+          })
+        })
+    } else {
+      db.any(student_data_pc, [data.barcode])
+        .then(values => {
+          res.render('progress_check_results', {
+            student_data: values,
+            fitness_data: data,
+            score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'You tied with your previous month 2 score!'
+          })
+        })
+        .catch(err => {
+          res.render('progress_check_results', {
+            student_data: '',
+            fitness_data: data,
+            score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'Unable to fetch student data (tie) in month 2. ERROR: ' + err
+          })
+      })
+    }
+  } else {
+    db.any(student_data_pc, [data.barcode])
+      .then(values => {
+        res.render('progress_check_results', {
+          student_data: values,
+          fitness_data: data,
+            score_total: score_total,
+          month_val: data.month_val,
+          barcode: data.barcode,
+          alert_message: 'Unable to determine which progress check month to submit.'
+        })
+      })
+      .catch(err => {
+        res.render('progress_check_results', {
+          student_data: '',
+          fitness_data: data,
+            score_total: score_total,
+          month_val: data.month_val,
+          barcode: data.barcode,
+          alert_message: 'Unable to fetch student data in undetermined month. ERROR: ' + err
+        })
+      })
+  }
+})
+
+router.get('/progress_check_scores', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID) {
+    const pc_scores = "select first_name || ' ' || last_name as student_name, month_1, month_1_splits, month_2, month_2_splits from student_list order by last_name, first_name;";
+    db.any(pc_scores)
+      .then(rows => {
+        res.render('progress_check_scores', {
+          pc_data: rows,
+          alert_message: ''
+        })
+      })
+      .catch(err => {
+        res.render('progress_check_scores', {
+          pc_data: '',
+          alert_message: 'Could not get scores. ERROR: ' + err
+        })
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/refresh_scores', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID) {
+    const reset_query = "update student_list set month_1 = 0, month_2 = 0, month_1_splits = '0:00', month_2_splits = '0:00';";
+    db.none(reset_query)
+    .then(row => {
+      const pc_data_query = "select first_name || ' ' || last_name as student_name, month_1, month_2 from student_list order by last_name, first_name;";
+      db.any(pc_data_query)
+        .then(data => {
+          res.render('progress_check_scores', {
+            pc_data: data,
+            alert_message: 'Scores have been reset!'
+          })
+        })
+        .catch(err => {
+          res.render('progress_check_scores', {
+            pc_data: '',
+            alert_message: 'Unable to fetch scores after reset. ERROR: ' + err
+          })
+        })
+    })
+    .catch(err => {
+      res.render('progress_check_scores', {
+        pc_data: '',
+        alert_message: 'Error: Could not reset scores. ERROR: ' + err
+      })
+    })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
 router.get('/pass_test_bb/(:belt_color)/(:barcode)/(:test_id)/(:level)/(:testing_for)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && req.userID) {
+  if (req.cookies.psg_auth_token && res.userID) {
     const update_status = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";//color, level, order
     const belt_info = parseBB(req.params.testing_for, false);
     console.log('belt color was: ' + req.params.belt_color);
@@ -4251,7 +4618,7 @@ router.get('/pass_test_bb/(:belt_color)/(:barcode)/(:test_id)/(:level)/(:testing
 })
 
 router.get('/pass_test/(:belt_color)/(:barcode)/(:test_id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && req.userID) {
+  if (req.cookies.psg_auth_token && res.userID) {
     if (req.params.level == '7') {
       const false_update = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";
       db.one(false_update, [req.params.barcode, req.params.test_id])
@@ -4293,7 +4660,7 @@ router.get('/pass_test/(:belt_color)/(:barcode)/(:test_id)/(:level)', passageAut
 })
 
 router.get('/fail_test/(:barcode)/(:test_id)/(:level)/(:belt_color)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && req.userID) {
+  if (req.cookies.psg_auth_token && res.userID) {
     const update_status = "update test_signups set pass_status = false where barcode = $1 and test_id = $2;";
     const make_up_test = "insert into test_signups (student_name, test_id, belt_color, barcode) values ((select first_name || ' ' || last_name from student_list where barcode = $2), (select id from test_instance where level = $3 and test_date >= now() and notes = 'Make Up Testing' limit 1), $1, $2);"
     db.any(update_status, [req.params.barcode, req.params.test_id])
@@ -4318,7 +4685,7 @@ router.get('/fail_test/(:barcode)/(:test_id)/(:level)/(:belt_color)', passageAut
 })
 
 router.get('/fail_test_blackbelt/(:barcode)/(:test_id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && req.userID) {
+  if (req.cookies.psg_auth_token && res.userID) {
     const update_status = "update test_signups set pass_status = false where barcode = $1 and test_id = $2;";
     const regex_fail = /\(pc\)/i;
     var rank_fail = req.params.level.replace(regex_fail, '- Progress Check');
@@ -4345,6 +4712,52 @@ router.get('/fail_test_blackbelt/(:barcode)/(:test_id)/(:level)', passageAuthMid
   }
 })
 
+router.get('/class_selector', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID) {
+    const query = "select x.class_id, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = FALSE) as signed_up, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = TRUE) as checked_in, to_char(x.starts_at, 'Month') as class_month, to_char(x.starts_at, 'DD') as class_day, to_char(x.starts_at, 'HH:MI PM') as class_time, to_char(x.ends_at, 'HH:MI PM') as end_time, x.level, x.class_type from classes x where to_char(x.starts_at, 'Month DD YYYY') = to_char(to_date($1, 'Month DD YYYY'), 'Month DD YYYY') order by x.starts_at;"
+    var d = new Date();
+    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const month = months[d.getMonth()];
+    const day = d.getDate();
+    const date_conversion = month + ' ' + day + d.getFullYear();
+    console.log("Date is " + date_conversion);
+    db.any(query, [date_conversion])
+      .then(function (rows) {
+        res.render('class_selector', {
+          data: rows
+        })
+      })
+      .catch(function (err) {
+        console.log('error in getting classes ' + err)
+        res.redirect('home')
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/class_selector_force/(:month)/(:day)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID) {
+    const currentYear = new Date().getFullYear();
+    const date_conversion = req.params.month + ' ' + req.params.day + ' ' + currentYear
+    const query = "select x.class_id, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = FALSE) as signed_up, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = TRUE) as checked_in, to_char(x.starts_at, 'Month') as class_month, to_char(x.starts_at, 'DD') as class_day, to_char(x.starts_at, 'HH:MI PM') as class_time, to_char(x.ends_at, 'HH:MI PM') as end_time, x.level, x.class_type, x.can_view from classes x where to_char(x.starts_at, 'Month DD YYYY') = to_char(to_date($1, 'Month DD YYYY'), 'Month DD YYYY') order by x.starts_at;"
+    db.any(query, [date_conversion])
+      .then(function (rows) {
+        res.render('class_selector', {
+          data: rows
+        })
+      })
+      .catch(function (err) {
+        console.log('error in getting classes ' + err)
+        res.redirect('home')
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
 router.post('/class_lookup', (req, res) => {
   const item = {
     month: req.sanitize('month_select').trim(),
@@ -4355,7 +4768,7 @@ router.post('/class_lookup', (req, res) => {
 })
 
 router.get('/belt_resolved/(:stud_name)/(:barcode)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && req.userID) {
+  if (req.cookies.psg_auth_token && res.userID) {
     res.redirect('/student_lookup');
   } else {
     res.render('login', {
@@ -4364,7 +4777,7 @@ router.get('/belt_resolved/(:stud_name)/(:barcode)', passageAuthMiddleware, asyn
 })
 
 router.get('/student_lookup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && req.userID) {
+  if (req.cookies.psg_auth_token && res.userID) {
     const name_query = "select * from get_all_names()"
     db.any(name_query)
       .then(function (rows) {
@@ -4387,7 +4800,7 @@ router.get('/student_lookup', passageAuthMiddleware, async(req, res) => {
 })
 
 router.get('/lookup_message/(:alert_message)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && req.userID) {
+  if (req.cookies.psg_auth_token && res.userID) {
     const name_query = "select * from get_all_names()"
     db.any(name_query)
       .then(function (rows) {
@@ -4410,7 +4823,7 @@ router.get('/lookup_message/(:alert_message)', passageAuthMiddleware, async(req,
 })
 
 router.get('/student_data', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && req.userID) {
+  if (req.cookies.psg_auth_token && res.userID) {
     res.render('student_data', {
       data: '',
       name: '',
@@ -4445,7 +4858,7 @@ router.get('/json_data', (req, res) => {
 })
 
 router.get('/student_data_loading/(:name)/(:barcode)', passageAuthMiddleware, async(req, res) => {
-  let userID = req.userID
+  let userID = res.userID
   if (req.cookies.psg_auth_token && userID) {
     var name = req.params.name;
     var barcode = req.params.barcode;
@@ -4640,6 +5053,43 @@ router.post('/student_data', (req, res) => {
       })
     })
 })
+
+router.get('/test_lookup', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID) {
+    var event = new Date();
+    var options_1 = { 
+      month: 'long',
+      timeZone: 'America/Denver'
+    };
+    var options_2 = { 
+      day: 'numeric',
+      timeZone: 'America/Denver'
+    };
+    const month = event.toLocaleDateString('en-US', options_1);
+    const day = event.toLocaleDateString('en-US', options_2);
+    res.render('test_lookup', {
+      month: month,
+      day: day
+    })
+  } else {
+    res.render('login', {
+      username: '',
+      password: '',
+      go_to: '/test_lookup',
+      alert_message: ''
+    })
+  }
+})
+
+router.post('/test_lookup', (req, res) => {
+  const item = {
+    month: req.sanitize('month_select').trim(),
+    day: req.sanitize('day_select').trim()
+  }
+  const redir_link = 'test_selector_force/' + item.month + '/' + item.day;
+  res.redirect(redir_link);
+})
+
 
 router.get('/create_test', passageAuthMiddleware, async(req, res) => {
   let userID = res.userID
