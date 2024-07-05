@@ -18,7 +18,7 @@ const { check, validationResult, exp_val } = pkg
 // const flash = require('connect-flash')
 import flash from 'connect-flash'
 // const fs = require('fs')
-import { fs, writeFileSync, readFileSync } from 'fs'
+import { writeFileSync, readFileSync } from 'fs'
 // const { writeFileSync } = require('fs')
 // const { readFileSync } = require('fs')
 // const ics = require('ics')
