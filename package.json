@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "Attendance and belt testing manager for Exclusive Martial Arts Lakewood School",
   "main": "home.js",
+  "engines": {
+    "node": "21.x",
+    "npm": "10.x"
+  },
   "scripts": {
     "test": "npx eslint .",
     "start": "node home.js"
@@ -36,7 +40,7 @@
     "js-datepicker": "^5.18.0",
     "json2csv": "^5.0.6",
     "nodemailer": "^6.9.8",
-    "npm": "^10.5.1",
+    "npm": "^10.8.1",
     "nunjucks": "^3.2.2",
     "path": "^0.12.7",
     "pg-promise": "^11.5.4",
