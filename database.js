@@ -2,7 +2,7 @@
 import pgp from 'pg-promise'
 
 const connectionConf = {
-  connectionString: process.env.DATABASE_URL,
+  connection: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
   }
