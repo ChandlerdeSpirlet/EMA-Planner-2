@@ -20,7 +20,33 @@ const crypto = require('crypto')
 // const Json2csvParser = require("json2csv").Parser
 // const csv = require('csv-parser')
 const fileUpload = require('express-fileupload')
-const Passage = require('@passageidentity/passage-node')
+// const Passage = require('@passageidentity/passage-node')
+import Passage from "@passageidentity/passage-node";
+
+// Passage requires an App ID and, optionally, an API Key
+const passageConfig = {
+  appID: process.env.PASSAGE_APP_ID,
+  apiKey: process.env.PASSAGE_API_KEY,
+};
+
+// Authentication using Passage class instance
+let passage = new Passage(passageConfig);
+app.get("/authenticatedRoute", async(req, res) => {
+  try {
+    // Authenticate request using Passage
+    let userID = await passage.authenticateRequest(req);
+    if (userID) {
+      // User is authenticated
+      let userData = await passage.user.get(userID);
+      console.log(userData);
+    }
+  } catch (e) {
+    // Authentication failed
+    console.log(e);
+    res.send("Authentication failed!");
+  }
+});
+
 
 const passageConfig = {
   appID: process.env.PASSAGE_ID,
