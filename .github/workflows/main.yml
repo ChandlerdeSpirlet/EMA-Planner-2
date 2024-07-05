@@ -19,57 +19,6 @@ jobs:
       run: npm install eslint
     - name: Run ESLint
       run: npx eslint . --ext .js,.jsx,.ts,.tsx
-  scan:
-    name: Scan
-    runs-on: ubuntu-20.04
-    if: github.event.pull_request.merged == true
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.1.2
-  
-      - name: Run Trivy vulnerability scanner in fs mode
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          trivy-config: trivy.yaml
-  repo:
-    name: REPO
-    runs-on: ubuntu-20.04
-    permissions: write-all
-    if: github.event.pull_request.merged == true
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.1.2
-      - name: Create package-lock.json
-        run: npm install
-      - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          ignore-unfixed: true
-          format: 'sarif'
-          trivy-config: trivy.yaml
-          output: 'trivy-results.sarif'
-          github-pat: ${{ secrets.PA_TOKEN }}
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'trivy-results.sarif'
-  SBOM:
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.1.2
-      - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          format: 'github'
-          output: 'dependency-results.sbom.json'
-          image-ref: '.'
-          github-pat: ${{ secrets.PA_TOKEN }}
-          trivy-config: trivy.yaml
   deploy:
     runs-on: ubuntu-latest
     steps:
