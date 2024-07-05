@@ -30,28 +30,22 @@ const passageConfig = {
 };
 
 // Authentication using Passage class instance
-let passage = new Passage(passageConfig);
-app.get("/authenticatedRoute", async(req, res) => {
-  try {
-    // Authenticate request using Passage
-    let userID = await passage.authenticateRequest(req);
-    if (userID) {
-      // User is authenticated
-      let userData = await passage.user.get(userID);
-      console.log(userData);
-    }
-  } catch (e) {
-    // Authentication failed
-    console.log(e);
-    res.send("Authentication failed!");
-  }
-});
-
-
-const passageConfig = {
-  appID: process.env.PASSAGE_ID,
-  apiKey: process.env.PASSAGE_API
-}
+// let psg = new Passage(passageConfig);
+// app.get("/authenticatedRoute", async(req, res) => {
+//   try {
+//     // Authenticate request using Passage
+//     let userID = await psg.authenticateRequest(req);
+//     if (userID) {
+//       // User is authenticated
+//       let userData = await psg.user.get(userID);
+//       console.log(userData);
+//     }
+//   } catch (e) {
+//     // Authentication failed
+//     console.log(e);
+//     res.send("Authentication failed!");
+//   }
+// });
 
 const settings = {
   port: 8080,
