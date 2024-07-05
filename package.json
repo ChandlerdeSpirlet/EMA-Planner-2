@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Attendance and belt testing manager for Exclusive Martial Arts Lakewood School",
   "main": "home.js",
+  "type": "module",
   "scripts": {
     "test": "npx eslint .",
     "start": "node home.js"
