@@ -68,6 +68,7 @@ jobs:
           output: 'dependency-results.sbom.json'
           image-ref: '.'
           github-pat: ${{ secrets.GITHUB_TOKEN }}
+          trivy-config: trivy.yaml
   deploy:
     runs-on: ubuntu-latest
     steps:
