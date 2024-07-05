@@ -27,6 +27,8 @@ const passageConfig = {
   apiKey: process.env.PASSAGE_API
 }
 
+let passage = new Passage(passageConfig)
+
 const settings = {
   port: 8080,
   apiv4url: 'https://api.paysimple.com/v4',
@@ -85,7 +87,7 @@ const db = require('./database')
 
 app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
 
-let passage = new Passage(passageConfig)
+
 let passageAuthMiddleware = (() => {
   return async (req, res, next) => {
     try {
