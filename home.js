@@ -1,27 +1,40 @@
 /* eslint-disable no-case-declarations */
-const express = require('express')
-const bodyParser = require('body-parser')
-const nunjucks = require('nunjucks')
-const session = require('express-session')
-const path = require('path')
-const ics = require('ics')
+//const express = require('express')
+import express from 'express'
+// const bodyParser = require('body-parser')
+import bodyParser from 'body-parser'
+// const nunjucks = require('nunjucks')
+import nunjucks from 'nunjucks'
+// const session = require('express-session')
+import session from 'express-session'
+// const path = require('path')
+import path from 'path'
+// const ics = require('ics')
+import ics from 'ics'
 // const exp_val = require('express-validator')
-const { check, validationResult } = require('express-validator')
-const flash = require('connect-flash')
-const fs = require('fs')
-const { writeFileSync } = require('fs')
-const { readFileSync } = require('fs')
+// const { check, validationResult } = require('express-validator')
+import { check, validationResult, exp_val} from 'express-validator'
+// const flash = require('connect-flash')
+import flash from 'connect-flash'
+// const fs = require('fs')
+import { fs, writeFileSync, readFileSync } from 'fs'
+// const { writeFileSync } = require('fs')
+// const { readFileSync } = require('fs')
 // const ics = require('ics')
 var cookieParser = require('cookie-parser')
 // const { readFileSync } = require('fs')
 'use strict';
-const request = require('request')
-const crypto = require('crypto')
+// const request = require('request')
+import request from 'request'
+// const crypto = require('crypto')
+import crypto from 'crypto'
 // const Json2csvParser = require("json2csv").Parser
 // const csv = require('csv-parser')
-const fileUpload = require('express-fileupload')
+//const fileUpload = require('express-fileupload')
+import fileUpload from 'express-fileupload'
 // const Passage = require('@passageidentity/passage-node')
 import Passage from "@passageidentity/passage-node";
+import api from 'api'
 
 // Passage requires an App ID and, optionally, an API Key
 const passageConfig = {
@@ -62,7 +75,7 @@ function getAuthHeader () {
   const hash = crypto.createHmac('SHA256', settings.apikey).update(time).digest('base64')
   return 'PSSERVER' + ' ' + 'accessid=' + settings.username + '; timestamp=' + time + '; signature=' + hash
 }
-const sdk = require('api')('@paysimple-developer-portal/v1.1#fv6vw4al5ip3eo1')
+const sdk = api('@paysimple-developer-portal/v1.1#fv6vw4al5ip3eo1')
 const auth_header = getAuthHeader()
 sdk.auth(auth_header)
 // function getAuthHeader_beta () {
@@ -97,7 +110,8 @@ router.use(bodyParser.urlencoded({ extended: true }))
 app.use('/', router)
 // router.use(exp_val()) https://express-validator.github.io/docs/guides/getting-started
 
-const db = require('./database')
+// const db = require('./database')
+import db from './database'
 // const { proc } = require('./database')
 // const { get } = require('http')
 // const { json } = require('body-parser')
