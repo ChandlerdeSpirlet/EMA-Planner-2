@@ -13,7 +13,8 @@ import path from 'path'
 import ics from 'ics'
 // const exp_val = require('express-validator')
 // const { check, validationResult } = require('express-validator')
-import { check, validationResult, exp_val} from 'express-validator'
+import pkg from 'express-validator'
+const { check, validationResult, exp_val } = pkg
 // const flash = require('connect-flash')
 import flash from 'connect-flash'
 // const fs = require('fs')
