@@ -1,67 +1,31 @@
 /* eslint-disable no-case-declarations */
-//const express = require('express')
-import express from 'express'
-// const bodyParser = require('body-parser')
-import bodyParser from 'body-parser'
-// const nunjucks = require('nunjucks')
-import nunjucks from 'nunjucks'
-// const session = require('express-session')
-import session from 'express-session'
-// const path = require('path')
-import path from 'path'
-// const ics = require('ics')
-import ics from 'ics'
+const express = require('express')
+const bodyParser = require('body-parser')
+const nunjucks = require('nunjucks')
+const session = require('express-session')
+const path = require('path')
+const ics = require('ics')
 // const exp_val = require('express-validator')
-// const { check, validationResult } = require('express-validator')
-import pkg from 'express-validator'
-const { check, validationResult, exp_val } = pkg
-// const flash = require('connect-flash')
-import flash from 'connect-flash'
-// const fs = require('fs')
-import { writeFileSync, readFileSync } from 'fs'
-// const { writeFileSync } = require('fs')
-// const { readFileSync } = require('fs')
+const { check, validationResult } = require('express-validator')
+const flash = require('connect-flash')
+const fs = require('fs')
+const { writeFileSync } = require('fs')
+const { readFileSync } = require('fs')
 // const ics = require('ics')
-import cookieParser from 'cookie-parser'
-// var cookieParser = require('cookie-parser')
+var cookieParser = require('cookie-parser')
 // const { readFileSync } = require('fs')
 'use strict';
-// const request = require('request')
-import request from 'request'
-// const crypto = require('crypto')
-import crypto from 'crypto'
+const request = require('request')
+const crypto = require('crypto')
 // const Json2csvParser = require("json2csv").Parser
 // const csv = require('csv-parser')
-//const fileUpload = require('express-fileupload')
-import fileUpload from 'express-fileupload'
-import url from 'url'
-// const Passage = require('@passageidentity/passage-node')
-import Passage from '@passageidentity/passage-node'
-import api from 'api'
+const fileUpload = require('express-fileupload')
+const Passage = require('@passageidentity/passage-node')
 
-// Passage requires an App ID and, optionally, an API Key
-let passageConfig = {
-  appID: process.env.PASSAGE_APP_ID,
-  apiKey: process.env.PASSAGE_API_KEY
+const passageConfig = {
+  appID: process.env.PASSAGE_ID,
+  apiKey: process.env.PASSAGE_API
 }
-
-// Authentication using Passage class instance
-// let psg = new Passage(passageConfig);
-// app.get("/authenticatedRoute", async(req, res) => {
-//   try {
-//     // Authenticate request using Passage
-//     let userID = await psg.authenticateRequest(req);
-//     if (userID) {
-//       // User is authenticated
-//       let userData = await psg.user.get(userID);
-//       console.log(userData);
-//     }
-//   } catch (e) {
-//     // Authentication failed
-//     console.log(e);
-//     res.send("Authentication failed!");
-//   }
-// });
 
 const settings = {
   port: 8080,
@@ -78,7 +42,7 @@ function getAuthHeader () {
   const hash = crypto.createHmac('SHA256', settings.apikey).update(time).digest('base64')
   return 'PSSERVER' + ' ' + 'accessid=' + settings.username + '; timestamp=' + time + '; signature=' + hash
 }
-const sdk = api('@paysimple-developer-portal/v1.1#fv6vw4al5ip3eo1')
+const sdk = require('api')('@paysimple-developer-portal/v1.1#fv6vw4al5ip3eo1')
 const auth_header = getAuthHeader()
 sdk.auth(auth_header)
 // function getAuthHeader_beta () {
@@ -104,9 +68,6 @@ app.set('view engine', 'html')
 app.engine('html', nunjucks.render)
 nunjucks.configure('views', { noCache: true })
 
-const __filename = url.fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
 app.use(express.static(__dirname))
 app.use(bodyParser())
 app.use(bodyParser.json())
@@ -116,11 +77,7 @@ router.use(bodyParser.urlencoded({ extended: true }))
 app.use('/', router)
 // router.use(exp_val()) https://express-validator.github.io/docs/guides/getting-started
 
-// const db = require('./database')
-//import db from './database.js'
-import pgPromise from 'pg-promise'
-const pgp = pgPromise()
-const db = pgp(process.env.DATABASE_URL)
+const db = require('./database')
 // const { proc } = require('./database')
 // const { get } = require('http')
 // const { json } = require('body-parser')
