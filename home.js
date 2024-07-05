@@ -36,7 +36,8 @@ import crypto from 'crypto'
 import fileUpload from 'express-fileupload'
 import url from 'url'
 // const Passage = require('@passageidentity/passage-node')
-import { Passage, psg } from "@passageidentity/passage-node";
+import pks from "@passageidentity/passage-node"
+const { Passage, psg } = pkg
 import api from 'api'
 
 // Passage requires an App ID and, optionally, an API Key
