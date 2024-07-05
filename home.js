@@ -34,6 +34,7 @@ import crypto from 'crypto'
 // const csv = require('csv-parser')
 //const fileUpload = require('express-fileupload')
 import fileUpload from 'express-fileupload'
+import url from 'url'
 // const Passage = require('@passageidentity/passage-node')
 import Passage from "@passageidentity/passage-node";
 import api from 'api'
@@ -102,6 +103,9 @@ router.use(session({
 app.set('view engine', 'html')
 app.engine('html', nunjucks.render)
 nunjucks.configure('views', { noCache: true })
+
+const __filename = url.fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 app.use(express.static(__dirname))
 app.use(bodyParser())
