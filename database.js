@@ -9,4 +9,4 @@ const connectionConf = {
 }
 const db = pgp(connectionConf)
 
-module.exports = db
+module.exports = { db }
