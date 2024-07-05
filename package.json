@@ -32,6 +32,7 @@
     "fast-csv": "^5.0.1",
     "flash": "^1.1.0",
     "fs": "^0.0.1-security",
+    "har-validator": "^5.1.5",
     "ics": "^3.7.2",
     "js-datepicker": "^5.18.0",
     "json2csv": "^5.0.6",
@@ -42,6 +43,7 @@
     "pg-promise": "^11.5.4",
     "redis": "^4.6.12",
     "request": "^2.88.2",
+    "sshpk": "^1.18.0",
     "strip-final-newline": "^4.0.0",
     "tough-cookie": "^4.1.3"
   },
