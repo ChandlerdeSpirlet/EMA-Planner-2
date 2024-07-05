@@ -1,4 +1,6 @@
 format: json
 exit-code: 1
-severity: HIGH, CRITICAL
+severity: 
+  - HIGH
+  - CRITICAL
 ignore-unfixed: true
