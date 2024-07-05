@@ -11,8 +11,8 @@
   "author": "Chandler de Spirlet",
   "license": "ISC",
   "dependencies": {
-    "@passageidentity/passage-elements": "^1.21.6",
-    "@passageidentity/passage-node": "^2.10.1",
+    "@passageidentity/passage-elements": "^1.21.4",
+    "@passageidentity/passage-node": "^2.10.0",
     "api": "^6.1.2",
     "body-parser": "^1.19.0",
     "connect-flash": "^0.1.1",
