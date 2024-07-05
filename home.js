@@ -22,7 +22,8 @@ import { writeFileSync, readFileSync } from 'fs'
 // const { writeFileSync } = require('fs')
 // const { readFileSync } = require('fs')
 // const ics = require('ics')
-var cookieParser = require('cookie-parser')
+import cookieParser from 'cookie-parser'
+// var cookieParser = require('cookie-parser')
 // const { readFileSync } = require('fs')
 'use strict';
 // const request = require('request')
