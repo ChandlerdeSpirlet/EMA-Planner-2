@@ -36,7 +36,7 @@ import crypto from 'crypto'
 import fileUpload from 'express-fileupload'
 import url from 'url'
 // const Passage = require('@passageidentity/passage-node')
-import Passage from "@passageidentity/passage-node";
+import { Passage, psg } from "@passageidentity/passage-node";
 import api from 'api'
 
 // Passage requires an App ID and, optionally, an API Key
@@ -128,7 +128,7 @@ const db = pgp(process.env.DATABASE_URL)
 
 app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
 
-let passage = new Passage(passageConfig)
+let passage = new psg(passageConfig)
 let passageAuthMiddleware = (() => {
   return async (req, res, next) => {
     try {
