@@ -1,5 +1,5 @@
 // const pgp = require('pg-promise')()
-import pgp from 'pg-promise'
+import pgPromise from 'pg-promise'
 
 const connectionConf = {
   connectionString: process.env.DATABASE_URL,
@@ -7,6 +7,4 @@ const connectionConf = {
     rejectUnauthorized: false
   }
 }
-const db = pgp(connectionConf)
-
-module.exports = { db }
+export const db = pgPromise(connectionConf)
