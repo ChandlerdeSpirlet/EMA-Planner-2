@@ -7,4 +7,5 @@ const connectionConf = {
     rejectUnauthorized: false
   }
 }
-export const db = pgp(connectionConf)
+const db = pgp(connectionConf)
+export default db

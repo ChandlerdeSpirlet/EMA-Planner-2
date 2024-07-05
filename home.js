@@ -112,7 +112,7 @@ app.use('/', router)
 // router.use(exp_val()) https://express-validator.github.io/docs/guides/getting-started
 
 // const db = require('./database')
-import { db } from './database.js'
+import db from './database.js'
 // const { proc } = require('./database')
 // const { get } = require('http')
 // const { json } = require('body-parser')
