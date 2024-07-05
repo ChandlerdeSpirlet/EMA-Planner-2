@@ -27,7 +27,7 @@ const passageConfig = {
   apiKey: process.env.PASSAGE_API
 }
 
-let passage = Passage(passageConfig)
+let passage = new Passage(passageConfig)
 
 const settings = {
   port: 8080,
