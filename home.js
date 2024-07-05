@@ -644,32 +644,28 @@ app.get('/setCookie', async (_req, res) => {
   res.send('Cookie set!');
 });
 
-app.get('/logged-in', async (req, res) => {
-  try {
-    const shortSession = await req.cookies.cbo_short_session;
-    const user = await sdk.sessions().getCurrentUser(shortSession);
-
-    if (user.authenticated) {
-      // User is authenticated
-      res.write('User is authenticated!\n');
-      res.write(`User ID: ${user.id}\n`);
-      res.write(`User full name: ${user.name}\n`)
-      res.write(`User email: ${user.email}\n`)
-
-      const response = await sdk.users().get(user.id, null)
-      res.write(`User created: ${response.data.created}\n`)
-      res.write(`User updated: ${response.data.updated}\n`)
-      res.write(`User status: ${response.data.status}\n`)
-      res.end();
+app.get('/logged-in', passageAuthMiddleware, async(req, res) => {
+  let userID = res.userID
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+  } else {
+    if (req.cookies.psg_auth_token && userID) {
+      const staffArray = process.env.STAFF_USER_ID.split(',')
+      const authLevel = ''
+      if (staffArray.includes(userID)) {
+        const authLevel = '/'
+      } else {
+        const authLevel = '/student_portal_login'
+      }
+      res.render('logged-in', {
+        authLevel: authLevel
+      })
     } else {
-      // User is not authenticated, redirect to login page
-      res.redirect(302, '/login');
+      res.render('login', {
+      })
     }
-  } catch (err) {
-    console.error(err);
-    res.status(500).send(err.message);
   }
-});
+})
 
 
 router.get('/login', (req, res) => {
