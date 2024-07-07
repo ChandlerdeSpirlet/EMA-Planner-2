@@ -1,1 +1,5 @@
-[![Code Scanning](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/main.yml)
+[![Deploy](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/main.yml)
+[![Trivy Scans](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/trivy_scan.yml/badge.svg?branch=main)](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/trivy_scan.yml)
+[![Dependency Review](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/dependency-review.yml/badge.svg?branch=main)](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/dependency-review.yml)
+[![ESLint](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/eslint.yml/badge.svg?branch=main)](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/eslint.yml)
+[![Node.js CI](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/node.js.yml/badge.svg?branch=main)](https://github.com/ChandlerdeSpirlet/EMA-Planner-2/actions/workflows/node.js.yml)
