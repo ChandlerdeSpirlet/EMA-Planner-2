@@ -86,7 +86,9 @@ const db = require('./database')
 app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
 
 console.log('Passage is ' + typeof Passage)
-let passage = new Passage(passageConfig)
+// let passage = new Passage(passageConfig)
+let passage = Object.create(Passage.prototype)
+console.log('passage is ' + typeof passage)
 let passageAuthMiddleware = (() => {
   return async (req, res, next) => {
     try {
