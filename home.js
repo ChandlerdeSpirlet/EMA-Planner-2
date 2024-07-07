@@ -20,7 +20,7 @@ const crypto = require('crypto')
 // const Json2csvParser = require("json2csv").Parser
 // const csv = require('csv-parser')
 const fileUpload = require('express-fileupload')
-const { Passage } = require('@passageidentity/passage-node')
+const Passage = require('@passageidentity/passage-node')
 
 const passageConfig = {
   appID: process.env.PASSAGE_ID,
