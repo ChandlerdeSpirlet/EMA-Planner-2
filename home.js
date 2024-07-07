@@ -3027,25 +3027,31 @@ router.get('/download_done/(:url)', (req, res) => {
   res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_classes')
 })
 
-router.get('/student_portal_login', (req, res) => {
+router.get('/student_portal_login', passageAuthMiddleware, async (req, res) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login')
   } else {
-    const portalQuery = 'select * from get_all_names()'
-    db.any(portalQuery)
-      .then(function (rows) {
-        res.render('student_portal_login', {
-          data: rows,
-          alert_message: ''
+    if (req.cookies.psg_auth_token && res.userID) {
+      const portalQuery = 'select * from get_all_names()'
+      db.any(portalQuery)
+        .then(function (rows) {
+          res.render('student_portal_login', {
+            data: rows,
+            alert_message: ''
+          })
         })
-      })
-      .catch(function (err) {
-        console.log('Could not find students: ' + err)
-        res.render('student_portal_login', {
-          data: '',
-          alert_message: 'Unable to find student. Please refresh the page and try agin.'
+        .catch(function (err) {
+          console.log('Could not find students: ' + err)
+          res.render('student_portal_login', {
+            data: '',
+            alert_message: 'Unable to find student. Please refresh the page and try agin.'
+          })
         })
-      })
+      } else {
+        res.render('login', {
+
+        })
+      }
   }
 })
 
@@ -3134,87 +3140,93 @@ router.post('/student_portal_login', (req, res) => {
   res.redirect('student_portal/' + studInfo[1])
 })
 
-router.get('/student_portal/(:barcode)', (req, res) => {
-  const studInfo = "select first_name, last_name, email, belt_order, belt_color, belt_size, to_char(last_visit, 'Month DD, YYYY') as last_visit, reg_class, spar_class, swat_count, month_1, month_2 from student_list where barcode = $1;"
-  const testQuery = "select s.student_name, s.session_id, s.test_id, to_char(i.test_date, 'Month') || ' ' || to_char(i.test_date, 'DD') || ' at ' || to_char(i.test_time, 'HH:MI PM') || ' ' || i.notes as test_instance, i.curriculum from test_signups s, test_instance i where s.barcode = $1 and i.id = s.test_id order by i.test_date;"
-  const classQuery = "select s.student_name, s.email, s.class_check, s.class_session_id, s.is_swat, to_char(c.starts_at, 'Month') || ' ' || to_char(c.starts_at, 'DD') || ' at ' || to_char(c.starts_at, 'HH:MI PM') as class_instance, c.starts_at, c.class_id from classes c, class_signups s where s.barcode = $1 and s.class_session_id = c.class_id and s.is_swat = false and c.starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date order by s.student_name, c.starts_at;"
-  const swatQuery = "select s.student_name, s.email, s.class_check, s.is_swat, s.class_session_id, to_char(c.starts_at, 'Month') || ' ' || to_char(c.starts_at, 'DD') || ' at ' || to_char(c.starts_at, 'HH:MI PM') as class_instance, c.starts_at, c.class_id from classes c, class_signups s where s.barcode = $1 and s.class_session_id = c.class_id and c.starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and s.is_swat = true order by c.starts_at;"
-  db.any(studInfo, [req.params.barcode])
-    .then(info => {
-      db.any(classQuery, [req.params.barcode])
-        .then(classes => {
-          db.any(testQuery, [req.params.barcode])
-            .then(tests => {
-              db.any(swatQuery, [req.params.barcode])
-                .then(swats => {
-                  const dateEvent = new Date()
-                  const options1 = {
-                    month: 'long',
-                    timeZone: 'America/Denver'
-                  }
-                  const month = dateEvent.toLocaleDateString('en-US', options1)
-                  res.render('student_portal', {
-                    studInfo: info,
-                    class_info: classes,
-                    test_info: tests,
-                    swat_info: swats,
-                    barcode: req.params.barcode,
-                    month: month,
-                    alert_message: ''
+router.get('/student_portal/(:barcode)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID) {
+    const studInfo = "select first_name, last_name, email, belt_order, belt_color, belt_size, to_char(last_visit, 'Month DD, YYYY') as last_visit, reg_class, spar_class, swat_count, month_1, month_2 from student_list where barcode = $1;"
+    const testQuery = "select s.student_name, s.session_id, s.test_id, to_char(i.test_date, 'Month') || ' ' || to_char(i.test_date, 'DD') || ' at ' || to_char(i.test_time, 'HH:MI PM') || ' ' || i.notes as test_instance, i.curriculum from test_signups s, test_instance i where s.barcode = $1 and i.id = s.test_id order by i.test_date;"
+    const classQuery = "select s.student_name, s.email, s.class_check, s.class_session_id, s.is_swat, to_char(c.starts_at, 'Month') || ' ' || to_char(c.starts_at, 'DD') || ' at ' || to_char(c.starts_at, 'HH:MI PM') as class_instance, c.starts_at, c.class_id from classes c, class_signups s where s.barcode = $1 and s.class_session_id = c.class_id and s.is_swat = false and c.starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date order by s.student_name, c.starts_at;"
+    const swatQuery = "select s.student_name, s.email, s.class_check, s.is_swat, s.class_session_id, to_char(c.starts_at, 'Month') || ' ' || to_char(c.starts_at, 'DD') || ' at ' || to_char(c.starts_at, 'HH:MI PM') as class_instance, c.starts_at, c.class_id from classes c, class_signups s where s.barcode = $1 and s.class_session_id = c.class_id and c.starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and s.is_swat = true order by c.starts_at;"
+    db.any(studInfo, [req.params.barcode])
+      .then(info => {
+        db.any(classQuery, [req.params.barcode])
+          .then(classes => {
+            db.any(testQuery, [req.params.barcode])
+              .then(tests => {
+                db.any(swatQuery, [req.params.barcode])
+                  .then(swats => {
+                    const dateEvent = new Date()
+                    const options1 = {
+                      month: 'long',
+                      timeZone: 'America/Denver'
+                    }
+                    const month = dateEvent.toLocaleDateString('en-US', options1)
+                    res.render('student_portal', {
+                      studInfo: info,
+                      class_info: classes,
+                      test_info: tests,
+                      swat_info: swats,
+                      barcode: req.params.barcode,
+                      month: month,
+                      alert_message: ''
+                    })
                   })
-                })
-                .catch(err => {
-                  console.log('Could not get student swats with barcode. Error: ' + err)
-                  res.render('student_portal', {
-                    studInfo: '',
-                    class_info: '',
-                    test_info: '',
-                    swat_info: '',
-                    barcode: req.params.barcode,
-                    month: '?',
-                    alert_message: 'Could not find student swats with the barcode: ' + req.params.barcode + '. Please see an instructor to correct this.'
+                  .catch(err => {
+                    console.log('Could not get student swats with barcode. Error: ' + err)
+                    res.render('student_portal', {
+                      studInfo: '',
+                      class_info: '',
+                      test_info: '',
+                      swat_info: '',
+                      barcode: req.params.barcode,
+                      month: '?',
+                      alert_message: 'Could not find student swats with the barcode: ' + req.params.barcode + '. Please see an instructor to correct this.'
+                    })
                   })
-                })
-            })
-            .catch(err => {
-              console.log('Could not get student tests with barcode. Error: ' + err)
-              res.render('student_portal', {
-                studInfo: '',
-                class_info: '',
-                test_info: '',
-                swat_info: '',
-                barcode: req.params.barcode,
-                alert_message: 'Could not find student tests with the barcode: ' + req.params.barcode + '. Please see an instructor to correct this.'
               })
-            })
-        })
-        .catch(err => {
-          console.log('Could not get student classes with barcode. Error: ' + err)
-          res.render('student_portal', {
-            studInfo: '',
-            class_info: '',
-            test_info: '',
-            swat_info: '',
-            barcode: req.params.barcode,
-            alert_message: 'Could not find student classes with the email: ' + req.params.barcode + '. Please see an instructor to correct this.'
+              .catch(err => {
+                console.log('Could not get student tests with barcode. Error: ' + err)
+                res.render('student_portal', {
+                  studInfo: '',
+                  class_info: '',
+                  test_info: '',
+                  swat_info: '',
+                  barcode: req.params.barcode,
+                  alert_message: 'Could not find student tests with the barcode: ' + req.params.barcode + '. Please see an instructor to correct this.'
+                })
+              })
           })
-        })
-    })
-    .catch(err => {
-      console.log('Could not get student info with barcode. Error: ' + err)
-      res.render('student_portal', {
-        studInfo: '',
-        class_info: '',
-        test_info: '',
-        swat_info: '',
-        barcode: req.params.barcode,
-        alert_message: 'Could not find a student with the barcode: ' + req.params.barcode + '. Please see an instructor to correct this.'
+          .catch(err => {
+            console.log('Could not get student classes with barcode. Error: ' + err)
+            res.render('student_portal', {
+              studInfo: '',
+              class_info: '',
+              test_info: '',
+              swat_info: '',
+              barcode: req.params.barcode,
+              alert_message: 'Could not find student classes with the email: ' + req.params.barcode + '. Please see an instructor to correct this.'
+            })
+          })
       })
-    })
+      .catch(err => {
+        console.log('Could not get student info with barcode. Error: ' + err)
+        res.render('student_portal', {
+          studInfo: '',
+          class_info: '',
+          test_info: '',
+          swat_info: '',
+          barcode: req.params.barcode,
+          alert_message: 'Could not find a student with the barcode: ' + req.params.barcode + '. Please see an instructor to correct this.'
+        })
+      })
+    } else {
+      res.render('login', {
+        
+      })
+    }
 })
 
-router.get('/enrollStudent', (req, res) => {
-  if (req.session.loggedin) {
+router.get('/enrollStudent', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID) {
     res.render('enrollStudent', {
       firstName: '',
       lastName: '',
@@ -3231,10 +3243,6 @@ router.get('/enrollStudent', (req, res) => {
     })
   } else {
     res.render('login', {
-      username: '',
-      password: '',
-      go_to: '/enrollStudent',
-      alert_message: ''
     })
   }
 })
