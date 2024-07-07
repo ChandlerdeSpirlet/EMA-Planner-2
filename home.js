@@ -78,6 +78,7 @@ app.use('/', router)
 // router.use(exp_val()) https://express-validator.github.io/docs/guides/getting-started
 
 const db = require('./database')
+const { type } = require('os')
 // const { proc } = require('./database')
 // const { get } = require('http')
 // const { json } = require('body-parser')
@@ -85,7 +86,10 @@ const db = require('./database')
 
 app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
 
+console.log('Passage is ' + typeof Passage)
+// let passage = new Passage(passageConfig)
 let passage = new Passage(passageConfig)
+console.log('passage is ' + typeof passage)
 let passageAuthMiddleware = (() => {
   return async (req, res, next) => {
     try {
@@ -808,6 +812,29 @@ app.get('/setCookie', async (_req, res) => {
   );
   res.send('Cookie set!');
 });
+
+app.get('/logged-in', passageAuthMiddleware, async(req, res) => {
+  let userID = res.userID
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+  } else {
+    if (req.cookies.psg_auth_token && userID) {
+      const staffArray = process.env.STAFF_USER_ID.split(',')
+      const authLevel = ''
+      if (staffArray.includes(userID)) {
+        const authLevel = '/'
+      } else {
+        const authLevel = '/student_portal_login'
+      }
+      res.render('logged-in', {
+        authLevel: authLevel
+      })
+    } else {
+      res.render('login', {
+      })
+    }
+  }
+})
 
 router.get('/login', (req, res) => {
   res.render('login', {

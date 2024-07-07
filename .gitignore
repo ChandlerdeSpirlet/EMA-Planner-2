@@ -5,4 +5,5 @@ server.js
 *.idea
 .DS_Store
 node_modules/.bin/*
-# node_modules/*
+node_modules/*
+package-lock.json
