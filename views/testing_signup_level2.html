@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+{% if (req.session.messages.error) %}
+  <p style="color:red">{{ req.session.messages.error }}</p>
+{% endif %}
+{% if (req.session.messages.success) %}
+  <p style="color:green">{{ req.session.messages.success }}</p>
+{% endif %}
+<html>
+  <title>Level 2 Testing Signup</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
+  <style>
+  * {
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #E7E5E3;
+  }
+  html {
+    background-image: linear-gradient(#3274C4, #2E353B);
+      -webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+      min-height: 100%;
+    }
+    h1, h3 {
+      text-align: center;
+    }
+    p {
+      color: black;
+      font-size: 14px;
+    }
+    li {
+      font-size: 14px;
+    }
+    form > div {
+      margin-bottom: 20px;
+    }
+    button, label, select {
+      display: block;
+      font-size: 100%;
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+      width: 100%;
+      padding: 5px;
+      height: 30px;
+    }
+    input[type="first name"], input[type="last name"], input[type="email"], input[type="submit"], input[type="text"] {
+      box-shadow: inset 1px 1px 3px #716B5F;
+      background-color: #181A1B;
+      color: #E7E5E3;
+      display: block;
+      font-size: 100%;
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+      width: 100%;
+      padding: 5px;
+      height: 30px;
+    }
+    select {
+      -webkit-appearance: none;
+      appearance: none;
+      background-color: #181A1B;
+      color: #E7E5E3;
+    }
+    .select-wrapper {
+      position: relative;
+    }
+    .select-wrapper::after {
+      content: "▼";
+      color: #E7E5E3;
+      font-size: 1rem;
+      top: 6px;
+      right: 10px;
+      position: absolute;
+    }
+    input[type="text"], select {
+      border-radius: 5px;
+    }
+    label {
+      margin-bottom: 5px;
+    }
+    button {
+      width: 60%;
+      margin: 0 auto;
+    }
+    label{
+      font-weight: bold;
+    }
+    p {
+      font-size: 16px;
+    }
+    .desc {
+      font-size: 14px;
+      display: inline;
+      font-weight: normal;
+    }
+    .item {
+      display: block; 
+      padding: 5px;
+    }
+    input[type="radio"] {
+      display: inline;
+    }
+    .autocomplete {
+      /*the container must be positioned relative:*/
+      position: relative;
+      padding-left: 15%;
+      padding-right: 15%;
+      /*display: inline-block;*/
+    }
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid black;
+      border-bottom: none;
+      border-top: none;
+      z-index: 99;
+      /*position the autocomplete items to be the same width as the container:*/
+      top: 100%;
+      left: 0;
+      right: 0;
+    }
+    .autocomplete-items div {
+      padding: 10px;
+      cursor: pointer;
+      background-color: #244451; 
+      border-bottom: 1px solid #8A8276; 
+      color: #E7E5E3; 
+    }
+    .autocomplete-items div:hover {
+      /*when hovering an item:*/
+      background-color: darkcyan; 
+    }
+    .autocomplete-active {
+      /*when navigating through the items using the arrow keys:*/
+      background-color: blue !important; 
+      color: black; 
+    }
+  </style>
+  <head>
+    <meta name="name_data" content="{% for student in names %} {{ student.signup_names }} {% endfor %}"/>
+    <h1>Level 2 Belt Testing Signup</h1>
+    <p>Sign up for level 2 belt testing. Testing times are shown below. Virtual testing is also available on the designated date through Zoom.</p>
+    <p>*NOTE: If no testing times are shown below, there haven't been tests created yet. Reach out to Master Young or Mr. C for more info.</p>
+  </head>
+  <body>
+    <form onsubmit="return ValidateForm()" name="Form" action="/testing_signup_level2" method="POST" autocomplete="off">
+      <div>
+        <label for="student_name">Student's Name: </label>
+        <div class="autocomplete">
+          <label>Student's Name </label><input id="result" name="result" type="text" placeholder="Student's First Name (required)" value="{{ result }}" required pattern="[A-z- ]*[,A-z]{2,} [A-z-]{2,} - ([0-9]{7,9}|[0-9]{5})[ ]{0,}" oninput="InvalidMsg(this);" oninvalid="InvalidMsg(this);">
+        </div>
+        <p>
+          *NOTE: If you do not see your student's name, please see an instructor to assist.
+        </p>
+      </div>
+      <div>
+        <label for="belts">Current Belt Rank: </label>
+        <div class="select-wrapper">
+          <select name="belts" id="belts" required>
+            <option value="" disabled>Select a belt color</option>
+            <option value="Purple">Purple Belt</option>
+            <option value="High Purple">High Purple Belt</option>
+            <option value="Blue">Blue Belt</option>
+            <option value="High Blue">High Blue Belt</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label for="tests">Testing Days and Times: </label>
+        {% if tests %}
+          {% for test in tests %}
+            {% if test.notes == '' %}
+              <div class="item">
+                <input type="radio" id="{{ test.id }}" name="test_selection" value="{{ test.id }}" required>{{ test.test_instance }}
+              </div>
+            {% else %}
+              <div class="item">
+                <input type="radio" id="{{ test.id }}" name="test_selection" value="{{ test.id }}" required>{{ test.test_instance }} ({{ test.notes }})
+              </div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      </div>
+      <div>
+        <input type="submit" name="Preview" value="Preview"/>
+      </div>
+    </form>
+  </body>
+</html>
+<script>
+  function InvalidMsg(textbox) {
+  if(textbox.validity.patternMismatch){
+      textbox.setCustomValidity("Please pick a name from the name options. If you do not see your student's name, please see a staff member.");
+  }    
+  else {
+      textbox.setCustomValidity('');
+  }
+  return true;
+}
+</script>
+<script>
+  function ValidateForm(){
+    var name = document.getElementById('result');
+    var belts = document.getElementById('belts');
+    var test = document.getElementsByClassName('test_selection');
+    if (name == null || name == ""){
+      alert("Please select a name from the list.");
+      return false;
+    } else if (email == null || email == ""){
+      alert("Please enter an email.");
+      return false;
+    } else if (belts == null || belts == ""){
+      alert("Please pick a belt color.");
+      return false;
+    } else if (test == "" || test == null){
+      alert("Please pick a test day and time.");
+      return false;
+    } else {
+      return true;
+    }
+  }
+</script>
+<script>
+  var data1 = document.getElementsByName('name_data')[0].content;
+      function parseNames(name_data){
+          var name_arr = []
+          name_data = name_data.substring(1, name_data.length);
+          while (name_data.length > 0){
+              if (name_data.indexOf('  ') != -1){
+                  var idx = name_data.indexOf('  ');
+                  var stud_name = name_data.substring(0, name_data.indexOf('  '));
+                  name_arr.push(stud_name);
+                  name_data = name_data.substring(idx + 2, name_data.length);
+              } else {
+                  var stud_name = name_data;
+                  name_arr.push(stud_name);
+                  name_data = '';
+              }
+          }
+          return name_arr;
+      }
+      console.log('data1:');
+      console.log(data1);
+      var names = parseNames(data1);
+      console.log('names:' + names);
+      function autocomplete(inp, arr) {
+      /*the autocomplete function takes two arguments,
+      the text field element and an array of possible autocompleted values:*/
+      var currentFocus;
+      /*execute a function when someone writes in the text field:*/
+      inp.addEventListener("input", function(e) {
+          var a, b, i, val = this.value;
+          /*close any already open lists of autocompleted values*/
+          closeAllLists();
+          if (!val) { return false;}
+          currentFocus = -1;
+          /*create a DIV element that will contain the items (values):*/
+          a = document.createElement("DIV");
+          a.setAttribute("id", this.id + "autocomplete-list");
+          a.setAttribute("class", "autocomplete-items");
+          /*append the DIV element as a child of the autocomplete container:*/
+          this.parentNode.appendChild(a);
+          /*for each item in the array...*/
+          for (i = 0; i < arr.length; i++) {
+              /*check if the item starts with the same letters as the text field value:*/
+              if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+              /*create a DIV element for each matching element:*/
+              b = document.createElement("DIV");
+              /*make the matching letters bold:*/
+              b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+              b.innerHTML += arr[i].substr(val.length);
+              /*insert a input field that will hold the current array item's value:*/
+              b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+              /*execute a function when someone clicks on the item value (DIV element):*/
+                  b.addEventListener("click", function(e) {
+                  /*insert the value for the autocomplete text field:*/
+                  inp.value = this.getElementsByTagName("input")[0].value;
+                  /*close the list of autocompleted values,
+                  (or any other open lists of autocompleted values:*/
+                  closeAllLists();
+              });
+              a.appendChild(b);
+          }
+      }
+  });
+  /*execute a function presses a key on the keyboard:*/
+  inp.addEventListener("keydown", function(e) {
+      var x = document.getElementById(this.id + "autocomplete-list");
+      if (x) x = x.getElementsByTagName("div");
+      if (e.keyCode == 40) {
+          /*If the arrow DOWN key is pressed,
+          increase the currentFocus variable:*/
+          currentFocus++;
+          /*and and make the current item more visible:*/
+          addActive(x);
+      } else if (e.keyCode == 38) { //up
+          /*If the arrow UP key is pressed,
+          decrease the currentFocus variable:*/
+          currentFocus--;
+          /*and and make the current item more visible:*/
+          addActive(x);
+      } else if (e.keyCode == 13) {
+          /*If the ENTER key is pressed, prevent the form from being submitted,*/
+          e.preventDefault();
+          if (currentFocus > -1) {
+              /*and simulate a click on the "active" item:*/
+              if (x) x[currentFocus].click();
+          }
+      }
+  });
+  function addActive(x) {
+      /*a function to classify an item as "active":*/
+      if (!x) return false;
+      /*start by removing the "active" class on all items:*/
+      removeActive(x);
+      if (currentFocus >= x.length) currentFocus = 0;
+      if (currentFocus < 0) currentFocus = (x.length - 1);
+      /*add class "autocomplete-active":*/
+      x[currentFocus].classList.add("autocomplete-active");
+  }
+  function removeActive(x) {
+      /*a function to remove the "active" class from all autocomplete items:*/
+      for (var i = 0; i < x.length; i++) {
+          x[i].classList.remove("autocomplete-active");
+      }
+  }
+  function closeAllLists(elmnt) {
+      /*close all autocomplete lists in the document,
+      except the one passed as an argument:*/
+      var x = document.getElementsByClassName("autocomplete-items");
+      for (var i = 0; i < x.length; i++) {
+          if (elmnt != x[i] && elmnt != inp) {
+              x[i].parentNode.removeChild(x[i]);
+          }
+      }
+  }
+  /*execute a function when someone clicks in the document:*/
+  document.addEventListener("click", function (e) {
+      closeAllLists(e.target);
+  });
+  }
+  </script>
+  <script>
+      autocomplete(document.getElementById("result"), names);
+  </script>

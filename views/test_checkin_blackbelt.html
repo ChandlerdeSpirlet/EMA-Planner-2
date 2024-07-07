@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html>
+  {% set local = 'Tests' %}
+  {% extends 'nav_bar.html' %}
+  {% block content %}
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
+  <title>Test Check-In {{ test_info[0].test_day }} | Black Belt</title>
+  {% set prep = 0 %}
+  {% set conditional = 0 %}
+  {% set conditional_pc = 0 %}
+  {% set first = 0 %}
+  {% set first_white = 0 %}
+  {% set first_gold = 0 %}
+  {% set first_orange = 0 %}
+  {% set first_green = 0 %}
+  {% set first_purple = 0 %}
+  {% set first_blue = 0 %}
+  {% set first_brown = 0 %}
+  {% set second = 0 %}
+  {% set second_pc = 0 %}
+  {% set third = 0 %}
+  {% set third_pc = 0 %}
+  {% set fourth = 0 %}
+  {% set fourth_pc = 0 %}
+  {% set fifth = 0 %}
+  {% set fifth_pc = 0 %}
+  {% set sixth = 0 %}
+  {% for belt in counts %}
+    {% if belt.testing_for == 'Prep' %}
+      {% set prep = belt.num %}
+    {% elif belt.testing_for == 'Conditional' %}
+      {% set conditional = belt.num %}
+    {% elif belt.testing_for == 'Conditional (pc)' %}
+      {% set conditional_pc = belt.num %}
+    {% elif belt.testing_for == 'First Degree' %}
+      {% set first = belt.num %}
+    {% elif belt.testing_for == 'First Degree - White Bar' %}
+      {% set first_white = belt.num %}
+    {% elif belt.testing_for == 'First Degree - Gold Bar' %}
+      {% set first_gold = belt.num %}
+    {% elif belt.testing_for == 'First Degree - Orange Bar' %}
+      {% set first_orange = belt.num %}
+    {% elif belt.testing_for == 'First Degree - Green Bar' %}
+      {% set first_green = belt.num %}
+    {% elif belt.testing_for == 'First Degree - Purple Bar' %}
+      {% set first_purple = belt.num %}
+    {% elif belt.testing_for == 'First Degree - Blue Bar' %}
+      {% set first_blue = belt.num %}
+    {% elif belt.testing_for == 'First Degree - Brown Bar' %}
+      {% set first_brown = belt.num %}
+    {% elif belt.testing_for == 'Second Degree' %}
+      {% set second = belt.num %}
+    {% elif belt.testing_for == 'Second Degree (pc)' %}
+      {% set second_pc = belt.num %}
+    {% elif belt.testing_for == 'Third Degree' %}
+      {% set third = belt.num %}
+    {% elif belt.testing_for == 'Third Degree (pc)' %}
+      {% set third_pc = belt.num %}
+    {% elif belt.testing_for == 'Fourth Degree' %}
+      {% set fourth = belt.num %}
+    {% elif belt.testing_for == 'Fourth Degree (pc)' %}
+      {% set fourth_pc = belt.num %}
+    {% elif belt.testing_for == 'Fifth Degree' %}
+      {% set fifth = belt.num %}
+    {% elif belt.testing_for == 'Fifth Degree (pc)' %}
+      {% set fifth_pc = belt.num %}
+    {% elif belt.testing_for == 'Sixth Degree' %}
+      {% set sixth = belt.num %}
+    {% else %} 
+      {% set unknown = 1 %}
+    {% endif %}
+  {% endfor %}
+  <style>
+    * {
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+        color: #E7E5E3;
+    }
+    html {
+      background-image: linear-gradient(#3274C4, #2E353B);
+      -webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+      min-height: 100%;
+    }
+    h1 {
+        text-align: center;
+    }
+    h3 {
+        text-align: center;
+    }
+    .column {
+        float: left;
+        width: calc(100% / 2);
+        height: 100%;
+        padding: 10px;
+    }
+    #page-container {
+        position: relative;
+        min-height: 90vh;
+    }
+    #content-wrap {
+        
+    }
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+    .chip {
+        display: inline-block;
+        padding: 0 25px;
+        height: 75px;
+        font-size: 18px;
+        line-height: 25px;
+        border-radius: 25px;
+        background-color: #181A1B;
+        color: #E7E5E3; 
+    }
+    .chip_pass {
+        display: inline-block;
+        padding: 20 20px;
+        height: 40px;
+        font-size: 18px;
+        line-height: 20px;
+        border-radius: 25px;
+        background-color: lightgreen;
+        color: #2E353B;
+    }
+    .chip_fail {
+        display: inline-block;
+        padding: 20 20px;
+        height: 40px;
+        font-size: 18px;
+        line-height: 20px;
+        border-radius: 25px;
+        background-color: lightcoral;
+        color: #2E353B;
+    }
+    .chip2 {
+        display: inline-block;
+        padding: 0 25px;
+        height: 50px;
+        font-size: 18px;
+        line-height: 50px;
+        border-radius: 25px;
+        background-color: #181A1B;
+    }
+    .closebtn {
+        padding-left: 10px;
+        color: #888;
+        font-weight: bold;
+        float: right;
+        font-size: 20px;
+        cursor: pointer;
+    }
+    .closebtn:hover {
+        color: #000;
+    }
+    .closebtn2 {
+        padding-left: 10px;
+        color: rgb(14, 170, 9);
+        font-weight: bold;
+        float: right;
+        font-size: 20px;
+        cursor: pointer;
+    }
+    .closebtn2:hover {
+        color: #000;
+    }
+    button, label, input, select {
+      display: block;
+      font-size: 100%;
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+      width: 100%;
+      padding: 5px;
+      height: 30px;
+      background-color: #181A1B;
+      color: #E7E5E3;
+    }
+    input[type="text"], select {
+        box-shadow: inset 1px 1px 3px #776D58;
+        border-radius: 5px;
+    }
+
+    label {
+        margin-bottom: 5px;
+        background-color: transparent;
+        color: #E7E5E3;
+    }
+
+    button {
+        width: 60%;
+        margin: 0 auto;
+    }
+    label{
+        font-weight: bold;
+    }
+    .column1 {
+      float: left;
+      width: calc(80% / 2);
+      height: 100%;
+      padding: 5px;
+      text-align: center;
+    }
+    .column2 {
+      float: right;
+      width: calc(80% / 2);
+      height: 100%;
+      padding: 5px;
+      text-align: center;
+    }
+    .autocomplete {
+      /*the container must be positioned relative:*/
+      position: relative;
+      padding-left: 20%;
+      padding-right: 20%;
+      /*display: inline-block;*/
+    }
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid black;
+      border-bottom: none;
+      border-top: none;
+      z-index: 99;
+      /*position the autocomplete items to be the same width as the container:*/
+      top: 100%;
+      left: 0;
+      right: 0;
+    }
+    .autocomplete-items div {
+      padding: 10px;
+      cursor: pointer;
+      background-color: #244451; 
+      border-bottom: 1px solid #8A8276; 
+      color: #E7E5E3; 
+    }
+    .autocomplete-items div:hover {
+      /*when hovering an item:*/
+      background-color: darkcyan; 
+    }
+    .autocomplete-active {
+      /*when navigating through the items using the arrow keys:*/
+      background-color: blue !important; 
+      color: black; 
+    }
+  </style>
+  <head>
+    {% if test_info[0].notes == '' %}
+      <h1>Black Belt</h1>
+    {% else %}
+      <h1>Black Belt - {{ test_info[0].notes }}</h1>
+    {% endif %}
+  </head>
+  <body>
+    <meta name="name_data" content="{% for student in name_data %} {{ student.bb_names }} {% endfor %}"/>
+    <div id="page-container">
+      <div id="content-wrap">
+        <div style="align-content: center;">
+          <form action="/test_checkin_blackbelt" method="POST" name="form1" id="testForm" autocomplete="off">
+            <input type="hidden" name="test_id" value="{{ test_id }}">
+            <input type="hidden" name="level" value="{{ level }}">
+            <label for="result">Student's Name</label>
+            <div class="autocomplete">
+              <input id="result" name="result" type="text" placeholder="Student First Name" value="{{ result }}">
+            </div>
+            <br>
+            <div>
+              <label for="belts"><b>Testing For</b>: </label>
+              <div class="select-wrapper">
+                <select name="belts" id="belts" required>
+                  <option value="" disabled>Testing for?</option>
+                  <optgroup label="Prep/Conditional">
+                    <option value="Prep">Prep Belt</option>
+                    <option value="Conditional">Conditional</option>
+                    <option value="Conditional (pc)">Conditional (Progress Check)</option>
+                  </optgroup>
+                  <optgroup label="First Degree Black Belt">
+                    <option value="First Degree">First Degree Black Belt</option>
+                    <option value="First Degree - White Bar">First Degree - White Bar</option>
+                    <option value="First Degree - Gold Bar">First Degree - Gold Bar</option>
+                    <option value="First Degree - Orange Bar">First Degree - Orange Bar</option>
+                    <option value="First Degree - Green Bar">First Degree - Green Bar</option>
+                    <option value="First Degree - Purple Bar">First Degree - Purple Bar</option>
+                    <option value="First Degree - Blue Bar">First Degree - Blue Bar</option>
+                    <option value="First Degree - Brown Bar">First Degree - Brown Bar</option>
+                  </optgroup>
+                  <optgroup label="Second Degree Black Belt">
+                    <option value="Second Degree">Second Degree Black Belt</option>
+                    <option value="Second Degree (pc)">Second Degree (Progress Check)</option>
+                  </optgroup>
+                  <optgroup label="Third Degree Black Belt">
+                    <option value="Third Degree">Third Degree Black Belt</option>
+                    <option value="Third Degree (pc)">Third Degree (Progress Check)</option>
+                  </optgroup>
+                  <optgroup label="Fourth Degree Black Belt">
+                    <option value="Fourth Degree">Fourth Degree Black Belt</option>
+                    <option value="Fourth Degree (pc)">Fourth Degree (Progress Check)</option>
+                  </optgroup>
+                  <optgroup label="Fifth Degree Black Belt">
+                    <option value="Fifth Degree">Fifth Degree Black Belt</option>
+                    <option value="Fifth Degree (pc)">Fifth Degree (Progress Check)</option>
+                  </optgroup>
+                  <optgroup label="Sixth Degree">
+                    <option value="Sixth Degree">Sixth Degree Black Belt</option>
+                  </optgroup>
+                </select>
+              </div>
+            </div>
+            <br>
+            <input style="padding-top: 10px;" type="submit" name="Submit" value="Check-In">
+          </form>
+        </div>
+        <hr>
+        <br>
+        <div style="align-content: center;">
+          {% if prep != 0 %}
+            <h3>High Brown &#8594; Prep</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'Prep' %}       
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    High Brown &#8594; Prep Belt
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if conditional != 0 %}
+            <h3>Prep &#8594; Conditional</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'Conditional' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    Prep Belt &#8594; Conditional
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if conditional_pc != 0 %}
+            <h3>Conditional &#8594; Conditional (Progress Check)</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'Conditional (pc)' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    Conditional &#8594; Conditional (Progress Check)
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if first != 0 %}
+            <h3>Conditional (Progress Check) &#8594; First Degree</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'First Degree' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    Conditional (Progress Check) &#8594; First Degree
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if first_white != 0 %}
+            <h3>First Degree &#8594; First Degree - White Bar</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'First Degree - White Bar' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    First Degree &#8594; First Degree - White Bar
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if first_gold != 0 %}
+            <h3>First Degree - White Bar &#8594; First Degree - Gold Bar</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'First Degree - Gold Bar' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    First Degree - White Bar &#8594; First Degree - Gold Bar
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if first_orange != 0 %}
+            <h3>First Degree - Gold Bar &#8594; First Degree - Orange Bar</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'First Degree - Orange Bar' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    First Degree - Gold Bar &#8594; First Degree - Orange Bar
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if first_green != 0 %}
+            <h3>First Degree - Orange Bar &#8594; First Degree - Green Bar</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'First Degree - Green Bar' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    First Degree - Orange Bar &#8594; First Degree - Green Bar
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if first_purple != 0 %}
+            <h3>First Degree - Green Bar &#8594; First Degree - Purple Bar</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'First Degree - Purple Bar' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    First Degree - Green Bar &#8594; First Degree - Purple Bar
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if first_blue != 0 %}
+            <h3>First Degree - Purple Bar &#8594; First Degree - Blue Bar</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'First Degree - Blue Bar' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    First Degree - Purple Bar &#8594; First Degree - Blue Bar
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if first_brown != 0 %}
+            <h3>First Degree - Blue Bar &#8594; First Degree - Brown Bar</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'First Degree - Brown Bar' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    First Degree - Blue Bar &#8594; First Degree - Brown Bar
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if second != 0 %}
+            <h3>First Degree - Brown Bar &#8594; Second Degree</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'Second Degree' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    First Degree - Brown Bar &#8594; Second Degree
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if second_pc != 0 %}
+            <h3>Testing For Second Degree (Progress Check)</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'Second Degree (pc)' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }} &#8594; Second Degree (Progress Check)
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if third != 0 %}
+            <h3>Second Degree &#8594; Third Degree</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'Third Degree' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    Second Degree &#8594; Third Degree
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if third_pc != 0 %}
+            <h3>Testing For Third Degree (Progress Check)</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'Third Degree (pc)' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }} &#8594; Third Degree (Progress Check)
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if fourth != 0 %}
+            <h3>Third Degree &#8594; Fourth Degree</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'Fourth Degree' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    Third Degree &#8594; Fourth Degree
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if fourth_pc != 0 %}
+            <h3>Testing For Fourth Degree (Progress Check)</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'Fourth Degree (pc)' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }} &#8594; Fourth Degree (Progress Check)
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if fifth != 0 %}
+            <h3>Fourth Degree &#8594; Fifth Degree</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'Fifth Degree' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    Fourth Degree &#8594; Fifth Degree
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if fifth_pc != 0 %}
+            <h3>Testing For Fifth Degree (Progress Check)</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'Fifth Degree (pc)' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }} &#8594; Fifth Degree (Progress Check)
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if sixth != 0 %}
+            <h3>Fifth Degree &#8594; Sixth Degree</h3>
+            {% for student in stud_info %}
+              {% if student.testing_for == 'Sixth Degree' %}
+                {% if student.pass_status == true %}
+                  <div class="chip_pass">
+                    {{ student.student_name }}<br>
+                    Fifth Degree &#8594; Sixth Degree
+                  </div>
+                {% elif student.pass_status == false %}
+                  <div class="chip_fail">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                  </div>
+                {% else %}
+                  <div class="chip">
+                    {{ student.student_name }}<br>
+                    {{ student.belt_color }}
+                    <a href="/test_remove_blackbelt/{{ student.barcode }}/{{ test_id }}"><span class="closebtn">&times;</span></a>
+                    <br>
+                    <a style="color: green;" href="/pass_test_bb/{{ student.belt_color }}/{{ student.barcode }}/{{ test_id }}/{{ level }}/{{ student.testing_for }}">Pass</a> &frasl; <a style="color: red;" href="/fail_test_blackbelt/{{ student.barcode }}/{{ test_id }}/{{ level }}">Fail</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </body>
+  <script>
+    //var data1 = document.getElementsByName('name_data')[0].content;
+    var data1 = document.getElementsByName('name_data')[0].content;
+    function parseNames(name_data){
+        var name_arr = []
+        name_data = name_data.substring(1, name_data.length);
+        while (name_data.length > 0){
+            if (name_data.indexOf('  ') != -1){
+                var idx = name_data.indexOf('  ');
+                var stud_name = name_data.substring(0, name_data.indexOf('  '));
+                name_arr.push(stud_name);
+                name_data = name_data.substring(idx + 2, name_data.length);
+            } else {
+                var stud_name = name_data;
+                name_arr.push(stud_name);
+                name_data = '';
+            }
+        }
+        return name_arr;
+    }
+    console.log('data1:');
+    console.log(data1);
+    var names = parseNames(data1);
+    console.log('names:' + names);
+    function autocomplete(inp, arr) {
+    /*the autocomplete function takes two arguments,
+    the text field element and an array of possible autocompleted values:*/
+    var currentFocus;
+    /*execute a function when someone writes in the text field:*/
+    inp.addEventListener("input", function(e) {
+        var a, b, i, val = this.value;
+        /*close any already open lists of autocompleted values*/
+        closeAllLists();
+        if (!val) { return false;}
+        currentFocus = -1;
+        /*create a DIV element that will contain the items (values):*/
+        a = document.createElement("DIV");
+        a.setAttribute("id", this.id + "autocomplete-list");
+        a.setAttribute("class", "autocomplete-items");
+        /*append the DIV element as a child of the autocomplete container:*/
+        this.parentNode.appendChild(a);
+        /*for each item in the array...*/
+        for (i = 0; i < arr.length; i++) {
+            /*check if the item starts with the same letters as the text field value:*/
+            if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+            /*create a DIV element for each matching element:*/
+            b = document.createElement("DIV");
+            /*make the matching letters bold:*/
+            b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+            b.innerHTML += arr[i].substr(val.length);
+            /*insert a input field that will hold the current array item's value:*/
+            b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+            /*execute a function when someone clicks on the item value (DIV element):*/
+                b.addEventListener("click", function(e) {
+                /*insert the value for the autocomplete text field:*/
+                inp.value = this.getElementsByTagName("input")[0].value;
+                /*close the list of autocompleted values,
+                (or any other open lists of autocompleted values:*/
+                closeAllLists();
+            });
+            a.appendChild(b);
+        }
+    }
+});
+/*execute a function presses a key on the keyboard:*/
+inp.addEventListener("keydown", function(e) {
+    var x = document.getElementById(this.id + "autocomplete-list");
+    if (x) x = x.getElementsByTagName("div");
+    if (e.keyCode == 40) {
+        /*If the arrow DOWN key is pressed,
+        increase the currentFocus variable:*/
+        currentFocus++;
+        /*and and make the current item more visible:*/
+        addActive(x);
+    } else if (e.keyCode == 38) { //up
+        /*If the arrow UP key is pressed,
+        decrease the currentFocus variable:*/
+        currentFocus--;
+        /*and and make the current item more visible:*/
+        addActive(x);
+    } else if (e.keyCode == 13) {
+        /*If the ENTER key is pressed, prevent the form from being submitted,*/
+        e.preventDefault();
+        if (currentFocus > -1) {
+            /*and simulate a click on the "active" item:*/
+            if (x) x[currentFocus].click();
+        }
+    }
+});
+function addActive(x) {
+    /*a function to classify an item as "active":*/
+    if (!x) return false;
+    /*start by removing the "active" class on all items:*/
+    removeActive(x);
+    if (currentFocus >= x.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = (x.length - 1);
+    /*add class "autocomplete-active":*/
+    x[currentFocus].classList.add("autocomplete-active");
+}
+function removeActive(x) {
+    /*a function to remove the "active" class from all autocomplete items:*/
+    for (var i = 0; i < x.length; i++) {
+        x[i].classList.remove("autocomplete-active");
+    }
+}
+function closeAllLists(elmnt) {
+    /*close all autocomplete lists in the document,
+    except the one passed as an argument:*/
+    var x = document.getElementsByClassName("autocomplete-items");
+    for (var i = 0; i < x.length; i++) {
+        if (elmnt != x[i] && elmnt != inp) {
+            x[i].parentNode.removeChild(x[i]);
+        }
+    }
+}
+/*execute a function when someone clicks in the document:*/
+document.addEventListener("click", function (e) {
+    closeAllLists(e.target);
+});
+}
+</script>
+<script>
+    autocomplete(document.getElementById("result"), names);
+</script>
+</html>
+{% endblock %}
