@@ -16,6 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@passageidentity/passage-elements": "^1.21.4",
+    "@passageidentity/passage-js": "^3.14.6",
     "@passageidentity/passage-node": "^2.10.1",
     "api": "^6.1.1",
     "body-parser": "^1.19.0",

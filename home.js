@@ -89,7 +89,7 @@ app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
 console.log('Passage is ' + typeof Passage)
 // let passage = new Passage(passageConfig)
 console.log('passageConfig is ' + typeof passageConfig + ' with data being ' + passageConfig.apiKey + ' and ' + passageConfig.appID)
-let psg = new Passage(passageConfig)
+let psg = Passage(passageConfig)
 console.log('passage is ' + typeof psg)
 let passageAuthMiddleware = (() => {
   return async (req, res, next) => {
