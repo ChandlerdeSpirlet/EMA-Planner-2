@@ -26,6 +26,7 @@ const passageConfig = {
   appID: process.env.PASSAGE_ID,
   apiKey: process.env.PASSAGE_API,
 }
+const staffArray = process.env.STAFF_USER_ID.split(',')
 
 const settings = {
   port: 8080,
@@ -640,7 +641,6 @@ app.get('/logged-in', passageAuthMiddleware, async(req, res) => {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
     if (req.cookies.psg_auth_token && userID) {
-      const staffArray = process.env.STAFF_USER_ID.split(',')
       console.log('staffArray = ' + staffArray)
       let authLevel = '/student_portal_login'
       if (staffArray.includes(userID)) {
@@ -664,7 +664,7 @@ app.get('/', passageAuthMiddleware, async(req, res) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
-    if (req.cookies.psg_auth_token && userID) {
+    if (req.cookies.psg_auth_token && userID && staffArray.includes(userID)) {
       var event = new Date();
       var options_1 = { 
         month: 'long',
@@ -4010,7 +4010,7 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', (req, r
 })
 
 router.get('/test_selector_force/(:month)/(:day)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(userID)) {
     console.log('logged in as ' + req.session.user);
     let temp_date = new Date();
     let year = String(temp_date.getFullYear());
@@ -4033,7 +4033,7 @@ router.get('/test_selector_force/(:month)/(:day)', passageAuthMiddleware, async(
 })
 
 router.get('/test_checkin_blackbelt/(:id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     //if (req.session.user == 'Authorized'){
       const belt_counts = 'select testing_for, count(*) as "num" from test_signups where test_id = $1 group by testing_for;'
       const test_info = "select to_char(test_date, 'Month DD') as test_day, to_char(test_time, 'HH:MI PM') as testing_time, level, notes from test_instance where id = $1;"
@@ -4091,7 +4091,7 @@ router.get('/test_checkin_blackbelt/(:id)/(:level)', passageAuthMiddleware, asyn
 })
 
 router.get('/test_checkin/(:id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const test_info = "select to_char(test_date, 'Month DD') as test_day, to_char(test_time, 'HH:MI PM') as testing_time, level, notes from test_instance where id = $1;";
     const student_query = "select distinct session_id, student_name, barcode, belt_color, pass_status from test_signups where test_id = $1 and pass_status is null;";
     const pass_status = "select distinct session_id, student_name, barcode, belt_color, pass_status from test_signups where test_id = $1 and pass_status is not null;";
@@ -4183,7 +4183,7 @@ router.post('/test_checkin_blackbelt', (req, res) => {
 })
 
 router.get('/test_remove/(:barcode)/(:test_id)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const remove_query = "delete from test_signups where barcode = $1 and test_id = $2;";
     db.any(remove_query, [req.params.barcode, req.params.test_id])
       .then(rows => {
@@ -4201,7 +4201,7 @@ router.get('/test_remove/(:barcode)/(:test_id)', passageAuthMiddleware, async(re
 })
 
 router.get('/test_remove_blackbelt/(:barcode)/(:test_id)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const remove_query = "delete from test_signups where barcode = $1 and test_id = $2;";
     db.any(remove_query, [req.params.barcode, req.params.test_id])
       .then(rows => {
@@ -4219,7 +4219,7 @@ router.get('/test_remove_blackbelt/(:barcode)/(:test_id)', passageAuthMiddleware
 })
 
 router.get('/update_test_checkin/(:barcode)/(:session_id)/(:test_id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const insert_query = "insert into student_tests (test_id, barcode) values ($1, $2) on conflict (session_id) do nothing;";
     const update_status = "update test_signups set checked_in = true where session_id = $1";
     db.any(insert_query, [req.params.test_id, req.params.barcode])
@@ -4557,7 +4557,7 @@ router.post('/progress_check', (req, res) => {
 })
 
 router.get('/progress_check_scores', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const pc_scores = "select first_name || ' ' || last_name as student_name, month_1, month_1_splits, month_2, month_2_splits from student_list order by last_name, first_name;";
     db.any(pc_scores)
       .then(rows => {
@@ -4579,7 +4579,7 @@ router.get('/progress_check_scores', passageAuthMiddleware, async(req, res) => {
 })
 
 router.get('/refresh_scores', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const reset_query = "update student_list set month_1 = 0, month_2 = 0, month_1_splits = '0:00', month_2_splits = '0:00';";
     db.none(reset_query)
     .then(row => {
@@ -4611,7 +4611,7 @@ router.get('/refresh_scores', passageAuthMiddleware, async(req, res) => {
 })
 
 router.get('/pass_test_bb/(:belt_color)/(:barcode)/(:test_id)/(:level)/(:testing_for)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const update_status = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";//color, level, order
     const belt_info = parseBB(req.params.testing_for, false);
     console.log('belt color was: ' + req.params.belt_color);
@@ -4652,7 +4652,7 @@ router.get('/pass_test_bb/(:belt_color)/(:barcode)/(:test_id)/(:level)/(:testing
 })
 
 router.get('/pass_test/(:belt_color)/(:barcode)/(:test_id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     if (req.params.level == '7') {
       const false_update = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";
       db.one(false_update, [req.params.barcode, req.params.test_id])
@@ -4694,7 +4694,7 @@ router.get('/pass_test/(:belt_color)/(:barcode)/(:test_id)/(:level)', passageAut
 })
 
 router.get('/fail_test/(:barcode)/(:test_id)/(:level)/(:belt_color)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const update_status = "update test_signups set pass_status = false where barcode = $1 and test_id = $2;";
     const make_up_test = "insert into test_signups (student_name, test_id, belt_color, barcode) values ((select first_name || ' ' || last_name from student_list where barcode = $2), (select id from test_instance where level = $3 and test_date >= now() and notes = 'Make Up Testing' limit 1), $1, $2);"
     db.any(update_status, [req.params.barcode, req.params.test_id])
@@ -4719,7 +4719,7 @@ router.get('/fail_test/(:barcode)/(:test_id)/(:level)/(:belt_color)', passageAut
 })
 
 router.get('/fail_test_blackbelt/(:barcode)/(:test_id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const update_status = "update test_signups set pass_status = false where barcode = $1 and test_id = $2;";
     const regex_fail = /\(pc\)/i;
     var rank_fail = req.params.level.replace(regex_fail, '- Progress Check');
@@ -4747,7 +4747,7 @@ router.get('/fail_test_blackbelt/(:barcode)/(:test_id)/(:level)', passageAuthMid
 })
 
 router.get('/class_selector', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const query = "select x.class_id, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = FALSE) as signed_up, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = TRUE) as checked_in, to_char(x.starts_at, 'Month') as class_month, to_char(x.starts_at, 'DD') as class_day, to_char(x.starts_at, 'HH:MI PM') as class_time, to_char(x.ends_at, 'HH:MI PM') as end_time, x.level, x.class_type from classes x where to_char(x.starts_at, 'Month DD YYYY') = to_char(to_date($1, 'Month DD YYYY'), 'Month DD YYYY') order by x.starts_at;"
     var d = new Date();
     var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -4772,7 +4772,7 @@ router.get('/class_selector', passageAuthMiddleware, async(req, res) => {
 })
 
 router.get('/class_selector_force/(:month)/(:day)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const currentYear = new Date().getFullYear();
     const date_conversion = req.params.month + ' ' + req.params.day + ' ' + currentYear
     const query = "select x.class_id, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = FALSE) as signed_up, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = TRUE) as checked_in, to_char(x.starts_at, 'Month') as class_month, to_char(x.starts_at, 'DD') as class_day, to_char(x.starts_at, 'HH:MI PM') as class_time, to_char(x.ends_at, 'HH:MI PM') as end_time, x.level, x.class_type, x.can_view from classes x where to_char(x.starts_at, 'Month DD YYYY') = to_char(to_date($1, 'Month DD YYYY'), 'Month DD YYYY') order by x.starts_at;"
@@ -4793,7 +4793,7 @@ router.get('/class_selector_force/(:month)/(:day)', passageAuthMiddleware, async
 })
 
 router.get('/class_lookup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     var event = new Date();
     var options_1 = { 
       month: 'long',
@@ -4815,7 +4815,7 @@ router.get('/class_lookup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.post('/class_lookup', passageAuthMiddleware, async(req, res) => {
+router.post('/class_lookup', (req, res) => {
   const item = {
     month: req.sanitize('month_select').trim(),
     day: req.sanitize('day_select').trim()
@@ -4825,7 +4825,7 @@ router.post('/class_lookup', passageAuthMiddleware, async(req, res) => {
 })
 
 router.get('/belt_resolved/(:stud_name)/(:barcode)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     res.redirect('/student_lookup');
   } else {
     res.render('login', {
@@ -4833,8 +4833,8 @@ router.get('/belt_resolved/(:stud_name)/(:barcode)', passageAuthMiddleware, asyn
   }
 })
 
-router.get('/refresh_memberships', (req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/refresh_memberships', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     res.render('refresh_memberships', {   
     })
   } else {
@@ -4844,7 +4844,7 @@ router.get('/refresh_memberships', (req, res) => {
 })
 
 router.get('/student_lookup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const name_query = "select * from get_all_names()"
     db.any(name_query)
       .then(function (rows) {
@@ -4867,7 +4867,7 @@ router.get('/student_lookup', passageAuthMiddleware, async(req, res) => {
 })
 
 router.get('/lookup_message/(:alert_message)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const name_query = "select * from get_all_names()"
     db.any(name_query)
       .then(function (rows) {
@@ -4890,7 +4890,7 @@ router.get('/lookup_message/(:alert_message)', passageAuthMiddleware, async(req,
 })
 
 router.get('/student_data', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     res.render('student_data', {
       data: '',
       name: '',
@@ -4926,7 +4926,7 @@ router.get('/json_data', (req, res) => {
 
 router.get('/student_data_loading/(:name)/(:barcode)', passageAuthMiddleware, async(req, res) => {
   let userID = res.userID
-  if (req.cookies.psg_auth_token && userID) {
+  if (req.cookies.psg_auth_token && userID && staffArray.includes(res.userID)) {
     var name = req.params.name;
     var barcode = req.params.barcode;
     let options4 = {
@@ -5122,7 +5122,7 @@ router.post('/student_data', (req, res) => {
 })
 
 router.get('/test_lookup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     var event = new Date();
     var options_1 = { 
       month: 'long',
@@ -5160,7 +5160,7 @@ router.post('/test_lookup', (req, res) => {
 
 router.get('/create_test', passageAuthMiddleware, async(req, res) => {
   let userID = res.userID
-  if (req.cookies.psg_auth_token && userID) {
+  if (req.cookies.psg_auth_token && userID && staffArray.includes(res.userID)) {
     const testQueryAll = "select id, level, to_char(test_date, 'Mon DD, YYYY') || ' - ' || to_char(test_time, 'HH:MI PM') as test_day, notes, curriculum from test_instance where test_date > CURRENT_DATE - INTERVAL '1 months' AND test_date < CURRENT_DATE + INTERVAL '2 months' order by test_date, test_time;"
     db.any(testQueryAll)
       .then(tests => {
@@ -5447,7 +5447,7 @@ router.get('/student_portal/(:barcode)', passageAuthMiddleware, async(req, res) 
 })
 
 router.get('/enrollStudent', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     res.render('enrollStudent', {
       firstName: '',
       lastName: '',
@@ -5590,7 +5590,7 @@ router.post('/enrollStudent', (req, res) => {
 })
 
 router.get('/viewNew', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     let options = {
       method: "GET",
       uri: settings.apiv4url + '/customer',
@@ -5633,7 +5633,7 @@ router.get('/viewNew', passageAuthMiddleware, async(req, res) => {
 })
 
 router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     if (String(req.params.inList) == 'true'){
       const update_import_query = 'update student_list set barcode = $1 where Lower(first_name) = $2 and Lower(last_name) = $3';
       db.any(update_import_query, [req.params.new_id, req.params.fname, req.params.lname])
