@@ -2024,7 +2024,7 @@ router.get('/swat_signup', passageAuthMiddleware, async(req, res) => {
     }
   } else {
     res.render('login', {
-      
+
     })
   }
 })
@@ -3249,9 +3249,27 @@ app.get('/cal_down/(:filename)', function (req, res) {
   res.send(data)
 })
 
-router.get('/student_classes', (req, res) => {
-  res.render('student_classes'), {
+router.get('/student_tests', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID) {
+    res.render('student_tests'), {
 
+    }
+  } else {
+    res.render('login', {
+
+    })
+  }
+})
+
+router.get('/student_classes', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID) {
+    res.render('student_classes'), {
+
+    }
+  } else {
+    res.render('login', {
+
+    })
   }
 })
 
