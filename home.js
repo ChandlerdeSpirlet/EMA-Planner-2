@@ -641,11 +641,12 @@ app.get('/logged-in', passageAuthMiddleware, async(req, res) => {
   } else {
     if (req.cookies.psg_auth_token && userID) {
       const staffArray = process.env.STAFF_USER_ID.split(',')
-      const authLevel = ''
+      console.log('staffArray = ' + staffArray)
+      let authLevel = '/student_portal_login'
       if (staffArray.includes(userID)) {
-        const authLevel = '/'
+        authLevel = '/'
       } else {
-        const authLevel = '/student_portal_login'
+        authLevel = '/student_portal_login'
       }
       res.render('logged-in', {
         authLevel: authLevel
