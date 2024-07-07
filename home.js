@@ -4791,7 +4791,30 @@ router.get('/class_selector_force/(:month)/(:day)', passageAuthMiddleware, async
   }
 })
 
-router.post('/class_lookup', (req, res) => {
+router.get('/class_lookup', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID) {
+    var event = new Date();
+    var options_1 = { 
+      month: 'long',
+      timeZone: 'America/Denver'
+    };
+    var options_2 = { 
+      day: 'numeric',
+      timeZone: 'America/Denver'
+    };
+    const month = event.toLocaleDateString('en-US', options_1);
+    const day = event.toLocaleDateString('en-US', options_2);
+    res.render('class_lookup', {
+      month: month,
+      day: day
+    })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.post('/class_lookup', passageAuthMiddleware, async(req, res) => {
   const item = {
     month: req.sanitize('month_select').trim(),
     day: req.sanitize('day_select').trim()
@@ -4803,6 +4826,16 @@ router.post('/class_lookup', (req, res) => {
 router.get('/belt_resolved/(:stud_name)/(:barcode)', passageAuthMiddleware, async(req, res) => {
   if (req.cookies.psg_auth_token && res.userID) {
     res.redirect('/student_lookup');
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/refresh_memberships', (req, res) => {
+  if (req.cookies.psg_auth_token && res.userID) {
+    res.render('refresh_memberships', {   
+    })
   } else {
     res.render('login', {
     })
@@ -5555,10 +5588,157 @@ router.post('/enrollStudent', (req, res) => {
   })
 })
 
+router.get('/viewNew', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID) {
+    let options = {
+      method: "GET",
+      uri: settings.apiv4url + '/customer',
+      headers: {
+          Authorization: getAuthHeader(),
+      },
+      body: {
+        sortby: 'LastName',
+      },
+      json: true,
+      sortby: 'LastName',
+  };
+  const id_query = 'select barcode, first_name, last_name from student_list order by barcode';
+  db.any(id_query)
+    .then(rows => {
+      request(options, function(error, response, body) {
+        if (!error && response && response.statusCode < 300) {
+            //res.json(body.Response);
+            res.render('integrate_ps', {
+              alert_message: '',
+              current_people: rows,
+              new_people: body.Response
+            })
+            return;
+        }
+        
+        res.status((response && response.statusCode) || 500).send(error);
+
+        
+      });
+    })
+    .catch(err => {
+      console.log('Could not find any people. Error: ' + err);
+      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com');
+    })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID) {
+    if (String(req.params.inList) == 'true'){
+      const update_import_query = 'update student_list set barcode = $1 where Lower(first_name) = $2 and Lower(last_name) = $3';
+      db.any(update_import_query, [req.params.new_id, req.params.fname, req.params.lname])
+        .then(row => {
+          let options = {
+            method: "GET",
+            uri: settings.apiv4url + '/customer',
+            headers: {
+                Authorization: getAuthHeader(),
+            },
+            body: {
+              sortby: 'LastName',
+            },
+            json: true,
+            sortby: 'LastName',
+        };
+        const id_query = 'select barcode, first_name, last_name from student_list order by barcode';
+        db.any(id_query)
+          .then(rows => {
+            request(options, function(error, response, body) {
+              if (!error && response && response.statusCode < 300) {
+                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/viewNew');
+                  return;
+              }
+            
+              res.status((response && response.statusCode) || 500).send(error);
+      
+            });
+          })
+        })
+        .catch(err => {
+          console.log('Couldnt update import student. Err: ' + err);
+          res.render('integrate_ps', {
+            alert_message: 'Could not update that student in the list. Please contact tech support and refresh the page. ERROR: ' + err,
+            current_people: '',
+            new_people: ''
+          })
+        })
+    } else {
+      const add_new_query = "insert into student_list (barcode, first_name, last_name, belt_color, belt_size, email, belt_order, level_name) values ($1, $2, $3, 'white', -1, $4, 0, 'Basic') on conflict (barcode) do nothing";
+      db.any(add_new_query, [req.params.new_id, req.params.fname, req.params.lname, req.params.email])
+        .then(row => {
+          let options = {
+            method: "GET",
+            uri: settings.apiv4url + '/customer',
+            headers: {
+                Authorization: getAuthHeader(),
+            },
+            body: {
+              sortby: 'LastName',
+            },
+            json: true,
+            sortby: 'LastName',
+        };
+        const id_query = 'select barcode, first_name, last_name from student_list order by barcode';
+        db.any(id_query)
+          .then(rows => {
+            request(options, function(error, response, body) {
+              if (!error && response && response.statusCode < 300) {
+                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/viewNew');
+                return;
+              }
+            
+              res.status((response && response.statusCode) || 500).send(error);
+        
+            });
+          })
+        })
+        .catch(err => {
+          console.log('Couldnt add import student. Err: ' + err);
+          res.render('integrate_ps', {
+            alert_message: 'Could not add that student to the list. Please contact tech support and refresh the page. ERROR: ' + err,
+            current_people: '',
+            new_people: ''
+          })
+        })
+    }
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+request.get({
+  uri: 'https://api.paysimple.com/ps/webhook/subscriptions/',
+  //"url": 'https://ema-planner.herokuapp.com/ps_webhook',
+  //"event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
+  //"is_active": 'true',
+  headers: {
+    Authorization: 'basic ' + settings.username + ':' + process.env.ps_api,
+    "content-type": "application/json; charset=utf-8",
+  },
+  /*body: JSON.stringify({
+    "url": 'https://ema-planner.herokuapp.com/ps_webhook',
+    "event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
+    "is_active": 'true',
+  })*/
+}, function(e,r,b){
+  //console.log('res: ' + JSON.safeStringify(r))
+  //console.log('body: ' + JSON.safeStringify(b))
+})
+
 request.post({
   uri: 'https://api.paysimple.com/ps/webhook/subscription',
   //uri: 'https://sandbox-api.paysimple.com/ps/webhook/subscription',
-  "url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.com/ps_webhook',
+  "url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ps_webhook',
   "event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
   "is_active": 'true',
   headers: {
