@@ -4070,7 +4070,7 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', passage
       case 'test':
         db.none(dropTest, [req.params.id, req.params.barcode])
           .then(rows => {
-            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/student_portal/' + req.params.barcode)
+            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + req.params.barcode)
           })
           .catch(err => {
             console.log('Unable to delete test. ERR: ' + err)
@@ -4087,11 +4087,11 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', passage
           .then(rows => {
             db.none(updateClassCount, [req.params.item_id])
               .then(row => {
-                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/student_portal/' + req.params.barcode)
+                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + req.params.barcode)
               })
               .catch(err => {
                 console.log('Could not reduce class count: ' + err)
-                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/student_portal/' + req.params.barcode)
+                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + req.params.barcode)
               })
           })
           .catch(err => {
@@ -4109,7 +4109,7 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', passage
           .then(row => {
             db.none(dropClass, [req.params.id, req.params.email.toLowerCase()])
               .then(rows => {
-                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/student_portal/' + req.params.barcode)
+                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + req.params.barcode)
               })
               .catch(err => {
                 console.log('Unable to delete swat. ERR: ' + err)
@@ -4133,7 +4133,7 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', passage
         break
       default:
         console.log('Unknown delete type.')
-        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/student_portal/' + req.params.barcode)
+        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + req.params.barcode)
         break
     }
   } else {
@@ -5911,7 +5911,7 @@ request.post({
     "content-type": "application/json; charset=utf-8",
   },
   body: JSON.stringify({
-    "url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.com/ps_webhook',
+    "url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ps_webhook',
     "event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
     "is_active": 'true',
   })
