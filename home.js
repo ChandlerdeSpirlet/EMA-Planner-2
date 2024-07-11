@@ -2774,50 +2774,58 @@ router.get('/class_checkin/(:class_id)/(:class_level)/(:class_time)/(:class_type
   }
 })
 
-router.post('/class_checkin', (req, res) => {
-  const item = {
-    class_id: req.sanitize('class_id').trim(),
-    stud_data: req.sanitize('result').trim(),
-    level: req.sanitize('level').trim(),
-    time: req.sanitize('time').trim(),
-    class_type: req.sanitize('class_type').trim(),
-    can_view: req.sanitize('can_view').trim()
-  }
-  const update_visit = "update student_list set last_visit = (select to_char(starts_at, 'Month DD, YYYY')::date as visit from classes where class_id = $1) where barcode = $2 and (last_visit < (select to_char(starts_at, 'Month DD, YYYY')::date as visit from classes where class_id = $3) or last_visit is null);"
-  if (item.class_type == 'reg'){
-    var update_count = "update student_list set reg_class = reg_class + 1 where barcode = $1";
-  } else if (item.class_type == 'spar'){
-    var update_count = "update student_list set spar_class = spar_class + 1 where barcode = $1";
+const checkinValidate = [
+  check('class_id', 'Class ID must not be empty').isLength({ min: 1}).trim().escape(), check('stud_data', 'Student Data must not be empty').isLength({ min: 1}).trim().escape(), check('level', 'Level must not be empty').isLength({ min: 1}).trim().escape(), check('time', 'Time must not be empty').isLength({ min: 1}).trim().escape(), check('class_type', 'Class type must not be empty').isLength({ min: 1}).trim().escape(), check('can_view', 'Can View must not be empty').isLength({ min: 1}).trim().escape()
+]
+router.post('/class_checkin', checkinValidate, (req, res) => {
+  const loginErrors = validationResult(req)
+  if (!loginErrors.isEmpty()) {
+    res.status(422).json({ errors: loginErrors.array() })
   } else {
-    console.log('Unrecognized class_type');
-    var update_count = 'update student_list set spar_class = spar_class where barcode = $1';
-  }
-  const stud_info = parseStudentInfo(item.stud_data);//name, barcode
-  console.log('stud_info: ' + stud_info);
-  const temp_class_check = stud_info[0].toLowerCase().split(" ").join("") + item.class_id.toString();
-  const query = 'insert into class_signups (student_name, email, class_session_id, barcode, class_check, checked_in) values ($1, (select lower(email) from student_list where barcode = $2), $3, $4, $5, true) on conflict (class_check) do nothing;'
-  db.any(update_count, [stud_info[1]])
-    .then(update_c => {
-      db.any(update_visit, [item.class_id, stud_info[1], item.class_id])
-        .then(update => {
-          db.any(query, [stud_info[0], stud_info[1], item.class_id, stud_info[1], temp_class_check])
-            .then(function (rows1) {
-              res.redirect('class_checkin/' + item.class_id + '/' + item.level + '/' + item.time + '/' + item.class_type + '/' + item.can_view)
-            })
-            .catch(function (err) {
-              res.redirect('home')
-              console.log('Unable to checkin to class ' + err)
-            })
-        })
-        .catch(err => {
-          res.redirect('home')
-          console.log('Unable to update last visit for ' + stud_info + '. Error: ' + err);
-        })
-    })
-    .catch(err => {
-      res.redirect('home');
-      console.log('Unable to update count for ' + stud_info + '. Error: ' + err);
-    })
+    const item = {
+      class_id: req.body.class_id,
+      stud_data: req.body.stud_data,
+      level: req.body.level,
+      time: req.body.time,
+      class_type: req.body.class_type,
+      can_view: req.body.can_view
+    }
+    const update_visit = "update student_list set last_visit = (select to_char(starts_at, 'Month DD, YYYY')::date as visit from classes where class_id = $1) where barcode = $2 and (last_visit < (select to_char(starts_at, 'Month DD, YYYY')::date as visit from classes where class_id = $3) or last_visit is null);"
+    if (item.class_type == 'reg'){
+      var update_count = "update student_list set reg_class = reg_class + 1 where barcode = $1";
+    } else if (item.class_type == 'spar'){
+      var update_count = "update student_list set spar_class = spar_class + 1 where barcode = $1";
+    } else {
+      console.log('Unrecognized class_type');
+      var update_count = 'update student_list set spar_class = spar_class where barcode = $1';
+    }
+    const stud_info = parseStudentInfo(item.stud_data);//name, barcode
+    console.log('stud_info: ' + stud_info);
+    const temp_class_check = stud_info[0].toLowerCase().split(" ").join("") + item.class_id.toString();
+    const query = 'insert into class_signups (student_name, email, class_session_id, barcode, class_check, checked_in) values ($1, (select lower(email) from student_list where barcode = $2), $3, $4, $5, true) on conflict (class_check) do nothing;'
+    db.any(update_count, [stud_info[1]])
+      .then(update_c => {
+        db.any(update_visit, [item.class_id, stud_info[1], item.class_id])
+          .then(update => {
+            db.any(query, [stud_info[0], stud_info[1], item.class_id, stud_info[1], temp_class_check])
+              .then(function (rows1) {
+                res.redirect('class_checkin/' + item.class_id + '/' + item.level + '/' + item.time + '/' + item.class_type + '/' + item.can_view)
+              })
+              .catch(function (err) {
+                res.redirect('home')
+                console.log('Unable to checkin to class ' + err)
+              })
+          })
+          .catch(err => {
+            res.redirect('home')
+            console.log('Unable to update last visit for ' + stud_info + '. Error: ' + err);
+          })
+      })
+      .catch(err => {
+        res.redirect('home');
+        console.log('Unable to update count for ' + stud_info + '. Error: ' + err);
+      })
+    }
 })
 
 router.get('/class_confirmed/', (req, res) => {
