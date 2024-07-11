@@ -2730,6 +2730,96 @@ router.get('/process_classes/(:stud_info)/(:stud_info2)/(:stud_info3)/(:stud_inf
   }
 })
 
+router.get('/class_checkin/(:class_id)/(:class_level)/(:class_time)/(:class_type)/(:can_view)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+    console.log('req.params.class_id = ' + req.params.class_id);
+    const query = "select * from get_class_names($1);";
+    const checked_in = "select s.student_name, s.barcode, s.class_check, l.failed_charge, to_char(now() at time zone 'MST', 'Month DD') as curr_date, to_char(l.bday, 'Month DD') as bday from class_signups s, student_list l where s.class_session_id = $1 and s.checked_in = true and l.barcode = s.barcode;";
+    const query_reserved = "select s.student_name, s.class_check, s.barcode, s.is_swat, l.failed_charge, to_char(now() at time zone 'MST', 'Month DD') as curr_date, to_char(l.bday, 'Month DD') as bday from class_signups s, student_list l where s.checked_in = false and s.class_session_id = $1 and s.barcode = l.barcode;";
+    db.any(checked_in, [req.params.class_id])
+      .then(checkedIn => {
+        db.any(query_reserved, [req.params.class_id])
+          .then(signedup => {
+            db.any(query, [Number(req.params.class_id)])
+              .then(names => {
+                res.render('class_checkin.html', {
+                  name_data: names,
+                  signedup: signedup,
+                  checkedIn: checkedIn,
+                  level: req.params.class_level,
+                  time: req.params.class_time,
+                  class_id: req.params.class_id,
+                  class_type: req.params.class_type,
+                  can_view: req.params.can_view,
+                  alert_message: ''
+                })
+              })
+              .catch(function (err) {
+                res.redirect('home')
+                console.log('error finding class with id ' + err)
+              })
+          })
+          .catch(err => {
+            console.log("Could not pull people signed up for class. Err: " + err);
+            res.redirect('home');
+          })
+      })
+      .catch(err => {
+        console.log('Could not find people checked in for class. Error: ' + err);
+        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/home');
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+router.post('/class_checkin', (req, res) => {
+  const item = {
+    class_id: req.sanitize('class_id').trim(),
+    stud_data: req.sanitize('result').trim(),
+    level: req.sanitize('level').trim(),
+    time: req.sanitize('time').trim(),
+    class_type: req.sanitize('class_type').trim(),
+    can_view: req.sanitize('can_view').trim()
+  }
+  const update_visit = "update student_list set last_visit = (select to_char(starts_at, 'Month DD, YYYY')::date as visit from classes where class_id = $1) where barcode = $2 and (last_visit < (select to_char(starts_at, 'Month DD, YYYY')::date as visit from classes where class_id = $3) or last_visit is null);"
+  if (item.class_type == 'reg'){
+    var update_count = "update student_list set reg_class = reg_class + 1 where barcode = $1";
+  } else if (item.class_type == 'spar'){
+    var update_count = "update student_list set spar_class = spar_class + 1 where barcode = $1";
+  } else {
+    console.log('Unrecognized class_type');
+    var update_count = 'update student_list set spar_class = spar_class where barcode = $1';
+  }
+  const stud_info = parseStudentInfo(item.stud_data);//name, barcode
+  console.log('stud_info: ' + stud_info);
+  const temp_class_check = stud_info[0].toLowerCase().split(" ").join("") + item.class_id.toString();
+  const query = 'insert into class_signups (student_name, email, class_session_id, barcode, class_check, checked_in) values ($1, (select lower(email) from student_list where barcode = $2), $3, $4, $5, true) on conflict (class_check) do nothing;'
+  db.any(update_count, [stud_info[1]])
+    .then(update_c => {
+      db.any(update_visit, [item.class_id, stud_info[1], item.class_id])
+        .then(update => {
+          db.any(query, [stud_info[0], stud_info[1], item.class_id, stud_info[1], temp_class_check])
+            .then(function (rows1) {
+              res.redirect('class_checkin/' + item.class_id + '/' + item.level + '/' + item.time + '/' + item.class_type + '/' + item.can_view)
+            })
+            .catch(function (err) {
+              res.redirect('home')
+              console.log('Unable to checkin to class ' + err)
+            })
+        })
+        .catch(err => {
+          res.redirect('home')
+          console.log('Unable to update last visit for ' + stud_info + '. Error: ' + err);
+        })
+    })
+    .catch(err => {
+      res.redirect('home');
+      console.log('Unable to update count for ' + stud_info + '. Error: ' + err);
+    })
+})
+
 router.get('/class_confirmed/', (req, res) => {
   res.render('class_confirmed', {
     classes: '',
