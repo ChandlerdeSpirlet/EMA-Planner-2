@@ -6,4 +6,4 @@ server.js
 .DS_Store
 node_modules/.bin/*
 node_modules/*
-/node_modules
+/node_modules*
