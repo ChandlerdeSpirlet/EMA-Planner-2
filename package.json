@@ -7,10 +7,6 @@
     "test": "npx eslint .",
     "start": "node home.js"
   },
-  "engines": {
-    "node": "20.x",
-    "npm": "10.x"
-  },
   "keywords": [],
   "author": "Chandler de Spirlet",
   "license": "ISC",
