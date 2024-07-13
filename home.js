@@ -5615,12 +5615,20 @@ router.post('/create_test', (req, res) => {
   }
 })
 
-router.post('/student_portal_login', (req, res) => {
-  const item = {
-    student_info: req.sanitize('result').trim()
+const portalValidate = [
+  check('result', 'Name and ID cannot be empty').isLength({ min: 5 }).trim().escape()
+]
+router.post('/student_portal_login', portalValidate, (req, res) => {
+  const loginErrors = validationResult(req)
+  if (!loginErrors.isEmpty()){
+    res.status(422).json({ errors: loginErrors.array() })
+  } else {
+    const item = {
+      student_info: req.body.result
+    }
+    const studInfo = parseStudentInfo(item.student_info) // name, barcode
+    res.redirect('student_portal/' + studInfo[1])
   }
-  const studInfo = parseStudentInfo(item.student_info) // name, barcode
-  res.redirect('student_portal/' + studInfo[1])
 })
 
 router.get('/student_portal/(:barcode)', passageAuthMiddleware, async(req, res) => {
