@@ -2030,7 +2030,7 @@ router.get('/swat_signup', passageAuthMiddleware, async(req, res) => {
 })
 
 const loginValidateClasses = [
-  check('stud_data', 'You must fill in the first student').isLength({ min: 1 }).trim().escape(), check('stud_data2', '').trim().escape(),check('stud_data3', '').trim().escape(),check('stud_data3', '').trim().escape(), check('day_time', 'You must select at least one class').isLength({ min: 1 }).trim().escape()
+  check('result', 'You must fill in the first student').isLength({ min: 1 }).trim().escape(), check('result2', '').trim().escape(), check('result3', '').trim().escape(), check('stud_data4', '').trim().escape(), check('day_time', 'You must select at least one class').trim().escape()
 ]
 router.post('/dragons_signup', loginValidateClasses, (req, res) => {
   const loginErrors = validationResult(req)
@@ -2038,10 +2038,10 @@ router.post('/dragons_signup', loginValidateClasses, (req, res) => {
     res.status(422).json({ errors: loginErrors.array() })
   } else {
   const item = {
-    stud_data: req.body.stud_data,
-    stud_data2: req.body.stud_data2,
-    stud_data3: req.body.stud_data3,
-    stud_data4: req.body.stud_data4,
+    stud_data: req.body.result,
+    stud_data2: req.body.result2,
+    stud_data3: req.body.result3,
+    stud_data4: req.body.result4,
     day_time: req.body.day_time
   }
   if (item.stud_data === '') {
@@ -2068,10 +2068,10 @@ router.post('/basic_signup', loginValidateClasses, (req, res) => {
     res.status(422).json({ errors: loginErrors.array() })
   } else {
   const item = {
-    stud_data: req.body.stud_data,
-    stud_data2: req.body.stud_data2,
-    stud_data3: req.body.stud_data3,
-    stud_data4: req.body.stud_data4,
+    stud_data: req.body.result,
+    stud_data2: req.body.result2,
+    stud_data3: req.body.result3,
+    stud_data4: req.body.result4,
     day_time: req.body.day_time
   }
   if (item.stud_data === '') {
@@ -2098,10 +2098,10 @@ router.post('/weapons_signup', loginValidateClasses, (req, res) => {
     res.status(422).json({ errors: loginErrors.array() })
   } else {
   const item = {
-    stud_data: req.body.stud_data,
-    stud_data2: req.body.stud_data2,
-    stud_data3: req.body.stud_data3,
-    stud_data4: req.body.stud_data4,
+    stud_data: req.body.result,
+    stud_data2: req.body.result2,
+    stud_data3: req.body.result3,
+    stud_data4: req.body.result4,
     day_time: req.body.day_time
   }
   if (item.stud_data === '') {
@@ -2128,10 +2128,10 @@ router.post('/bjj_signup', loginValidateClasses, (req, res) => {
     res.status(422).json({ errors: loginErrors.array() })
   } else {
   const item = {
-    stud_data: req.body.stud_data,
-    stud_data2: req.body.stud_data2,
-    stud_data3: req.body.stud_data3,
-    stud_data4: req.body.stud_data4,
+    stud_data: req.body.result,
+    stud_data2: req.body.result2,
+    stud_data3: req.body.result3,
+    stud_data4: req.body.result4,
     day_time: req.body.day_time
   }
   if (item.stud_data === '') {
@@ -2158,10 +2158,10 @@ router.post('/conditional_signup', loginValidateClasses, (req, res) => {
     res.status(422).json({ errors: loginErrors.array() })
   } else {
   const item = {
-    stud_data: req.body.stud_data,
-    stud_data2: req.body.stud_data2,
-    stud_data3: req.body.stud_data3,
-    stud_data4: req.body.stud_data4,
+    stud_data: req.body.result,
+    stud_data2: req.body.result2,
+    stud_data3: req.body.result3,
+    stud_data4: req.body.result4,
     day_time: req.body.day_time
   }
   if (item.stud_data === '') {
@@ -2188,10 +2188,10 @@ router.post('/level1_signup', loginValidateClasses, (req, res) => {
     res.status(422).json({ errors: loginErrors.array() })
   } else {
   const item = {
-    stud_data: req.body.stud_data,
-    stud_data2: req.body.stud_data2,
-    stud_data3: req.body.stud_data3,
-    stud_data4: req.body.stud_data4,
+    stud_data: req.body.result,
+    stud_data2: req.body.result2,
+    stud_data3: req.body.result3,
+    stud_data4: req.body.result4,
     day_time: req.body.day_time
   }
   if (item.stud_data === '') {
@@ -2218,10 +2218,10 @@ router.post('/level2_signup', loginValidateClasses, (req, res) => {
     res.status(422).json({ errors: loginErrors.array() })
   } else {
   const item = {
-    stud_data: req.body.stud_data,
-    stud_data2: req.body.stud_data2,
-    stud_data3: req.body.stud_data3,
-    stud_data4: req.body.stud_data4,
+    stud_data: req.body.result,
+    stud_data2: req.body.result2,
+    stud_data3: req.body.result3,
+    stud_data4: req.body.result4,
     day_time: req.body.day_time
   }
   if (item.stud_data === '') {
@@ -2248,10 +2248,10 @@ router.post('/level3_signup', loginValidateClasses, (req, res) => {
     res.status(422).json({ errors: loginErrors.array() })
   } else {
   const item = {
-    stud_data: req.body.stud_data,
-    stud_data2: req.body.stud_data2,
-    stud_data3: req.body.stud_data3,
-    stud_data4: req.body.stud_data4,
+    stud_data: req.body.result,
+    stud_data2: req.body.result2,
+    stud_data3: req.body.result3,
+    stud_data4: req.body.result4,
     day_time: req.body.day_time
   }
   if (item.stud_data === '') {
@@ -2278,10 +2278,10 @@ router.post('/bb_signup', loginValidateClasses, (req, res) => {
     res.status(422).json({ errors: loginErrors.array() })
   } else {
   const item = {
-    stud_data: req.body.stud_data,
-    stud_data2: req.body.stud_data2,
-    stud_data3: req.body.stud_data3,
-    stud_data4: req.body.stud_data4,
+    stud_data: req.body.result,
+    stud_data2: req.body.result2,
+    stud_data3: req.body.result3,
+    stud_data4: req.body.result4,
     day_time: req.body.day_time
   }
   if (item.stud_data === '') {
@@ -2308,10 +2308,10 @@ router.post('/wfc_signup', loginValidateClasses, (req, res) => {
     res.status(422).json({ errors: loginErrors.array() })
   } else {
   const item = {
-    stud_data: req.body.stud_data,
-    stud_data2: req.body.stud_data2,
-    stud_data3: req.body.stud_data3,
-    stud_data4: req.body.stud_data4,
+    stud_data: req.body.result,
+    stud_data2: req.body.result2,
+    stud_data3: req.body.result3,
+    stud_data4: req.body.result4,
     day_time: req.body.day_time
   }
   if (item.stud_data === '') {
@@ -2338,10 +2338,10 @@ router.post('/sparapalooza_signup', loginValidateClasses, (req, res) => {
     res.status(422).json({ errors: loginErrors.array() })
   } else {
   const item = {
-    stud_data: req.body.stud_data,
-    stud_data2: req.body.stud_data2,
-    stud_data3: req.body.stud_data3,
-    stud_data4: req.body.stud_data4,
+    stud_data: req.body.result,
+    stud_data2: req.body.result2,
+    stud_data3: req.body.result3,
+    stud_data4: req.body.result4,
     day_time: req.body.day_time
   }
   if (item.stud_data === '') {
@@ -2368,10 +2368,10 @@ router.post('/swat_signup', loginValidateClasses, (req, res) => {
     res.status(422).json({ errors: loginErrors.array() })
   } else {
   const item = {
-    stud_data: req.body.stud_data,
-    stud_data2: req.body.stud_data2,
-    stud_data3: req.body.stud_data3,
-    stud_data4: req.body.stud_data4,
+    stud_data: req.body.result,
+    stud_data2: req.body.result2,
+    stud_data3: req.body.result3,
+    stud_data4: req.body.result4,
     day_time: req.body.day_time
   }
   if (item.stud_data === '') {
