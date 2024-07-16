@@ -2029,10 +2029,10 @@ router.get('/swat_signup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-const loginValidate = [
+const loginValidateClasses = [
   check('stud_data', 'You must fill in the first student').isLength({ min: 1 }).trim().escape(), check('stud_data2', '').trim().escape(),check('stud_data3', '').trim().escape(),check('stud_data3', '').trim().escape(), check('day_time', 'You must select at least one class').isLength({ min: 1 }).trim().escape()
 ]
-router.post('/dragons_signup', loginValidate, (req, res) => {
+router.post('/dragons_signup', loginValidateClasses, (req, res) => {
   const loginErrors = validationResult(req)
   if (!loginErrors.isEmpty()) {
     res.status(422).json({ errors: loginErrors.array() })
@@ -2062,7 +2062,7 @@ router.post('/dragons_signup', loginValidate, (req, res) => {
   }
 })
 
-router.post('/basic_signup', loginValidate, (req, res) => {
+router.post('/basic_signup', loginValidateClasses, (req, res) => {
   const loginErrors = validationResult(req)
   if (!loginErrors.isEmpty()) {
     res.status(422).json({ errors: loginErrors.array() })
@@ -2092,7 +2092,7 @@ router.post('/basic_signup', loginValidate, (req, res) => {
   }
 })
 
-router.post('/weapons_signup', loginValidate, (req, res) => {
+router.post('/weapons_signup', loginValidateClasses, (req, res) => {
   const loginErrors = validationResult(req)
   if (!loginErrors.isEmpty()) {
     res.status(422).json({ errors: loginErrors.array() })
@@ -2122,7 +2122,7 @@ router.post('/weapons_signup', loginValidate, (req, res) => {
   }
 })
 
-router.post('/bjj_signup', loginValidate, (req, res) => {
+router.post('/bjj_signup', loginValidateClasses, (req, res) => {
   const loginErrors = validationResult(req)
   if (!loginErrors.isEmpty()) {
     res.status(422).json({ errors: loginErrors.array() })
@@ -2152,7 +2152,7 @@ router.post('/bjj_signup', loginValidate, (req, res) => {
   }
 })
 
-router.post('/conditional_signup', loginValidate, (req, res) => {
+router.post('/conditional_signup', loginValidateClasses, (req, res) => {
   const loginErrors = validationResult(req)
   if (!loginErrors.isEmpty()) {
     res.status(422).json({ errors: loginErrors.array() })
@@ -2182,7 +2182,7 @@ router.post('/conditional_signup', loginValidate, (req, res) => {
   }
 })
 
-router.post('/level1_signup', loginValidate, (req, res) => {
+router.post('/level1_signup', loginValidateClasses, (req, res) => {
   const loginErrors = validationResult(req)
   if (!loginErrors.isEmpty()) {
     res.status(422).json({ errors: loginErrors.array() })
@@ -2212,7 +2212,7 @@ router.post('/level1_signup', loginValidate, (req, res) => {
   }
 })
 
-router.post('/level2_signup', loginValidate, (req, res) => {
+router.post('/level2_signup', loginValidateClasses, (req, res) => {
   const loginErrors = validationResult(req)
   if (!loginErrors.isEmpty()) {
     res.status(422).json({ errors: loginErrors.array() })
@@ -2242,7 +2242,7 @@ router.post('/level2_signup', loginValidate, (req, res) => {
   }
 })
 
-router.post('/level3_signup', loginValidate, (req, res) => {
+router.post('/level3_signup', loginValidateClasses, (req, res) => {
   const loginErrors = validationResult(req)
   if (!loginErrors.isEmpty()) {
     res.status(422).json({ errors: loginErrors.array() })
@@ -2272,7 +2272,7 @@ router.post('/level3_signup', loginValidate, (req, res) => {
   }
 })
 
-router.post('/bb_signup', loginValidate, (req, res) => {
+router.post('/bb_signup', loginValidateClasses, (req, res) => {
   const loginErrors = validationResult(req)
   if (!loginErrors.isEmpty()) {
     res.status(422).json({ errors: loginErrors.array() })
@@ -2302,7 +2302,7 @@ router.post('/bb_signup', loginValidate, (req, res) => {
   }
 })
 
-router.post('/wfc_signup', loginValidate, (req, res) => {
+router.post('/wfc_signup', loginValidateClasses, (req, res) => {
   const loginErrors = validationResult(req)
   if (!loginErrors.isEmpty()) {
     res.status(422).json({ errors: loginErrors.array() })
@@ -2332,7 +2332,7 @@ router.post('/wfc_signup', loginValidate, (req, res) => {
   }
 })
 
-router.post('/sparapalooza_signup', loginValidate, (req, res) => {
+router.post('/sparapalooza_signup', loginValidateClasses, (req, res) => {
   const loginErrors = validationResult(req)
   if (!loginErrors.isEmpty()) {
     res.status(422).json({ errors: loginErrors.array() })
@@ -2362,7 +2362,7 @@ router.post('/sparapalooza_signup', loginValidate, (req, res) => {
   }
 })
 
-router.post('/swat_signup', loginValidate, (req, res) => {
+router.post('/swat_signup', loginValidateClasses, (req, res) => {
   const loginErrors = validationResult(req)
   if (!loginErrors.isEmpty()) {
     res.status(422).json({ errors: loginErrors.array() })
