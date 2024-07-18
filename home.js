@@ -805,6 +805,23 @@ app.get('/', passageAuthMiddleware, async(req, res) => {
   }
 })
 
+router.get('/home', passageAuthMiddleware, async(req, res) => {
+  if (req.headers['x-forwarded-proto'] != 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+  } else {
+    if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+      res.redirect('/')
+    } else {
+      res.render('login', {
+        username: '',
+        password: '',
+        go_to: '/',
+        alert_message: ''
+      })
+    }
+  }
+})
+
 app.get('/setCookie', async (_req, res) => {
   res.cookie(
     'cbo_short_session',
