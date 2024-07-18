@@ -2838,7 +2838,7 @@ router.get('/class_checkin/(:class_id)/(:class_level)/(:class_time)/(:class_type
 })
 
 const checkinValidate = [
-  check('class_id', 'Class ID must not be empty').trim().escape(), check('stud_data', 'Student Data must not be empty').isLength({ min: 1}).trim().escape(), check('level', 'Level must not be empty').isLength({ min: 1}).trim().escape(), check('time', 'Time must not be empty').isLength({ min: 1}).trim().escape(), check('class_type', 'Class type must not be empty').isLength({ min: 1}).trim().escape(), check('can_view', 'Can View must not be empty').isLength({ min: 1}).trim().escape()
+  check('class_id', 'Class ID must not be empty').trim().escape(), check('stud_data', 'Student Data must not be empty').trim().escape(), check('level', 'Level must not be empty').trim().escape(), check('time', 'Time must not be empty').trim().escape(), check('class_type', 'Class type must not be empty').trim().escape(), check('can_view', 'Can View must not be empty').trim().escape()
 ]
 router.post('/class_checkin', checkinValidate, (req, res) => {
   const loginErrors = validationResult(req)
