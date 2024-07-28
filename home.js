@@ -5157,13 +5157,21 @@ router.get('/class_lookup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.post('/class_lookup', (req, res) => {
-  const item = {
-    month: req.sanitize('month_select').trim(),
-    day: req.sanitize('day_select').trim()
+const dateValidate = [
+  check('month_select', 'Month must not be empty').trim().escape().isLength({ min: 1 }), check('day_select', 'Day must not be empty').trim().escape().isLength({ min: 1 })
+]
+router.post('/class_lookup', dateValidate, (req, res) => {
+  const dateErrors = validationResult(req)
+  if (!dateErrors.isEmpty()) {
+    res.status(422).json({ errors: dateErrors.array() })
+  } else {
+    const item = {
+      month: req.body.month_select,
+      day: req.body.day_select
+    }
+    const redir_link = 'class_selector_force/' + item.month + '/' + item.day
+    res.redirect(redir_link)
   }
-  const redir_link = 'class_selector_force/' + item.month + '/' + item.day
-  res.redirect(redir_link)
 })
 
 router.get('/belt_resolved/(:stud_name)/(:barcode)', passageAuthMiddleware, async(req, res) => {
