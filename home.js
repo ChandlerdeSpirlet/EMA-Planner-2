@@ -2430,21 +2430,21 @@ router.get('/update_checkin/(:barcode)/(:class_id)/(:class_level)/(:class_time)/
           .then(rows => {
             db.none(update_visit, [req.params.class_id, req.params.barcode, req.params.class_id])
               .then(row => {
-                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
               })
               .catch(err => {
                 console.log('Could not update last_visit status of ' + req.params.class_session_id + '>  ' + err);
-                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
               })
           })
           .catch(err => {
             console.log('Could not update checked_in status of ' + req.params.class_session_id);
-            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
           })
       })
       .catch(err => {
         console.log('Could not update count of ' + req.params.barcode);
-        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
       })
   } else {
     res.render('login', {
