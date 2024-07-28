@@ -2409,6 +2409,47 @@ router.post('/swat_signup', loginValidateClasses, (req, res) => {
   }
 })
 
+router.get('/update_checkin/(:barcode)/(:class_id)/(:class_level)/(:class_time)/(:class_check)/(:class_type)/(:can_view)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+    const update_status = 'update class_signups set checked_in = true where class_check = $1;';
+    const update_visit = "update student_list set last_visit = (select to_char(starts_at, 'Month DD, YYYY')::date as visit from classes where class_id = $1) where barcode = $2 and (last_visit < (select to_char(starts_at, 'Month DD, YYYY')::date as visit from classes where class_id = $3) or last_visit is null);"
+    console.log('class_type: ' + req.params.class_type);
+    if (req.params.class_type == 'reg'){
+      var update_count = "update student_list set reg_class = reg_class + 1 where barcode = $1";
+    } else if (req.params.class_type == 'spar'){
+      var update_count = "update student_list set spar_class = spar_class + 1 where barcode = $1";
+    } else {
+      console.log('Unrecognized class_type');
+      var update_count = 'update student_list set spar_class = spar_class where barcode = $1';
+    }
+    db.none(update_count, [req.params.barcode])
+      .then(update => {
+        db.none(update_status, [req.params.class_check])
+          .then(rows => {
+            db.none(update_visit, [req.params.class_id, req.params.barcode, req.params.class_id])
+              .then(row => {
+                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+              })
+              .catch(err => {
+                console.log('Could not update last_visit status of ' + req.params.class_session_id + '>  ' + err);
+                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+              })
+          })
+          .catch(err => {
+            console.log('Could not update checked_in status of ' + req.params.class_session_id);
+            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+          })
+      })
+      .catch(err => {
+        console.log('Could not update count of ' + req.params.barcode);
+        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+      })
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
 router.get('/process_classes/(:stud_info)/(:stud_info2)/(:stud_info3)/(:stud_info4)/(:belt_group)/(:idSet)/(:swat)', (req, res) => {
   var masterBarcode = 0
   if (req.params.swat === 'is_swat') {
