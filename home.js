@@ -108,7 +108,8 @@ let passageAuthMiddleware = (() => {
 })()
 
 function parseStudentInfo (info) {
-  const studInfo = ['', 0]
+  console.log('In parseStudentInfo, got: ' + info)
+  let studInfo = ['', 0]
   studInfo[0] = info.substring(0, info.indexOf(' - '))
   studInfo[1] = info.substring(info.indexOf(' - ') + 3, info.length)
   if (studInfo[0].indexOf(',') !== -1) {
@@ -116,6 +117,7 @@ function parseStudentInfo (info) {
     const firstName = studInfo[0].substring(studInfo[0].indexOf(',') + 2, studInfo[0].length)
     studInfo[0] = firstName + ' ' + lastName
   }
+  console.log('In parseStudentInfo, returning: ' + studInfo)
   return studInfo
 }
 
@@ -2921,6 +2923,7 @@ router.post('/class_checkin', checkinValidate, (req, res) => {
       var update_count = 'update student_list set spar_class = spar_class where barcode = $1';
     }
     const stud_info = parseStudentInfo(item.stud_data);//name, barcode
+    console.log('got ' + item.stud_data + ' as stud_data')
     console.log('stud_info: ' + stud_info);
     const temp_class_check = stud_info[0].toLowerCase().split(" ").join("") + item.class_id.toString();
     const query = 'insert into class_signups (student_name, email, class_session_id, barcode, class_check, checked_in) values ($1, (select lower(email) from student_list where barcode = $2), $3, $4, $5, true) on conflict (class_check) do nothing;'
