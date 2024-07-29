@@ -4996,6 +4996,117 @@ router.get('/refresh_scores', passageAuthMiddleware, async(req, res) => {
   }
 })
 
+function parseURL(data_set) { //class_id, level, time, type, can_view
+  console.log('parsing data: ' + data_set)
+  var data = data_set;
+  var values = [];
+  while (data.indexOf('__') >= 0) {
+      first_dash = data.indexOf('__');
+      values.push(data.substring(0, first_dash));
+      data = data.substring(first_dash + 2, first_dash.length);
+      if (data.indexOf('__') == -1) {
+          values.push(data);
+      }
+  }
+  console.log('returned values: ' + values);
+  return values;
+}
+
+router.get('/set_can_view/(:combined_data)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+    console.log('combined data: ' + req.params.combined_data);
+    const update_set_view = 'update classes set can_view = $1 where class_id = $2;';
+    const url_vals = parseURL(req.params.combined_data);
+    if (String(url_vals[4]) == 'true'){
+      db.none(update_set_view, ['false', url_vals[0]])
+        .then(row => {
+          console.log('Set can_view for ' + url_vals);
+          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + 'false');
+        })
+        .catch(err => {
+          console.log('Could not set can_view for: ' + url_vals);
+          console.log('ERROR in true -> false: ' + err);
+          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + url_vals[4]);
+        })
+    } else if (String(url_vals[4]) == 'false'){
+      db.none(update_set_view, ['true', url_vals[0]])
+        .then(row => {
+          console.log('Set can_view for ' + url_vals);
+          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + 'true');
+        })
+        .catch(err => {
+          console.log('Could not set can_view for: ' + url_vals);
+          console.log('ERROR in false -> true: ' + err);
+          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + url_vals[4]);
+        })
+    } else {
+      console.log('Could not set can_view for: ' + url_vals);
+      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + url_vals[4]);
+    }
+  } else {
+    res.render('login', {
+      username: '',
+      password: '',
+      go_to: '/set_can_view/' + req.params.combined_data,
+      alert_message: ''
+    })
+  }
+})
+
+router.get('/class_remove/(:barcode)/(:class_id)/(:class_level)/(:class_time)/(:class_type)/(:can_view)', passageAuthMiddleware, async(req, res) => {
+  var update_class_total = null;
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+    const remove_query = 'delete from class_signups where class_session_id = $1 and barcode = $2;'
+    if (req.params.class_type == 'reg'){
+      var update_count = "update student_list set reg_class = reg_class - 1 where barcode = $1";
+      var update_class_total = "update classes set student_count = student_count - 1 where class_id = $1"
+    } else if (req.params.class_type == 'spar'){
+      var update_count = "update student_list set spar_class = spar_class - 1 where barcode = $1";
+      var update_class_total = "update classes set student_count = student_count - 1 where class_id = $1"
+    } else if (req.params.class_type == 'swat-reg'){
+      var update_count = "update student_list set swat_count = swat_count - 1 where barcode = $1";
+      req.params.class_type = 'reg'
+    } else if (req.params.class_type == 'swat-spar'){
+      var update_count = "update student_list set swat_count = swat_count - 1 where barcode = $1";
+      req.params.class_type = 'spar'
+    } else {
+      console.log('Unrecognized class_type');
+      var update_count = 'update student_list set spar_class = spar_class where barcode = $1';
+    }
+    if (update_class_total != null) {
+      db.none(update_class_total, [req.params.class_id])
+        .then(row => {
+          console.log('Count updated')
+        })
+        .catch(err => {
+          console.log('Could not update count: ' + err)
+        })
+    }
+    db.none(update_count, [req.params.barcode])
+      .then(update => {
+        db.any(remove_query, [req.params.class_id, req.params.barcode])
+          .then(function (rows) {
+            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+          })
+          .catch(function (err) {
+            console.log('Could not remove person from class with class_id and barcode ' + req.params.class_id + ', ' + req.params.barcode + '. Err: ' + err)
+            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_selector')
+          })
+      })
+      .catch(function (err) {
+        console.log('Could not remove person from class with class_id and barcode ' + req.params.class_id + ', ' + req.params.barcode + '. Err: ' + err)
+        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_selector')
+      })
+  } else {
+    res.render('login', {
+      username: '',
+      password: '',
+      go_to: '/class_remove/' + req.params.barcode + '/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view,
+      alert_message: ''
+    })
+  }
+})
+
 router.get('/pass_test_bb/(:belt_color)/(:barcode)/(:test_id)/(:level)/(:testing_for)', passageAuthMiddleware, async(req, res) => {
   if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const update_status = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";//color, level, order
@@ -6121,7 +6232,7 @@ router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)', passa
 
 request.get({
   uri: 'https://api.paysimple.com/ps/webhook/subscriptions/',
-  //"url": 'https://ema-planner.herokuapp.com/ps_webhook',
+  //"url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ps_webhook',
   //"event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
   //"is_active": 'true',
   headers: {
@@ -6129,7 +6240,7 @@ request.get({
     "content-type": "application/json; charset=utf-8",
   },
   /*body: JSON.stringify({
-    "url": 'https://ema-planner.herokuapp.com/ps_webhook',
+    "url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ps_webhook',
     "event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
     "is_active": 'true',
   })*/
