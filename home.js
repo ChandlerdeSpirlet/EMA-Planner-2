@@ -80,6 +80,7 @@ app.use('/', router)
 
 const db = require('./database')
 const { type } = require('os')
+const { lookup } = require('dns')
 // const { proc } = require('./database')
 // const { get } = require('http')
 // const { json } = require('body-parser')
@@ -4282,7 +4283,7 @@ router.get('/refresh_belts', passageAuthMiddleware, async(req, res) => {
 app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', passageAuthMiddleware, async(req, res) => {
   if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const dropTest = 'delete from test_signups where session_id = $1 and barcode = $2;'
-    const dropClass = 'delete from class_signups where class_check = $1 and email = $2;'
+    const dropClass = 'delete from class_signups where class_check = $1 and barcode = $2;'
     const updateClassCount = 'update classes set student_count = student_count - 1 where class_id = $1;'
     const updateCount = 'update classes set swat_count = swat_count - 1 where class_id = $1;'
     switch (req.params.type) { // allows for addition of swat class
@@ -4302,7 +4303,7 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', passage
           })
         break
       case 'class':
-        db.none(dropClass, [req.params.id, req.params.email.toLowerCase()])
+        db.none(dropClass, [req.params.id, req.params.barcode])
           .then(rows => {
             db.none(updateClassCount, [req.params.item_id])
               .then(row => {
@@ -4326,7 +4327,7 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', passage
       case 'swat':
         db.none(updateCount, [req.params.item_id])
           .then(row => {
-            db.none(dropClass, [req.params.id, req.params.email.toLowerCase()])
+            db.none(dropClass, [req.params.id, req.params.barcode])
               .then(rows => {
                 res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + req.params.barcode)
               })
@@ -5365,6 +5366,22 @@ router.get('/student_lookup', passageAuthMiddleware, async(req, res) => {
   } else {
     res.render('login', {
     })
+  }
+})
+
+const lookupValidate = [
+  check('result', 'Student name must not be empty').trim().escape().isLength({ min: 1 })
+]
+router.post('/student_lookup', lookupValidate, (req, res) => {
+  const lookupErrors = validationResult(req)
+  if (!lookupErrors.isEmpty()) {
+    res.status(422).json({ errors: lookupErrors.array() })
+  } else {
+    const items = {
+      student_info: req.body.result
+    }
+    const stud_info = parseStudentInfo(items.student_info);
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_data_loading/' + stud_info[0] + '/' + stud_info[1]);
   }
 })
 
