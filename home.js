@@ -5542,7 +5542,7 @@ router.post('/count_update', (req, res) => {
 })
 
 const dataValidate = [
-  check('barcode', 'Barcode must not be empty').trim().escape().isLength({ min: 1 }), check('first_name', 'First Name must not be empty').trim().escape().isLength({ min: 1 }), check('last_name', 'Last Name must not be empty').trim().escape().isLength({ min: 1 }), check('email', 'Something is wrong with the email').trim().escape(), check('belt_size', 'Belt size must not be empty').trim().escape().isLength({ min: 1 }), check('belt_color', 'Belt color must not be empty').trim().escape().isLength({ min: 1 }), check('addr', 'Address is busted').trim().escape(), check('addr_2', 'Unit/Suite is busted').trim().escape(), check('city', 'City is bad').trim().escape(), check('zip', 'ZIP is bad').trim().escape(), check('bday', 'Birthday is bad').trim().escape()
+  check('barcode', 'Barcode must not be empty').trim().escape().isLength({ min: 1 }), check('first_name', 'First Name must not be empty').trim().escape().isLength({ min: 1 }), check('last_name', 'Last Name must not be empty').trim().escape().isLength({ min: 1 }), check('email', 'Something is wrong with the email').trim().escape(), check('belt_size', 'Belt size must not be empty').trim().escape(), check('belt_color', 'Belt color must not be empty').trim().escape(), check('addr', 'Address is busted').trim().escape(), check('addr_2', 'Unit/Suite is busted').trim().escape(), check('city', 'City is bad').trim().escape(), check('zip', 'ZIP is bad').trim().escape(), check('bday', 'Birthday is bad').trim().escape()
 ]
 router.post('/student_data', dataValidate, (req, res) => {
   const dataErrors = validationResult(req)
