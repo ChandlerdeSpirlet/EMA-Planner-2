@@ -5,7 +5,7 @@
 {% set bb_reg = 10 %}
 {% set bb_spar = 10 %}
 {% set bb_swat = 8 %}
-{% set email_addr = '' %}
+{% set email_addr = 'no@email.com' %}
 {% set level_num = 0 %}
 {% set curr = '' %}
 {% if alert_message != '' %}
@@ -176,7 +176,7 @@
     {% endif %}
     {% set level_num = student.belt_order | int %}
     <label>Student's Name: </label>{{ student.first_name }} {{ student.last_name }}<br>
-    <label>Student's Email: </label>{{ student.email }} {% set email_addr = student.email %}<br>
+    <label>Student's Email: </label>{% if student.email == '' %}no@email.com{% set email_addr = 'no@email.com' %}{% else %}{{ student.email }} {% set email_addr = student.email %}{% endif %}<br>
     <label>Student's Belt Color and Size: </label>{{ student.belt_color }} - {{ student.belt_size }}<br>
     <label>Last Visit: </label>{{ student.last_visit }}<br>
     {% if is_bb == 'true' %}
