@@ -5541,103 +5541,111 @@ router.post('/count_update', (req, res) => {
     })
 })
 
-router.post('/student_data', (req, res) => {
-  var items = {
-    barcode: req.sanitize('barcode').trim(),
-    first_name: req.sanitize('first_name').trim(),
-    last_name:  req.sanitize('last_name').trim(),
-    email: req.sanitize('email').trim(),
-    belt_size: req.sanitize('beltSize').trim(),
-    belt_color: req.sanitize('beltColor').trim(),
-    addr: req.sanitize('addr').trim(),
-    addr_2: req.sanitize('addr_2').trim(),
-    city: req.sanitize('city').trim(),
-    zip: req.sanitize('zip').trim(),
-    bday: req.sanitize('bday').trim()
-  }
-  console.log('parseBelt input = ' + items.belt_color);
-  var level_info = parseBelt(items.belt_color, false);
-  console.log('level_info: ' + level_info);
-  console.log('Bday is ' + items.bday)
-  const update_query = "update student_list set first_name = $1, last_name = $2, belt_color = $3, belt_size = $4, email = $5, level_name = $6, belt_order = $7, addr = $8, addr_2 = $9, city = $10, zip = $11, bday = to_date($12, 'MM-DD-YYYY') where barcode = $13;";
-  db.none(update_query, [items.first_name, items.last_name, level_info[0], Number(items.belt_size), items.email, level_info[1], level_info[2], items.addr, items.addr_2, items.city, Number(items.zip), items.bday, items.barcode])
-    .then(rows_update => {
-      const name_query = "select * from get_all_names()"
-      if (items.addr_2 == ''){
-        items.addr_2 = null
-      }
-      if (items.addr == ''){
-        items.addr = 'None'
-      }
-      if (items.city == ''){
-        items.city = 'None'
-      }
-      if (items.zip == ''){
-        items.zip = -1
-      }
-      if (items.bday == ''){
-        items.bday = '1930-01-01'
-      }
-      if (items.belt_size == ''){
-        items.belt_size = -1
-      }
-      console.log('items: ' + JSON.safeStringify(items));
-      var bday_string = "Birthday is " + items.bday;
-      console.log('Bday is ' + items.bday)
-      db.any(name_query)
-        .then(function (rows) {
-          let options = {
-            method: "PUT",
-            uri: settings.apiv4url + '/customer',
-            headers: {
-                Authorization: getAuthHeader(),
-            },
-            body: {
-            "Id": items.barcode,
-            "FirstName": items.first_name,
-            "LastName": items.last_name,
-            "ShippingSameAsBilling": true,
-            "BillingAddress": {
-              "StreetAddress1": items.addr,
-              "StreetAddress2": items.addr_2,
-              "City": items.city,
-              "ZipCode": items.zip,
-              "StateCode": 'CO'
-            },
-            "Notes": bday_string
-            },
-            json: true,
-          };
-          request(options, function(error, response, body) {
-            if (!error && response && response.statusCode < 300) {
+const dataValidate = [
+  check('barcode', 'Barcode must not be empty').trim().escape().isLength({ min: 1 }), check('first_name', 'First Name must not be empty').trim().escape().isLength({ min: 1 }), check('last_name', 'Last Name must not be empty').trim().escape().isLength({ min: 1 }), check('email', 'Something is wrong with the email').trim().escape(), check('belt_size', 'Belt size must not be empty').trim().escape().isLength({ min: 1 }), check('belt_color', 'Belt color must not be empty').trim().escape().isLength({ min: 1 }), check('addr', 'Address is busted').trim().escape(), check('addr_2', 'Unit/Suite is busted').trim().escape(), check('city', 'City is bad').trim().escape(), check('zip', 'ZIP is bad').trim().escape(), check('bday', 'Birthday is bad').trim().escape()
+]
+router.post('/student_data', dataValidate, (req, res) => {
+  const dataErrors = validationResult(req)
+  if (!dataErrors.isEmpty()) {
+    res.status(422).json({ errors: dataErrors.array() })
+  } else {
+    var items = {
+      barcode: req.body.barcode,
+      first_name: req.body.first_name,
+      last_name:  req.body.last_name,
+      email: req.body.email,
+      belt_size: req.body.belt_size,
+      belt_color: req.body.belt_color,
+      addr: req.body.addr,
+      addr_2: req.body.addr_2,
+      city: req.body.city,
+      zip: req.body.zip,
+      bday: req.body.bday
+    }
+    console.log('parseBelt input = ' + items.belt_color);
+    var level_info = parseBelt(items.belt_color, false);
+    console.log('level_info: ' + level_info);
+    console.log('Bday is ' + items.bday)
+    const update_query = "update student_list set first_name = $1, last_name = $2, belt_color = $3, belt_size = $4, email = $5, level_name = $6, belt_order = $7, addr = $8, addr_2 = $9, city = $10, zip = $11, bday = to_date($12, 'MM-DD-YYYY') where barcode = $13;";
+    db.none(update_query, [items.first_name, items.last_name, level_info[0], Number(items.belt_size), items.email, level_info[1], level_info[2], items.addr, items.addr_2, items.city, Number(items.zip), items.bday, items.barcode])
+      .then(rows_update => {
+        const name_query = "select * from get_all_names()"
+        if (items.addr_2 == ''){
+          items.addr_2 = null
+        }
+        if (items.addr == ''){
+          items.addr = 'None'
+        }
+        if (items.city == ''){
+          items.city = 'None'
+        }
+        if (items.zip == ''){
+          items.zip = -1
+        }
+        if (items.bday == ''){
+          items.bday = '1930-01-01'
+        }
+        if (items.belt_size == ''){
+          items.belt_size = -1
+        }
+        console.log('items: ' + JSON.safeStringify(items));
+        var bday_string = "Birthday is " + items.bday;
+        console.log('Bday is ' + items.bday)
+        db.any(name_query)
+          .then(function (rows) {
+            let options = {
+              method: "PUT",
+              uri: settings.apiv4url + '/customer',
+              headers: {
+                  Authorization: getAuthHeader(),
+              },
+              body: {
+              "Id": items.barcode,
+              "FirstName": items.first_name,
+              "LastName": items.last_name,
+              "ShippingSameAsBilling": true,
+              "BillingAddress": {
+                "StreetAddress1": items.addr,
+                "StreetAddress2": items.addr_2,
+                "City": items.city,
+                "ZipCode": items.zip,
+                "StateCode": 'CO'
+              },
+              "Notes": bday_string
+              },
+              json: true,
+            };
+            request(options, function(error, response, body) {
+              if (!error && response && response.statusCode < 300) {
+                var temp_message = 'Successfully updated ' + items.first_name + ' ' + items.last_name + ' in EMA Side Kick and on PaySimple!';
+                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/lookup_message/' + temp_message);
+                return;
+              }
+              if (error){
+                console.log('Customer put API error: ' + error);
+              }
               var temp_message = 'Successfully updated ' + items.first_name + ' ' + items.last_name + ' in EMA Side Kick and on PaySimple!';
               res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/lookup_message/' + temp_message);
-              return;
-            }
-            if (error){
-              console.log('Customer put API error: ' + error);
-            }
-            var temp_message = 'Successfully updated ' + items.first_name + ' ' + items.last_name + ' in EMA Side Kick and on PaySimple!';
-            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/lookup_message/' + temp_message);
-            //res.status((response && response.statusCode) || 500).send(error);
-        
-          });
-        })
-        .catch(function (err) {
-          console.log('Could not find students: ' + err)
-          res.render('student_lookup', {
-            data: '',
-            alert_message: 'Could not find any students. Please refresh the page and try again.'
+              //res.status((response && response.statusCode) || 500).send(error);
+          
+            });
           })
-        })
-    })
-    .catch(err => {
-      console.log('Could not update student: ' + err)
-      res.render('student_lookup', {
-        data: '',
-        alert_message: 'Could not update the student ' + items.first_name + ' ' + items.last_name + '. Please make a note of this and contact the admin.'
+          .catch(function (err) {
+            console.log('Could not find students: ' + err)
+            res.render('student_lookup', {
+              data: '',
+              alert_message: 'Could not find any students. Please refresh the page and try again.'
+            })
+          })
       })
-    })
+      .catch(err => {
+        console.log('Could not update student: ' + err)
+        res.render('student_lookup', {
+          data: '',
+          alert_message: 'Could not update the student ' + items.first_name + ' ' + items.last_name + '. Please make a note of this and contact the admin.'
+        })
+      })
+    }
 })
 
 router.get('/test_lookup', passageAuthMiddleware, async(req, res) => {
