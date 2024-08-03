@@ -1,179 +1,141 @@
 <!DOCTYPE html>
 <html>
-<link rel="manifest" href="../manifest.json">
-<link rel="apple-touch-icon" href="https://ema-planner.herokuapp.com/views/ema.png">
-<link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Home &mdash; EMA Side Kick</title>
+<head>
+    <link rel="manifest" href="../manifest.json">
+    <link rel="apple-touch-icon" href="https://ema-planner.herokuapp.com/views/ema.png">
+    <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Home &mdash; EMA Side Kick</title>
     <style>
         * {
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             color: #E7E5E3;
         }
-        html {
+        html, body {
             background-image: linear-gradient(#3274C4, #2E353B);
-            -webkit-background-size: cover;
-            -moz-background-size: cover;
-            -o-background-size: cover;
             background-size: cover;
             min-height: 100%;
+            margin: 0;
+            padding: 0;
         }
-        .column {
-            float: left;
-            width: calc(100% / 3);
-            height: 100%;
-            padding: 10px;
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
         }
-        .column1 {
-            float: left;
-            width: calc(80% / 2);
-            height: 100%;
-            padding: 5px;
-            text-align: center;
-        }
-        .column2 {
-            float: right;
-            width: calc(80% / 2);
-            height: 100%;
-            padding: 5px;
-            text-align: center;
-        }
-        /* Clear floats after the columns */
-        .row:after {
-            content: "";
-            display: table;
-            clear: both;
-        }
-        #page-container {
-            position: relative;
-            min-height: 90vh;
-        }
-        #content-wrap {
-            
-        }
-        .material-icons-outlined {
-            font-size: 160px;
-            position: relative; /* this line and the next "do the thing" */
-            top:3px;
+        .metrics, .card-container {
+            display: flex;
+            flex-wrap: wrap;
             justify-content: center;
+            width: 100%;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin: 10px;
+            padding: 20px;
+            flex: 1;
+            max-width: 300px;
+            min-width: 250px;
+            text-align: center;
         }
         h1 {
             text-align: center;
             font-size: 60px;
+            margin-bottom: 20px;
+        }
+        h2, h5, label {
+            color: #E7E5E3;
         }
         button {
-            /*background-color: #5ed1ff;*/
             background-color: transparent;
-            border: none;
+            border: 4px solid #8B8275;
             color: #E7E5E3;
             padding: 16px 32px;
             text-align: center;
-            text-decoration: none;
-            display: inline-block;
             font-size: 24px;
             margin: 4px 2px;
-            transition-duration: 0.4s;
             cursor: pointer;
             width: 100%;
+            transition-duration: 0.4s;
         }
-        button {
-            color: #E7E5E3;
-            border: 4px solid #8B8275;
-        }
-
         button:hover {
             background-color: #555555;
-            color: #E7E5E3;
         }
-        h2, h5{
-            text-align: center;
+        a {
             color: #E7E5E3;
-        }
-        label{
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            color: #E7E5E3;
+            text-decoration: none;
         }
     </style>
-<head>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3388621066074457"
-     crossorigin="anonymous"></script>
-     <meta name="google-site-verification" content="QkHmkhwFnqIDm9tDxzk2gsVKN8KBEyhOzdVmVvl3tM8" />
 </head>
 <body>
-    <div id="page-container">
-        <div id="content-wrap">
-            <div class="row">
-                <h1><img src="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/views/ema-circle.png"   alt="EMA Logo" style="width:80px;height:80px;">  EMA Side Kick<img src="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/views/sidekick.png" alt="Side kick picture" style="width:100px;height:80px;"></h1>
+    <div class="container">
+        <h1><img src="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/views/ema-circle.png" alt="EMA Logo" style="width:80px;height:80px;"> EMA Side Kick<img src="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/views/sidekick.png" alt="Side kick picture" style="width:100px;height:80px;"></h1>
+
+        <div class="metrics">
+            <div class="card">
+                <a href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/new_student_list/{{ month }}/{{ year }}"><h2>New karate students in {{ month }} {{ year }}: {{ karate_list[0].karate_student_count }}</h2></a>
+                <a href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/new_student_list/{{ month }}/{{ year }}"><h2>New kickboxers in {{ month }} {{ year }}: {{ kickbox_list[0].kickbox_student_count }}</h2></a>
+                <a href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/new_student_list/{{ month }}/{{ year }}"><h2>Total new accounts in {{ month }} {{ year }}: {{ student_list[0].new_student_count }}</h2></a>
             </div>
-            <div class="row">
-                <div class="column">
-                    <a style="color: #E7E5E3;text-decoration: none;"href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/new_student_list/{{ month }}/{{ year }}"><h2>New karate students in {{ month }} {{ year }}: {{ karate_list[0].karate_student_count }}</h2></a>
-                    <a style="color: #E7E5E3;text-decoration: none;"href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/new_student_list/{{ month }}/{{ year }}"><h2>New kickboxers in {{ month }} {{ year }}: {{ kickbox_list[0].kickbox_student_count }}</h2></a>
-                    <a style="color: #E7E5E3;text-decoration: none;"href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/new_student_list/{{ month }}/{{ year }}"><h2>Total new accounts in {{ month }} {{ year }}: {{ student_list[0].new_student_count }}</h2></a>
-                </div>
-                <div class="column">
-                    <h2>Students checked-in today: {{ checked_today[0].day_count }}</h2>
-                    <h2>Students checked-in in the last 7 days: {{ checked_week[0].week_count }}</h2>
-                </div>
-                <div class="column">
-                    <h2>Students by belt group</h2>
-                    <div class="column1">
-                        <a style="color: #E7E5E3;text-decoration: none;"href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>{{ student_data[0].level_name }}: </label>{{ student_data[0].count }}<br></a>
-                        <a style="color: #E7E5E3;text-decoration: none;"href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>{{ student_data[1].level_name }}: </label>{{ student_data[1].count }}<br></a>
-                        <a style="color: #E7E5E3;text-decoration: none;"href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>{{ student_data[2].level_name }}: </label>{{ student_data[2].count }}<br></a>
-                        <a style="color: #E7E5E3;text-decoration: none;"href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>{{ student_data[3].level_name }}: </label>{{ student_data[3].count }}</a>
-                    </div>
-                    <div class="column2">
-                        <a style="color: #E7E5E3;text-decoration: none;"href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>{{ student_data[4].level_name }}: </label>{{ student_data[4].count }}<br></a>
-                        <a style="color: #E7E5E3;text-decoration: none;"href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>Prep/Conditional: </label>{{ p_count.num }}<br></a>
-                        <a style="color: #E7E5E3;text-decoration: none;"href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>Conditional: </label>{{ c_count.num }}<br></a>
-                        <a style="color: #E7E5E3;text-decoration: none;"href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>Black Belt: </label>{{ b_count.num }}</a>
-                    </div>
-                </div>
+            <div class="card">
+                <h2>Students checked-in today: {{ checked_today[0].day_count }}</h2>
+                <h2>Students checked-in in the last 7 days: {{ checked_week[0].week_count }}</h2>
             </div>
-            <div class="row">
-                <div class="column">
-                    <!--<a href="https://payments.paysimple.com/Customer/List"><button>Enroll a Student</button></a><br>-->
-                    <a href="/documents"><button>Documents</button></a><br>
-                    <a href="/enrollStudent"><button>Add a Student</button></a><br>
-                    <a href="https://payments.paysimple.com/Customer/List" target="_blank"><button>Modify Billing Subscription</button></a><br>
-                    <a href="/failed_charges"><button>Failed Charges &mdash; {{ failure_num.failed_num }}</button></a><br>
-                    <a href="/refresh_memberships"><button>Update Memberships</button></a>
-                </div>
-                <div class="column">
-                    <a href="/class_selector_force/{{ month }}/{{ day }}"><button>Class Check-In</button></a><br>
-                    <a href="/class_lookup"><button>View a Class</button></a><br>
-                    <a href="/student_lookup"><button>View/Edit a Student</button></a><br>
-                    <a href="/student_portal_login"><button>Student Portal</button></a><br>
-                    <button onclick="refresh_counts()">Reset Class Counts</button>
-                </div>
-                <div class="column">
-                    <a href="/create_test"><button>Create a Test</button></a><br>
-                    <a href="/test_lookup"><button>View a Test</button></a><br>
-                    <a href="/progress_check_scores"><button>Progress Check Scores</button></a><br>
-                    <a href="/belt_inventory"><button disabled>Belt Inventory</button></a><br>
-                    <a href="/login"><button>Login</button></a><br>
-                    <a href="/need_belts"><button>Fix Belt Sizes &mdash; {{ belt_counts[0].belt_count }}</button></a>
+            <div class="card">
+                <h2>Students by belt group</h2>
+                <div>
+                    <a href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>{{ student_data[0].level_name }}: </label>{{ student_data[0].count }}</a><br>
+                    <a href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>{{ student_data[1].level_name }}: </label>{{ student_data[1].count }}</a><br>
+                    <a href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>{{ student_data[2].level_name }}: </label>{{ student_data[2].count }}</a><br>
+                    <a href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>{{ student_data[3].level_name }}: </label>{{ student_data[3].count }}</a><br>
+                    <a href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>{{ student_data[4].level_name }}: </label>{{ student_data[4].count }}</a><br>
+                    <a href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>Prep/Conditional: </label>{{ p_count.num }}</a><br>
+                    <a href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>Conditional: </label>{{ c_count.num }}</a><br>
+                    <a href="https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_level_list"><label>Black Belt: </label>{{ b_count.num }}</a>
                 </div>
             </div>
         </div>
-    </div>
-</body>
-<script>
-    if (!navigator.serviceWorker.controller) {
-        navigator.serviceWorker.register("/sw.js").then(function(reg) {
-            console.log("Service worker has been registered for scope: " + reg.scope);
-        });
-    }
-    function refresh_counts() {
-        var ask = window.confirm("Are you sure you want to reset the class counts? This action will set all counts.");
-        if (ask) {
-            window.location.href = "/reset_counts";
-        }
-    }
-   </script>
-</html>
 
+        <div class="card-container">
+            <div class="card">
+                <a href="/documents"><button>Documents</button></a>
+                <a href="/enrollStudent"><button>Add a Student</button></a>
+                <a href="https://payments.paysimple.com/Customer/List" target="_blank"><button>Modify Billing Subscription</button></a>
+                <a href="/failed_charges"><button>Failed Charges &mdash; {{ failure_num.failed_num }}</button></a>
+                <a href="/refresh_memberships"><button>Update Memberships</button></a>
+            </div>
+            <div class="card">
+                <a href="/class_selector_force/{{ month }}/{{ day }}"><button>Class Check-In</button></a>
+                <a href="/class_lookup"><button>View a Class</button></a>
+                <a href="/student_lookup"><button>View/Edit a Student</button></a>
+                <a href="/student_portal_login"><button>Student Portal</button></a>
+                <button onclick="refresh_counts()">Reset Class Counts</button>
+            </div>
+            <div class="card">
+                <a href="/create_test"><button>Create a Test</button></a>
+                <a href="/test_lookup"><button>View a Test</button></a>
+                <a href="/progress_check_scores"><button>Progress Check Scores</button></a>
+                <a href="/belt_inventory"><button disabled>Belt Inventory</button></a>
+                <a href="/login"><button>Login</button></a>
+                <a href="/need_belts"><button>Fix Belt Sizes &mdash; {{ belt_counts[0].belt_count }}</button></a>
+            </div>
+        </div>
+    </div>
+    <script>
+        if (!navigator.serviceWorker.controller) {
+            navigator.serviceWorker.register("/sw.js").then(function(reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+        function refresh_counts() {
+            var ask = window.confirm("Are you sure you want to reset the class counts? This action will set all counts.");
+            if (ask) {
+                window.location.href = "/reset_counts";
+            }
+        }
+    </script>
+</body>
+</html>
