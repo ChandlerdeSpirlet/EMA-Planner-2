@@ -4640,303 +4640,311 @@ router.get('/progress_check/(:month_val)/(:barcode)', (req, res) => {
     })
 })
 
-router.post('/progress_check', (req, res) => {
-  const student_data_pc = "select first_name || ' ' || last_name as student_name, month_1, month_2, barcode, level_name from student_list where barcode = $1;"
-  var data = {
-    month_val: req.sanitize('month_val').trim(),
-    barcode: req.sanitize('barcode').trim(),
-    month_1_val: req.sanitize('month_1_val').trim(),
-    month_2_val: req.sanitize('month_2_val').trim(),
-    jj: req.sanitize('jj').trim(),
-    pu: req.sanitize('pu').trim(),
-    ll: req.sanitize('ll').trim(),
-    sp: req.sanitize('sp').trim(),
-    fk: req.sanitize('fk').trim()
-  }
-  var score_total = Number(data.jj) + Number(data.pu) + Number(data.ll) + Number(data.fk);
-  var score_total = Number(score_total);
-  console.log('score_total is ' + score_total);
-  console.log('month_1 data = ' + data.month_1_val);
-  if (data.month_val == 'month1'){
-    if (Number(data.month_1_val) > score_total){
-      db.any(student_data_pc, [data.barcode])
-        .then(values => {
-          res.render('progress_check_results', {
-            student_data: values,
-            fitness_data: data,
-            score_total: score_total,
-            month_val: data.month_val,
-            barcode: data.barcode,
-            alert_message: 'Your previous month 1 score of ' + String(data.month_1_val) + ' was kept because it was ' + String(Number(data.month_1_val) - score_total) + ' points higher than your previous score.'
-          })
-        })
-        .catch(err => {
-          res.render('progress_check_results', {
-            student_data: '',
-            fitness_data: data,
-            score_total: score_total,
-            month_val: data.month_val,
-            barcode: data.barcode,
-            alert_message: 'Unable to fetch student data (higher previous) in month 1. ERROR: ' + err
-          })
-      })
-    } else if (Number(data.month_1_val) == 0){
-      const month_1_update = "update student_list set month_1 = $1, month_1_splits = $2 where barcode = $3;";
-      db.any(month_1_update, [score_total, data.sp, data.barcode])
-        .then(update => {
-          db.any(student_data_pc, [data.barcode])
-            .then(values => {
-              res.render('progress_check_results', {
-                student_data: values,
-                fitness_data: data,
-                score_total: score_total,
-                month_val: data.month_val,
-                barcode: data.barcode,
-                alert_message: 'Your new month 1 score is ' + String(score_total)
-              })
-            })
-            .catch(err => {
-              res.render('progress_check_results', {
-                student_data: '',
-                fitness_data: data,
-            score_total: score_total,
-                month_val: data.month_val,
-                barcode: data.barcode,
-                alert_message: 'Unable to fetch student data (new higher) in month 1. ERROR: ' + err
-              })
-            })
-          })
-        .catch(err => {
-          res.render('progress_check_results', {
-            student_data: '',
-            fitness_data: data,
-            score_total: score_total,
-            month_val: data.month_val,
-            barcode: data.barcode,
-            alert_message: 'Unable to set new score for month 1. ERROR: ' + err
-          })
-        })
-    } else if (Number(data.month_1_val) < score_total){
-      const month_1_update = "update student_list set month_1 = $1, month_1_splits = $2 where barcode = $3;";
-      db.any(month_1_update, [score_total, data.sp, data.barcode])
-        .then(update => {
-          db.any(student_data_pc, [data.barcode])
-            .then(values => {
-              if (score_total - Number(data.month_1_val) == 1){
-                res.render('progress_check_results', {
-                  student_data: values,
-                  fitness_data: data,
-            score_total: score_total,
-                  month_val: data.month_val,
-                  barcode: data.barcode,
-                  alert_message: 'Your new month 1 score of ' + String(score_total) + ' is ' + String(score_total - Number(data.month_1_val)) + ' point higher than your previous score!'
-                })
-              } else {
-                res.render('progress_check_results', {
-                  student_data: values,
-                  fitness_data: data,
-            score_total: score_total,
-                  month_val: data.month_val,
-                  barcode: data.barcode,
-                  alert_message: 'Your new month 1 score of ' + String(score_total) + ' is ' + String(score_total - Number(data.month_1_val)) + ' points higher than your previous score!'
-                })
-              }
-            })
-            .catch(err => {
-              res.render('progress_check_results', {
-                student_data: '',
-                fitness_data: data,
-            score_total: score_total,
-                month_val: data.month_val,
-                barcode: data.barcode,
-                alert_message: 'Unable to fetch student data (new higher) in month 1. ERROR: ' + err
-              })
-            })
-          })
-        .catch(err => {
-          res.render('progress_check_results', {
-            student_data: '',
-            fitness_data: data,
-            score_total: score_total,
-            month_val: data.month_val,
-            barcode: data.barcode,
-            alert_message: 'Unable to set new score for month 1. ERROR: ' + err
-          })
-        })
-    } else {
-      db.any(student_data_pc, [data.barcode])
-        .then(values => {
-          res.render('progress_check_results', {
-            student_data: values,
-            fitness_data: data,
-            score_total: score_total,
-            month_val: data.month_val,
-            barcode: data.barcode,
-            alert_message: 'You tied with your previous month 1 score!'
-          })
-        })
-        .catch(err => {
-          res.render('progress_check_results', {
-            student_data: '',
-            fitness_data: data,
-            score_total: score_total,
-            month_val: data.month_val,
-            barcode: data.barcode,
-            alert_message: 'Unable to fetch student data (tie) in month 1. ERROR: ' + err
-          })
-      })
-    }
-  } else if (data.month_val == 'month2'){
-    if (Number(data.month_2_val) > score_total){
-      db.any(student_data_pc, [data.barcode])
-        .then(values => {
-          res.render('progress_check_results', {
-            student_data: values,
-            fitness_data: data,
-            score_total: score_total,
-            month_val: data.month_val,
-            barcode: data.barcode,
-            alert_message: 'Your previous month 2 score of ' + String(data.month_2_val) + ' was kept because it was ' + String(Number(data.month_2_val) - score_total) + ' points higher than your previous score.'
-          })
-        })
-        .catch(err => {
-          res.render('progress_check_results', {
-            student_data: '',
-            fitness_data: data,
-            score_total: score_total,
-            month_val: data.month_val,
-            barcode: data.barcode,
-            alert_message: 'Unable to fetch student data (higher previous) in month 2. ERROR: ' + err
-          })
-      })
-    } else if (Number(data.month_2_val) == 0){
-      const month_2_update = "update student_list set month_2 = $1, month_2_splits = $2 where barcode = $3;";
-      db.any(month_2_update, [score_total, data.sp, data.barcode])
-        .then(update => {
-          db.any(student_data_pc, [data.barcode])
-            .then(values => {
-              res.render('progress_check_results', {
-                student_data: values,
-                fitness_data: data,
-            score_total: score_total,
-                month_val: data.month_val,
-                barcode: data.barcode,
-                alert_message: 'Your new month 2 score is ' + String(score_total)
-              })
-            })
-            .catch(err => {
-              res.render('progress_check_results', {
-                student_data: '',
-                fitness_data: data,
-            score_total: score_total,
-                month_val: data.month_val,
-                barcode: data.barcode,
-                alert_message: 'Unable to fetch student data (new higher) in month 2. ERROR: ' + err
-              })
-            })
-          })
-        .catch(err => {
-          res.render('progress_check_results', {
-            student_data: '',
-            fitness_data: data,
-            score_total: score_total,
-            month_val: data.month_val,
-            barcode: data.barcode,
-            alert_message: 'Unable to set new score for month 2. ERROR: ' + err
-          })
-        })
-    } else if (Number(data.month_2_val) < score_total){
-      const month_2_update = "update student_list set month_2 = $1, month_2_splits = $2 where barcode = $3;";
-      db.any(month_2_update, [score_total, data.sp, data.barcode])
-        .then(update => {
-          db.any(student_data_pc, [data.barcode])
-            .then(values => {
-              if (score_total - data.month_2_val == 1){
-                res.render('progress_check_results', {
-                  student_data: values,
-                  fitness_data: data,
-            score_total: score_total,
-                  month_val: data.month_val,
-                  barcode: data.barcode,
-                  alert_message: 'Your new month 2 score of ' + String(score_total) + ' is ' + String(score_total - Number(data.month_2_val)) + ' point higher than your previous score!'
-                })
-              } else {
-                res.render('progress_check_results', {
-                  student_data: values,
-                  fitness_data: data,
-            score_total: score_total,
-                  month_val: data.month_val,
-                  barcode: data.barcode,
-                  alert_message: 'Your new month 2 score of ' + String(score_total) + ' is ' + String(score_total - Number(data.month_2_val)) + ' points higher than your previous score!'
-                })
-              }
-            })
-            .catch(err => {
-              res.render('progress_check_results', {
-                student_data: '',
-                fitness_data: data,
-            score_total: score_total,
-                month_val: data.month_val,
-                barcode: data.barcode,
-                alert_message: 'Unable to fetch student data (new higher) in month 2. ERROR: ' + err
-              })
-            })
-          })
-        .catch(err => {
-          res.render('progress_check_results', {
-            values: '',
-            fitness_data: data,
-            score_total: score_total,
-            month_val: data.month_val,
-            barcode: data.barcode,
-            alert_message: 'Unable to set new score for month 2. ERROR: ' + err
-          })
-        })
-    } else {
-      db.any(student_data_pc, [data.barcode])
-        .then(values => {
-          res.render('progress_check_results', {
-            student_data: values,
-            fitness_data: data,
-            score_total: score_total,
-            month_val: data.month_val,
-            barcode: data.barcode,
-            alert_message: 'You tied with your previous month 2 score!'
-          })
-        })
-        .catch(err => {
-          res.render('progress_check_results', {
-            student_data: '',
-            fitness_data: data,
-            score_total: score_total,
-            month_val: data.month_val,
-            barcode: data.barcode,
-            alert_message: 'Unable to fetch student data (tie) in month 2. ERROR: ' + err
-          })
-      })
-    }
+const pcValidate = [
+  check('jj', 'Jumping jacks cannot be empty').isLength({ min: 1}).trim().escape(), check('pu', 'Pushups cannot be empty').isLength({ min: 1}).trim().escape(), check('ll', 'Leg lifts cannot be empty').isLength({ min: 1}).trim().escape(), check('jj', 'Jumping jacks cannot be empty').isLength({ min: 1}).trim().escape(), check('fk', 'Front kicks cannot be empty').isLength({ min: 1}).trim().escape(), check('sp', 'Splits are broken').trim().escape()
+]
+router.post('/progress_check', pcValidate, (req, res) => {
+  const pcErrors = validationResult(req)
+  if (!pcErrors.isEmpty()) {
+    res.status(422).json({ errors: pcErrors.array() })
   } else {
-    db.any(student_data_pc, [data.barcode])
-      .then(values => {
-        res.render('progress_check_results', {
-          student_data: values,
-          fitness_data: data,
-            score_total: score_total,
-          month_val: data.month_val,
-          barcode: data.barcode,
-          alert_message: 'Unable to determine which progress check month to submit.'
+    const student_data_pc = "select first_name || ' ' || last_name as student_name, month_1, month_2, barcode, level_name from student_list where barcode = $1;"
+    var data = {
+      month_val: req.body.month_val,
+      barcode: req.body.barcode,
+      month_1_val: req.body.month_1_val,
+      month_2_val: req.body.month_2_val,
+      jj: req.body.jj,
+      pu: req.body.pu,
+      ll: req.body.ll,
+      sp: req.body.sp,
+      fk: req.body.fk
+    }
+    var score_total = Number(data.jj) + Number(data.pu) + Number(data.ll) + Number(data.fk);
+    var score_total = Number(score_total);
+    console.log('score_total is ' + score_total);
+    console.log('month_1 data = ' + data.month_1_val);
+    if (data.month_val == 'month1'){
+      if (Number(data.month_1_val) > score_total){
+        db.any(student_data_pc, [data.barcode])
+          .then(values => {
+            res.render('progress_check_results', {
+              student_data: values,
+              fitness_data: data,
+              score_total: score_total,
+              month_val: data.month_val,
+              barcode: data.barcode,
+              alert_message: 'Your previous month 1 score of ' + String(data.month_1_val) + ' was kept because it was ' + String(Number(data.month_1_val) - score_total) + ' points higher than your previous score.'
+            })
+          })
+          .catch(err => {
+            res.render('progress_check_results', {
+              student_data: '',
+              fitness_data: data,
+              score_total: score_total,
+              month_val: data.month_val,
+              barcode: data.barcode,
+              alert_message: 'Unable to fetch student data (higher previous) in month 1. ERROR: ' + err
+            })
         })
-      })
-      .catch(err => {
-        res.render('progress_check_results', {
-          student_data: '',
-          fitness_data: data,
-            score_total: score_total,
-          month_val: data.month_val,
-          barcode: data.barcode,
-          alert_message: 'Unable to fetch student data in undetermined month. ERROR: ' + err
+      } else if (Number(data.month_1_val) == 0){
+        const month_1_update = "update student_list set month_1 = $1, month_1_splits = $2 where barcode = $3;";
+        db.any(month_1_update, [score_total, data.sp, data.barcode])
+          .then(update => {
+            db.any(student_data_pc, [data.barcode])
+              .then(values => {
+                res.render('progress_check_results', {
+                  student_data: values,
+                  fitness_data: data,
+                  score_total: score_total,
+                  month_val: data.month_val,
+                  barcode: data.barcode,
+                  alert_message: 'Your new month 1 score is ' + String(score_total)
+                })
+              })
+              .catch(err => {
+                res.render('progress_check_results', {
+                  student_data: '',
+                  fitness_data: data,
+              score_total: score_total,
+                  month_val: data.month_val,
+                  barcode: data.barcode,
+                  alert_message: 'Unable to fetch student data (new higher) in month 1. ERROR: ' + err
+                })
+              })
+            })
+          .catch(err => {
+            res.render('progress_check_results', {
+              student_data: '',
+              fitness_data: data,
+              score_total: score_total,
+              month_val: data.month_val,
+              barcode: data.barcode,
+              alert_message: 'Unable to set new score for month 1. ERROR: ' + err
+            })
+          })
+      } else if (Number(data.month_1_val) < score_total){
+        const month_1_update = "update student_list set month_1 = $1, month_1_splits = $2 where barcode = $3;";
+        db.any(month_1_update, [score_total, data.sp, data.barcode])
+          .then(update => {
+            db.any(student_data_pc, [data.barcode])
+              .then(values => {
+                if (score_total - Number(data.month_1_val) == 1){
+                  res.render('progress_check_results', {
+                    student_data: values,
+                    fitness_data: data,
+              score_total: score_total,
+                    month_val: data.month_val,
+                    barcode: data.barcode,
+                    alert_message: 'Your new month 1 score of ' + String(score_total) + ' is ' + String(score_total - Number(data.month_1_val)) + ' point higher than your previous score!'
+                  })
+                } else {
+                  res.render('progress_check_results', {
+                    student_data: values,
+                    fitness_data: data,
+              score_total: score_total,
+                    month_val: data.month_val,
+                    barcode: data.barcode,
+                    alert_message: 'Your new month 1 score of ' + String(score_total) + ' is ' + String(score_total - Number(data.month_1_val)) + ' points higher than your previous score!'
+                  })
+                }
+              })
+              .catch(err => {
+                res.render('progress_check_results', {
+                  student_data: '',
+                  fitness_data: data,
+              score_total: score_total,
+                  month_val: data.month_val,
+                  barcode: data.barcode,
+                  alert_message: 'Unable to fetch student data (new higher) in month 1. ERROR: ' + err
+                })
+              })
+            })
+          .catch(err => {
+            res.render('progress_check_results', {
+              student_data: '',
+              fitness_data: data,
+              score_total: score_total,
+              month_val: data.month_val,
+              barcode: data.barcode,
+              alert_message: 'Unable to set new score for month 1. ERROR: ' + err
+            })
+          })
+      } else {
+        db.any(student_data_pc, [data.barcode])
+          .then(values => {
+            res.render('progress_check_results', {
+              student_data: values,
+              fitness_data: data,
+              score_total: score_total,
+              month_val: data.month_val,
+              barcode: data.barcode,
+              alert_message: 'You tied with your previous month 1 score!'
+            })
+          })
+          .catch(err => {
+            res.render('progress_check_results', {
+              student_data: '',
+              fitness_data: data,
+              score_total: score_total,
+              month_val: data.month_val,
+              barcode: data.barcode,
+              alert_message: 'Unable to fetch student data (tie) in month 1. ERROR: ' + err
+            })
         })
-      })
+      }
+    } else if (data.month_val == 'month2'){
+      if (Number(data.month_2_val) > score_total){
+        db.any(student_data_pc, [data.barcode])
+          .then(values => {
+            res.render('progress_check_results', {
+              student_data: values,
+              fitness_data: data,
+              score_total: score_total,
+              month_val: data.month_val,
+              barcode: data.barcode,
+              alert_message: 'Your previous month 2 score of ' + String(data.month_2_val) + ' was kept because it was ' + String(Number(data.month_2_val) - score_total) + ' points higher than your previous score.'
+            })
+          })
+          .catch(err => {
+            res.render('progress_check_results', {
+              student_data: '',
+              fitness_data: data,
+              score_total: score_total,
+              month_val: data.month_val,
+              barcode: data.barcode,
+              alert_message: 'Unable to fetch student data (higher previous) in month 2. ERROR: ' + err
+            })
+        })
+      } else if (Number(data.month_2_val) == 0){
+        const month_2_update = "update student_list set month_2 = $1, month_2_splits = $2 where barcode = $3;";
+        db.any(month_2_update, [score_total, data.sp, data.barcode])
+          .then(update => {
+            db.any(student_data_pc, [data.barcode])
+              .then(values => {
+                res.render('progress_check_results', {
+                  student_data: values,
+                  fitness_data: data,
+              score_total: score_total,
+                  month_val: data.month_val,
+                  barcode: data.barcode,
+                  alert_message: 'Your new month 2 score is ' + String(score_total)
+                })
+              })
+              .catch(err => {
+                res.render('progress_check_results', {
+                  student_data: '',
+                  fitness_data: data,
+              score_total: score_total,
+                  month_val: data.month_val,
+                  barcode: data.barcode,
+                  alert_message: 'Unable to fetch student data (new higher) in month 2. ERROR: ' + err
+                })
+              })
+            })
+          .catch(err => {
+            res.render('progress_check_results', {
+              student_data: '',
+              fitness_data: data,
+              score_total: score_total,
+              month_val: data.month_val,
+              barcode: data.barcode,
+              alert_message: 'Unable to set new score for month 2. ERROR: ' + err
+            })
+          })
+      } else if (Number(data.month_2_val) < score_total){
+        const month_2_update = "update student_list set month_2 = $1, month_2_splits = $2 where barcode = $3;";
+        db.any(month_2_update, [score_total, data.sp, data.barcode])
+          .then(update => {
+            db.any(student_data_pc, [data.barcode])
+              .then(values => {
+                if (score_total - data.month_2_val == 1){
+                  res.render('progress_check_results', {
+                    student_data: values,
+                    fitness_data: data,
+              score_total: score_total,
+                    month_val: data.month_val,
+                    barcode: data.barcode,
+                    alert_message: 'Your new month 2 score of ' + String(score_total) + ' is ' + String(score_total - Number(data.month_2_val)) + ' point higher than your previous score!'
+                  })
+                } else {
+                  res.render('progress_check_results', {
+                    student_data: values,
+                    fitness_data: data,
+              score_total: score_total,
+                    month_val: data.month_val,
+                    barcode: data.barcode,
+                    alert_message: 'Your new month 2 score of ' + String(score_total) + ' is ' + String(score_total - Number(data.month_2_val)) + ' points higher than your previous score!'
+                  })
+                }
+              })
+              .catch(err => {
+                res.render('progress_check_results', {
+                  student_data: '',
+                  fitness_data: data,
+              score_total: score_total,
+                  month_val: data.month_val,
+                  barcode: data.barcode,
+                  alert_message: 'Unable to fetch student data (new higher) in month 2. ERROR: ' + err
+                })
+              })
+            })
+          .catch(err => {
+            res.render('progress_check_results', {
+              values: '',
+              fitness_data: data,
+              score_total: score_total,
+              month_val: data.month_val,
+              barcode: data.barcode,
+              alert_message: 'Unable to set new score for month 2. ERROR: ' + err
+            })
+          })
+      } else {
+        db.any(student_data_pc, [data.barcode])
+          .then(values => {
+            res.render('progress_check_results', {
+              student_data: values,
+              fitness_data: data,
+              score_total: score_total,
+              month_val: data.month_val,
+              barcode: data.barcode,
+              alert_message: 'You tied with your previous month 2 score!'
+            })
+          })
+          .catch(err => {
+            res.render('progress_check_results', {
+              student_data: '',
+              fitness_data: data,
+              score_total: score_total,
+              month_val: data.month_val,
+              barcode: data.barcode,
+              alert_message: 'Unable to fetch student data (tie) in month 2. ERROR: ' + err
+            })
+        })
+      }
+    } else {
+      db.any(student_data_pc, [data.barcode])
+        .then(values => {
+          res.render('progress_check_results', {
+            student_data: values,
+            fitness_data: data,
+              score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'Unable to determine which progress check month to submit.'
+          })
+        })
+        .catch(err => {
+          res.render('progress_check_results', {
+            student_data: '',
+            fitness_data: data,
+              score_total: score_total,
+            month_val: data.month_val,
+            barcode: data.barcode,
+            alert_message: 'Unable to fetch student data in undetermined month. ERROR: ' + err
+          })
+        })
+    }
   }
 })
 
