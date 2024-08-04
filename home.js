@@ -4970,6 +4970,19 @@ router.get('/progress_check_scores', passageAuthMiddleware, async(req, res) => {
   }
 })
 
+router.get('/reset_counts', function (req, res) {
+  const count_reset = 'update student_list set reg_class = 0, spar_class = 0, swat_count = 0 where barcode > 0 and belt_order >= 4'
+  db.none(count_reset)
+    .then(row => {
+      console.log('Counts reset')
+      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com')
+    })
+    .catch(err => {
+      console.log('Could not reset counts. Error: ' + err)
+      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com')
+    })
+})
+
 router.get('/refresh_scores', passageAuthMiddleware, async(req, res) => {
   if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     const reset_query = "update student_list set month_1 = 0, month_2 = 0, month_1_splits = '0:00', month_2_splits = '0:00';";
