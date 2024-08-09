@@ -28,6 +28,22 @@ const passageConfig = {
 }
 const staffArray = process.env.STAFF_USER_ID.split(',')
 
+JSON.safeStringify = (obj, indent = 2) => {
+  let cache = [];
+  const retVal = JSON.stringify(
+      obj,
+      (key, value) =>
+          typeof value === "object" && value !== null
+          ? cache.includes(value)
+              ? undefined // Duplicate reference found, discard key
+              : cache.push(value) && value // Store value in our collection
+          : value,
+      indent
+  );
+  cache = null;
+  return retVal;
+};
+
 const settings = {
   port: 8080,
   apiv4url: 'https://api.paysimple.com/v4',
