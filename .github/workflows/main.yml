@@ -18,7 +18,7 @@ jobs:
     - name: Install ESLint
       run: npm install eslint
     - name: Run ESLint
-      run: npx eslint . --ext .js,.jsx,.ts,.tsx
+      run: npx eslint . --ext .js,.jsx,.ts,.tsx --config .eslintrc.json
   deploy:
     runs-on: ubuntu-latest
     steps:
