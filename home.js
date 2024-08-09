@@ -5646,7 +5646,7 @@ router.post('/student_data', dataValidate, (req, res) => {
           items.belt_size = -1
         }
         if (items.phone == ''){
-          items.phone = 1111111111
+          items.phone = 3030000000
         }
         console.log('items: ' + JSON.safeStringify(items));
         var bday_string = "Birthday is " + items.bday;
@@ -6103,7 +6103,7 @@ router.post('/enrollStudent', studentValidate, (req, res) => {
       item.email = 'no@email.com'
     }
     if (item.phone === '') {
-      item.phone = 1231231234
+      item.phone = 3030000000
     }
     if (item.addr === '') {
       item.addr = '123 Sesame St.'
@@ -6348,8 +6348,6 @@ request.get({
     "is_active": 'true',
   })
 }, function(e,r,b){
-  console.log('res: ' + JSON.safeStringify(r))
-  console.log('body: ' + JSON.safeStringify(b))
   console.log('error: ' + JSON.safeStringify(e))
 })
 
