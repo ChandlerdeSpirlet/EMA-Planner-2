@@ -6078,17 +6078,17 @@ router.post('/enrollStudent', studentValidate, (req, res) => {
     res.status(422).json({ errors: studentErrors.array() })
   } else {
     var item = {
-      firstName: req.sanitize('firstName').trim(),
-      lastName: req.sanitize('lastName').trim(),
-      email: req.sanitize('email').trim(),
-      phone: req.sanitize('phone').trim(),
-      beltColor: req.sanitize('beltColor').trim(),
-      beltSize: req.sanitize('beltSize').trim(),
-      addr: req.sanitize('addr').trim(),
-      apt: req.sanitize('apt').trim(),
-      city: req.sanitize('city').trim(),
-      zip: req.sanitize('zip').trim(),
-      bday: req.sanitize('bday').trim()
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.email,
+      phone: req.body.phone,
+      beltColor: req.body.beltColor,
+      beltSize: req.body.beltSize,
+      addr: req.body.addr,
+      apt: req.body.apt,
+      city: req.body.city,
+      zip: req.body.zip,
+      bday: req.body.bday
     }
     if (item.apt === '') {
       item.apt = null
