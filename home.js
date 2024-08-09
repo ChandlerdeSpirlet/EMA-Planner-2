@@ -6060,17 +6060,17 @@ router.get('/enrollStudent', passageAuthMiddleware, async(req, res) => {
 })
 
 const studentValidate = [
-  check('firstName').isLength({ min: 1}).trim().escape().withMessage('First Name cannot be empty'),
-  check('lastName').isLength({ min: 1 }).trim().escape().withMessage('Last Name cannot be empty'),
-  check('email').isEmail().trim().escape().withMessage('Email cannot be empty or is not a valid email'),
-  check('phone').isLength({ min: 1 }).trim().escape().withMessage('Phone number cannot be empty'),
-  check('beltColor').isLength({ min: 1 }).trim().escape().withMessage('Belt Color cannot be empty'),
-  check('beltSize').isLength({ min: 1 }).trim().escape().withMessage('Belt Size cannot be empty'),
-  check('addr').trim().escape().withMessage('Something is wrong with the address'),
-  check('apt').trim().escape().withMessage('Something is wrong with the apartment/unit'),
-  check('city').trim().escape().withMessage('Something is wrong with the city'),
-  check('zip').trim().escape().withMessage('Something is wrong with the zip code'),
-  check('bday').trim().escape().withMessage('Something is wrong with the birthday')
+  check('firstName', 'First Name cannot be empty').isLength({ min: 1}).trim().escape().withMessage('First Name cannot be empty'),
+  check('lastName', 'Last Name cannot be empty').isLength({ min: 1 }).trim().escape().withMessage('Last Name cannot be empty'),
+  check('email', 'Email cannot be empty').isEmail().trim().escape().withMessage('Email cannot be empty or is not a valid email'),
+  check('phone', 'Phone number cannot be empty').isLength({ min: 1 }).trim().escape().withMessage('Phone number cannot be empty'),
+  check('beltColor', 'Belt Color cannot be empty').isLength({ min: 1 }).trim().escape().withMessage('Belt Color cannot be empty'),
+  check('beltSize', 'Belt Size cannot be empty').isLength({ min: 1 }).trim().escape().withMessage('Belt Size cannot be empty'),
+  check('addr', 'Something is wrong').trim().escape().withMessage('Something is wrong with the address'),
+  check('apt', 'Something is wrong').trim().escape().withMessage('Something is wrong with the apartment/unit'),
+  check('city', 'Something is wrong').trim().escape().withMessage('Something is wrong with the city'),
+  check('zip', 'Something is wrong').trim().escape().withMessage('Something is wrong with the zip code'),
+  check('bday', 'Something is wrong').trim().escape().withMessage('Something is wrong with the birthday')
 ]
 router.post('/enrollStudent', studentValidate, (req, res) => {
   const studentErrors = validationResult(req)
