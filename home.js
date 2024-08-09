@@ -5055,9 +5055,9 @@ function parseURL(data_set) { //class_id, level, time, type, can_view
   var data = data_set;
   var values = [];
   while (data.indexOf('__') >= 0) {
-      first_dash = data.indexOf('__');
-      values.push(data.substring(0, first_dash));
-      data = data.substring(first_dash + 2, first_dash.length);
+      const firstDash = data.indexOf('__');
+      values.push(data.substring(0, firstDash));
+      data = data.substring(firstDash + 2, firstDash.length);
       if (data.indexOf('__') == -1) {
           values.push(data);
       }
