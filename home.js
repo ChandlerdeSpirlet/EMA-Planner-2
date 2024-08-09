@@ -6066,11 +6066,11 @@ const studentValidate = [
   check('phone', 'Phone number cannot be empty').isLength({ min: 1 }).trim().escape().withMessage('Phone number cannot be empty'),
   check('beltColor', 'Belt Color cannot be empty').isLength({ min: 1 }).trim().escape().withMessage('Belt Color cannot be empty'),
   check('beltSize', 'Belt Size cannot be empty').isLength({ min: 1 }).trim().escape().withMessage('Belt Size cannot be empty'),
-  check('addr', 'Something is wrong').trim().escape().withMessage('Something is wrong with the address'),
-  check('apt', 'Something is wrong').trim().escape().withMessage('Something is wrong with the apartment/unit'),
-  check('city', 'Something is wrong').trim().escape().withMessage('Something is wrong with the city'),
-  check('zip', 'Something is wrong').trim().escape().withMessage('Something is wrong with the zip code'),
-  check('bday', 'Something is wrong').trim().escape().withMessage('Something is wrong with the birthday')
+  check('addr', 'Something is wrong').trim().escape(),
+  check('apt', 'Something is wrong').trim().escape(),
+  check('city', 'Something is wrong').trim().escape(),
+  check('zip', 'Something is wrong').trim().escape(),
+  check('bday', 'Something is wrong').trim().escape()
 ]
 router.post('/enrollStudent', studentValidate, (req, res) => {
   const studentErrors = validationResult(req)
