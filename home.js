@@ -6059,125 +6059,143 @@ router.get('/enrollStudent', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.post('/enrollStudent', (req, res) => {
-  var item = {
-    firstName: req.sanitize('firstName').trim(),
-    lastName: req.sanitize('lastName').trim(),
-    email: req.sanitize('email').trim(),
-    phone: req.sanitize('phone').trim(),
-    beltColor: req.sanitize('beltColor').trim(),
-    beltSize: req.sanitize('beltSize').trim(),
-    addr: req.sanitize('addr').trim(),
-    apt: req.sanitize('apt').trim(),
-    city: req.sanitize('city').trim(),
-    zip: req.sanitize('zip').trim(),
-    bday: req.sanitize('bday').trim()
-  }
-  if (item.apt === '') {
-    item.apt = null
-  }
-  if (item.email === '') {
-    item.email = 'no@email.com'
-  }
-  if (item.phone === '') {
-    item.phone = 1231231234
-  }
-  if (item.addr === '') {
-    item.addr = '123 Sesame St.'
-  }
-  if (item.city === '') {
-    item.city = 'None'
-  }
-  if (item.zip === '') {
-    item.zip = 12345
-  }
-  if (item.bday === '') {
-    item.bday = '1930-07-15'
-  }
-  const options = {
-    method: 'POST',
-    uri: settings.apiv4url + '/customer',
-    headers: {
-      Authorization: getAuthHeader()
-    },
-    json: true,
-    body: {
-      FirstName: item.firstName,
-      LastName: item.lastName,
-      ShippingSameAsBilling: true,
-      BillingAddress: {
-        StreetAddress1: item.addr,
-        StreetAddress2: item.apt,
-        City: item.city,
-        StateCode: 'CO',
-        ZipCode: item.zip
-      },
-      Phone: item.phone,
-      Email: item.email,
-      Notes: 'This person was created with EMA Side Kick - Lakewood'
+const studentValidate = [
+  check('firstName').isLength({ min: 1}).trim().escape().withMessage('First Name cannot be empty'),
+  check('lastName').isLength({ min: 1 }).trim().escape().withMessage('Last Name cannot be empty'),
+  check('email').isEmail().trim().escape().withMessage('Email cannot be empty or is not a valid email'),
+  check('phone').isLength({ min: 1 }).trim().escape().withMessage('Phone number cannot be empty'),
+  check('beltColor').isLength({ min: 1 }).trim().escape().withMessage('Belt Color cannot be empty'),
+  check('beltSize').isLength({ min: 1 }).trim().escape().withMessage('Belt Size cannot be empty'),
+  check('addr').trim().escape().withMessage('Something is wrong with the address'),
+  check('apt').trim().escape().withMessage('Something is wrong with the apartment/unit'),
+  check('city').trim().escape().withMessage('Something is wrong with the city'),
+  check('zip').trim().escape().withMessage('Something is wrong with the zip code'),
+  check('bday').trim().escape().withMessage('Something is wrong with the birthday')
+]
+router.post('/enrollStudent', studentValidate, (req, res) => {
+  const studentErrors = validationResult(req)
+  if (!studentErrors.isEmpty()) {
+    res.status(422).json({ errors: studentErrors.array() })
+  } else {
+    var item = {
+      firstName: req.sanitize('firstName').trim(),
+      lastName: req.sanitize('lastName').trim(),
+      email: req.sanitize('email').trim(),
+      phone: req.sanitize('phone').trim(),
+      beltColor: req.sanitize('beltColor').trim(),
+      beltSize: req.sanitize('beltSize').trim(),
+      addr: req.sanitize('addr').trim(),
+      apt: req.sanitize('apt').trim(),
+      city: req.sanitize('city').trim(),
+      zip: req.sanitize('zip').trim(),
+      bday: req.sanitize('bday').trim()
     }
-  }
-  request(options, function (error, response, body) {
-    if (!error && response && response.statusCode < 300) {
-      const barcode = body.Response.Id
-      const joinedOn = body.Response.CreatedOn
-      const info = joinedOn.substring(0, joinedOn.indexOf('T')) // MM-DD-YYYY
-      console.log('bday is ' + item.bday)
-      const levelInfo = parseBelt(item.beltColor, false) // returns belt color, level, and belt_order value
-      const newStudent = "insert into student_list (barcode, first_name, last_name, belt_color, belt_size, belt_order, addr, addr_2, email, level_name, join_date, bday) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, to_date($11, 'YYYY-MM-DD'), to_date($12, 'YYYY-MM-DD'));"
-      db.none(newStudent, [barcode, item.firstName, item.lastName, levelInfo[0], item.beltSize, levelInfo[2], item.addr, item.apt, item.email, levelInfo[1], info, item.bday])
-        .then(row => {
-          res.render('enrollStudent', {
-            firstName: '',
-            lastName: '',
-            email: '',
-            phone: '',
-            beltColor: '',
-            beltSize: '',
-            addr: '',
-            apt: '',
-            city: '',
-            zip: '',
-            bday: '',
-            alert_message: 'Successfully added ' + item.firstName + ' ' + item.lastName + ' to the student list'
+    if (item.apt === '') {
+      item.apt = null
+    }
+    if (item.email === '') {
+      item.email = 'no@email.com'
+    }
+    if (item.phone === '') {
+      item.phone = 1231231234
+    }
+    if (item.addr === '') {
+      item.addr = '123 Sesame St.'
+    }
+    if (item.city === '') {
+      item.city = 'None'
+    }
+    if (item.zip === '') {
+      item.zip = 12345
+    }
+    if (item.bday === '') {
+      item.bday = '1930-07-15'
+    }
+    const options = {
+      method: 'POST',
+      uri: settings.apiv4url + '/customer',
+      headers: {
+        Authorization: getAuthHeader()
+      },
+      json: true,
+      body: {
+        FirstName: item.firstName,
+        LastName: item.lastName,
+        ShippingSameAsBilling: true,
+        BillingAddress: {
+          StreetAddress1: item.addr,
+          StreetAddress2: item.apt,
+          City: item.city,
+          StateCode: 'CO',
+          ZipCode: item.zip
+        },
+        Phone: item.phone,
+        Email: item.email,
+        Notes: 'This person was created with EMA Side Kick - Lakewood'
+      }
+    }
+    request(options, function (error, response, body) {
+      if (!error && response && response.statusCode < 300) {
+        const barcode = body.Response.Id
+        const joinedOn = body.Response.CreatedOn
+        const info = joinedOn.substring(0, joinedOn.indexOf('T')) // MM-DD-YYYY
+        console.log('bday is ' + item.bday)
+        const levelInfo = parseBelt(item.beltColor, false) // returns belt color, level, and belt_order value
+        const newStudent = "insert into student_list (barcode, first_name, last_name, belt_color, belt_size, belt_order, addr, addr_2, email, level_name, join_date, bday) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, to_date($11, 'YYYY-MM-DD'), to_date($12, 'YYYY-MM-DD'));"
+        db.none(newStudent, [barcode, item.firstName, item.lastName, levelInfo[0], item.beltSize, levelInfo[2], item.addr, item.apt, item.email, levelInfo[1], info, item.bday])
+          .then(row => {
+            res.render('enrollStudent', {
+              firstName: '',
+              lastName: '',
+              email: '',
+              phone: '',
+              beltColor: '',
+              beltSize: '',
+              addr: '',
+              apt: '',
+              city: '',
+              zip: '',
+              bday: '',
+              alert_message: 'Successfully added ' + item.firstName + ' ' + item.lastName + ' to the student list'
+            })
           })
-        })
-        .catch(err => {
-          res.render('enrollStudent', {
-            firstName: '',
-            lastName: '',
-            email: '',
-            phone: '',
-            beltColor: '',
-            beltSize: '',
-            addr: '',
-            apt: '',
-            city: '',
-            zip: '',
-            bday: '',
-            alert_message: 'ERROR! Unable to add ' + item.firstName + ' ' + item.lastName + ' to the student list. ERROR: ' + err
+          .catch(err => {
+            res.render('enrollStudent', {
+              firstName: '',
+              lastName: '',
+              email: '',
+              phone: '',
+              beltColor: '',
+              beltSize: '',
+              addr: '',
+              apt: '',
+              city: '',
+              zip: '',
+              bday: '',
+              alert_message: 'ERROR! Unable to add ' + item.firstName + ' ' + item.lastName + ' to the student list. ERROR: ' + err
+            })
           })
+          // res.status((response && response.statusCode) || 500).send(error);
+      } else {
+        console.log('ERROR in adding student: ' + error)
+        res.render('enrollStudent', {
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          beltColor: '',
+          beltSize: '',
+          addr: '',
+          apt: '',
+          city: '',
+          zip: '',
+          bday: '',
+          alert_message: 'ERROR! Unable to add ' + item.firstName + ' ' + item.lastName + ' to the student list. ERROR: ' + error
         })
         // res.status((response && response.statusCode) || 500).send(error);
-    } else {
-      console.log('ERROR in adding student: ' + error)
-      res.render('enrollStudent', {
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        beltColor: '',
-        beltSize: '',
-        addr: '',
-        apt: '',
-        city: '',
-        zip: '',
-        bday: '',
-        alert_message: 'ERROR! Unable to add ' + item.firstName + ' ' + item.lastName + ' to the student list. ERROR: ' + error
-      })
-      // res.status((response && response.statusCode) || 500).send(error);
-    }
-  })
+      }
+    })
+  }
 })
 
 router.get('/viewNew', passageAuthMiddleware, async(req, res) => {
