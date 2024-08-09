@@ -282,6 +282,25 @@ function parseBB(currentColor, isPromotion) { //returns belt color, level, and b
   return beltInfo;
 }
 
+router.get('/student_level_list', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+    const student_list = 'select first_name, last_name, belt_color, belt_size, level_name from student_list order by belt_order, last_name;';
+    db.any(student_list)
+      .then(rows => {
+        res.render('student_level_list', {
+          students: rows
+        })
+      })
+  } else {
+    res.render('login', {
+      username: '',
+      password: '',
+      go_to: '/student_level_list',
+      alert_message: ''
+    })
+  }
+})
+
 function parseBelt (currentColor, isPromotion) { // returns belt color, level, and belt_order value
   var beltInfo = ['', '', 999]
   if (isPromotion) {
@@ -5579,7 +5598,7 @@ router.post('/count_update', (req, res) => {
 })
 
 const dataValidate = [
-  check('barcode', 'Barcode must not be empty').trim().escape().isLength({ min: 1 }), check('first_name', 'First Name must not be empty').trim().escape().isLength({ min: 1 }), check('last_name', 'Last Name must not be empty').trim().escape().isLength({ min: 1 }), check('email', 'Something is wrong with the email').trim().escape(), check('belt_size', 'Belt size must not be empty').trim().escape(), check('belt_color', 'Belt color must not be empty').trim().escape(), check('addr', 'Address is busted').trim().escape(), check('addr_2', 'Unit/Suite is busted').trim().escape(), check('city', 'City is bad').trim().escape(), check('zip', 'ZIP is bad').trim().escape(), check('bday', 'Birthday is bad').trim().escape()
+  check('barcode', 'Barcode must not be empty').trim().escape().isLength({ min: 1 }), check('first_name', 'First Name must not be empty').trim().escape().isLength({ min: 1 }), check('last_name', 'Last Name must not be empty').trim().escape().isLength({ min: 1 }), check('email', 'Something is wrong with the email').trim().escape(), check('beltSize', 'Belt size must not be empty').trim().escape(), check('beltColor', 'Belt color must not be empty').trim().escape(), check('addr', 'Address is busted').trim().escape(), check('addr_2', 'Unit/Suite is busted').trim().escape(), check('city', 'City is bad').trim().escape(), check('zip', 'ZIP is bad').trim().escape(), check('bday', 'Birthday is bad').trim().escape()
 ]
 router.post('/student_data', dataValidate, (req, res) => {
   const dataErrors = validationResult(req)
@@ -5591,8 +5610,8 @@ router.post('/student_data', dataValidate, (req, res) => {
       first_name: req.body.first_name,
       last_name:  req.body.last_name,
       email: req.body.email,
-      belt_size: req.body.belt_size,
-      belt_color: req.body.belt_color,
+      belt_size: req.body.beltSize,
+      belt_color: req.body.beltColor,
       addr: req.body.addr,
       addr_2: req.body.addr_2,
       city: req.body.city,
