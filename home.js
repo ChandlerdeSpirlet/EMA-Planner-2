@@ -5598,7 +5598,7 @@ router.post('/count_update', (req, res) => {
 })
 
 const dataValidate = [
-  check('barcode', 'Barcode must not be empty').trim().escape().isLength({ min: 1 }), check('first_name', 'First Name must not be empty').trim().escape().isLength({ min: 1 }), check('last_name', 'Last Name must not be empty').trim().escape().isLength({ min: 1 }), check('email', 'Something is wrong with the email').trim().escape(), check('beltSize', 'Belt size must not be empty').trim().escape(), check('beltColor', 'Belt color must not be empty').trim().escape(), check('addr', 'Address is busted').trim().escape(), check('addr_2', 'Unit/Suite is busted').trim().escape(), check('city', 'City is bad').trim().escape(), check('zip', 'ZIP is bad').trim().escape(), check('bday', 'Birthday is bad').trim().escape()
+  check('barcode', 'Barcode must not be empty').trim().escape().isLength({ min: 1 }), check('first_name', 'First Name must not be empty').trim().escape().isLength({ min: 1 }), check('last_name', 'Last Name must not be empty').trim().escape().isLength({ min: 1 }), check('email', 'Something is wrong with the email').trim().escape(), check('phone', 'Something is wrong with the phone number').trim().escape(), check('beltSize', 'Belt size must not be empty').trim().escape(), check('beltColor', 'Belt color must not be empty').trim().escape(), check('addr', 'Address is busted').trim().escape(), check('addr_2', 'Unit/Suite is busted').trim().escape(), check('city', 'City is bad').trim().escape(), check('zip', 'ZIP is bad').trim().escape(), check('bday', 'Birthday is bad').trim().escape()
 ]
 router.post('/student_data', dataValidate, (req, res) => {
   const dataErrors = validationResult(req)
@@ -5610,6 +5610,7 @@ router.post('/student_data', dataValidate, (req, res) => {
       first_name: req.body.first_name,
       last_name:  req.body.last_name,
       email: req.body.email,
+      phone: req.body.phone,
       belt_size: req.body.beltSize,
       belt_color: req.body.beltColor,
       addr: req.body.addr,
@@ -5644,6 +5645,9 @@ router.post('/student_data', dataValidate, (req, res) => {
         if (items.belt_size == ''){
           items.belt_size = -1
         }
+        if (items.phone == ''){
+          items.phone = 1111111111
+        }
         console.log('items: ' + JSON.safeStringify(items));
         var bday_string = "Birthday is " + items.bday;
         console.log('Bday is ' + items.bday)
@@ -5668,7 +5672,8 @@ router.post('/student_data', dataValidate, (req, res) => {
                 "StateCode": 'CO'
               },
               "Notes": bday_string,
-              "Email": items.email
+              "Email": items.email,
+              "Phone": items.ph
               },
               json: true,
             };
@@ -6112,6 +6117,7 @@ router.post('/enrollStudent', studentValidate, (req, res) => {
     if (item.bday === '') {
       item.bday = '1930-07-15'
     }
+    item.phone = item.phone.replace('(', '').replace(')', '').replace('-', '').replace(' ', '')
     const options = {
       method: 'POST',
       uri: settings.apiv4url + '/customer',
@@ -6242,7 +6248,7 @@ router.get('/viewNew', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)', passageAuthMiddleware, async(req, res) => {
+router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)/(:phone)', passageAuthMiddleware, async(req, res) => {
   if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
     if (String(req.params.inList) == 'true'){
       const update_import_query = 'update student_list set barcode = $1 where Lower(first_name) = $2 and Lower(last_name) = $3';
@@ -6283,8 +6289,8 @@ router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)', passa
           })
         })
     } else {
-      const add_new_query = "insert into student_list (barcode, first_name, last_name, belt_color, belt_size, email, belt_order, level_name) values ($1, $2, $3, 'white', -1, $4, 0, 'Basic') on conflict (barcode) do nothing";
-      db.any(add_new_query, [req.params.new_id, req.params.fname, req.params.lname, req.params.email])
+      const add_new_query = "insert into student_list (barcode, first_name, last_name, belt_color, belt_size, email, phone, belt_order, level_name) values ($1, $2, $3, 'white', -1, $4, 0, 'Basic') on conflict (barcode) do nothing";
+      db.any(add_new_query, [req.params.new_id, req.params.fname, req.params.lname, req.params.email, req.params.phone])
         .then(row => {
           let options = {
             method: "GET",
@@ -6354,7 +6360,7 @@ request.post({
   "event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
   "is_active": 'true',
   headers: {
-    Authorization: 'basic ' + settings.username + ':' + process.env.ps_api,
+    Authorization: 'basic ' + settings.username + ':' + settings.apikey,
     "content-type": "application/json; charset=utf-8",
   },
   body: JSON.stringify({
@@ -6363,6 +6369,7 @@ request.post({
     "is_active": 'true',
   })
 }, function(e,r,b){
+  console.log('ERROR: ' + JSON.safeStringify(e))
 });
 
 app.post('/ps_webhook', (req, res) => {
@@ -6430,8 +6437,8 @@ app.post('/ps_webhook', (req, res) => {
       res.status(200).send();
       break;
     case 'customer_updated':
-      const update_customer = 'update student_list set first_name = $1, last_name = $2, email = $3 where barcode = $4;';
-      db.none(update_customer, [req.body.data.first_name, req.body.data.last_name, req.body.data.email, req.body.data.customer_id])
+      const update_customer = 'update student_list set first_name = $1, last_name = $2, email = $3, phone = $4 where barcode = $5;';
+      db.none(update_customer, [req.body.data.first_name, req.body.data.last_name, req.body.data.email, req.body.data.phone, req.body.data.customer_id])
         .then(update_row => {
           console.log('Updated student with barcode: ' + req.body.data.customer_id);
           res.status(200).send();

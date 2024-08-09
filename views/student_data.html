@@ -199,6 +199,11 @@
         value="{{ data[0].email }}" placeholder="email" required>
     </div>
     <div>
+      <label for="phone">Phone: </label>
+      <input type="text" name="phone" id="phone" inputmode="tel" pattern="[0-9]{10}"
+        value="{{ data[0].phone }}" placeholder="phone number" required>
+    </div>
+    <div>
       <label for="addr">Address: </label>
       <input type="Address" name="addr" id="addr" value="{{ data[0].addr }}" placeholder="Address">
     </div>
