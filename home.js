@@ -6275,21 +6275,22 @@ router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)', passa
 
 request.get({
   uri: 'https://api.paysimple.com/ps/webhook/subscriptions/',
-  //"url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ps_webhook',
-  //"event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
-  //"is_active": 'true',
+  "url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ps_webhook',
+  "event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
+  "is_active": 'true',
   headers: {
-    Authorization: 'basic ' + settings.username + ':' + process.env.ps_api,
+    Authorization: 'basic ' + settings.username + ':' + settings.apikey,
     "content-type": "application/json; charset=utf-8",
   },
-  /*body: JSON.stringify({
+  body: JSON.stringify({
     "url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ps_webhook',
     "event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
     "is_active": 'true',
-  })*/
+  })
 }, function(e,r,b){
-  //console.log('res: ' + JSON.safeStringify(r))
-  //console.log('body: ' + JSON.safeStringify(b))
+  console.log('res: ' + JSON.safeStringify(r))
+  console.log('body: ' + JSON.safeStringify(b))
+  console.log('error: ' + JSON.safeStringify(e))
 })
 
 request.post({
