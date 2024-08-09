@@ -5667,7 +5667,8 @@ router.post('/student_data', dataValidate, (req, res) => {
                 "ZipCode": items.zip,
                 "StateCode": 'CO'
               },
-              "Notes": bday_string
+              "Notes": bday_string,
+              "Email": items.email
               },
               json: true,
             };
