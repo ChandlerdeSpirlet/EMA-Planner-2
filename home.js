@@ -5518,7 +5518,7 @@ router.get('/student_data_loading/(:name)/(:barcode)', passageAuthMiddleware, as
       }
       return;
     })
-    const studentInfoQuery = "select barcode, first_name, last_name, email, belt_size, belt_color, to_char(last_visit, 'Month DD, YYYY') as last_visit, to_char(join_date, 'Month DD, YYYY') as join_date, reg_class, spar_class, swat_count, addr, addr_2, zip, city, to_char(bday::date, 'MM-DD-YYYY') as bday from student_list where barcode = $1 and first_name || ' ' || last_name = $2;";
+    const studentInfoQuery = "select barcode, first_name, last_name, email, phone, belt_size, belt_color, to_char(last_visit, 'Month DD, YYYY') as last_visit, to_char(join_date, 'Month DD, YYYY') as join_date, reg_class, spar_class, swat_count, addr, addr_2, zip, city, to_char(bday::date, 'MM-DD-YYYY') as bday from student_list where barcode = $1 and first_name || ' ' || last_name = $2;";
     let options = {
       method: "GET",
       uri: settings.apiv4url + '/customer/' + barcode + '/payments',
@@ -5673,7 +5673,7 @@ router.post('/student_data', dataValidate, (req, res) => {
               },
               "Notes": bday_string,
               "Email": items.email,
-              "Phone": items.ph
+              "Phone": items.phone
               },
               json: true,
             };
