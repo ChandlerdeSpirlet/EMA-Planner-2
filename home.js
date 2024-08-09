@@ -6387,6 +6387,10 @@ app.post('/ps_webhook', (req, res) => {
       if (email == '' || email == null){
         email = 'no@email.available'
       }
+      var phone = req.body.data.phone
+      if (phone == '' || phone == null){
+        phone = 3030000000
+      }
       const barcode = req.body.data.customer_id
       var date_event = new Date(req.body.created_at);
       var options_1 = { 
@@ -6405,8 +6409,8 @@ app.post('/ps_webhook', (req, res) => {
       var day = date_event.toLocaleDateString('en-US', options_2);
       var year = date_event.toLocaleDateString('en-US', options_3);
       var date_added = month + ' ' + day + ', ' + year;
-      const add_query = "insert into student_list (barcode, first_name, last_name, belt_color, belt_size, email, level_name, belt_order, join_date) values ($1, $2, $3, $4, $5, $6, $7, $8, to_date($9, 'Month DD, YYYY')) on conflict (barcode) do nothing;"
-      db.none(add_query, [barcode, fname, lname, 'White', -1, email, 'Basic', 0, date_added])
+      const add_query = "insert into student_list (barcode, first_name, last_name, belt_color, belt_size, email, level_name, belt_order, join_date, phone) values ($1, $2, $3, $4, $5, $6, $7, $8, to_date($9, 'Month DD, YYYY'), $10) on conflict (barcode) do nothing;"
+      db.none(add_query, [barcode, fname, lname, 'White', -1, email, 'Basic', 0, date_added, phone])
         .then(row => {
           console.log('Added a new student');
           res.status(200).send();
