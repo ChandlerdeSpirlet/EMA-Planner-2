@@ -297,7 +297,7 @@
                         <input type="hidden" value="{{ can_view }}" name="can_view"/>
                         <label for="result">Student's Name</label>
                         <div class="autocomplete">
-                            <input id="result" name="result" type="text" placeholder="Student First Name" value="{{ result }}">
+                            <input id="result" name="result" type="text" placeholder="Student First Name" value="{{ result | escape }}">
                         </div>
                         <br>
                         <input type="submit" name="Submit" value="Check-In"/>
