@@ -4316,7 +4316,7 @@ router.get('/refresh_belts', passageAuthMiddleware, async(req, res) => {
 })
 
 app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+  if (req.cookies.psg_auth_token && res.userID) {
     const dropTest = 'delete from test_signups where session_id = $1 and barcode = $2;'
     const dropClass = 'delete from class_signups where class_check = $1 and barcode = $2;'
     const updateClassCount = 'update classes set student_count = student_count - 1 where class_id = $1;'
@@ -5746,6 +5746,69 @@ router.post('/test_lookup', (req, res) => {
   res.redirect(redir_link);
 })
 
+router.get('/delete_student/(:barcode)', passageAuthMiddleware, async(req, res) => {
+  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+    const del_query = 'delete from student_list where barcode = $1;';
+    db.none(del_query, [req.params.barcode])
+    .then(row => {
+      const name_query = "select * from get_all_names()"
+      db.any(name_query)
+        .then(function (rows) {
+          let options = {
+            method: "DELETE",
+            uri: settings.apiv4url + '/customer/' + req.params.barcode,
+            headers: {
+                Authorization: getAuthHeader(),
+            },
+            json: true,
+            };
+            request(options, function(error, response, body) {
+              if (!error && response && response.statusCode < 300) {
+                //res.status((response && response.statusCode) || 500).send(error);
+                res.render('student_lookup', {
+                  data: rows,
+                  alert_message: 'Successfully deleted the student.'
+                })
+              } else {
+                //res.status((response && response.statusCode) || 500).send(error);
+                res.render('student_lookup', {
+                  data: rows,
+                  alert_message: 'Unable to delete the student from PaySimple.'
+                })
+              }
+            });
+        })
+        .catch(function (err) {
+          console.log('Could not find students: ' + err)
+          res.render('student_lookup', {
+            data: '',
+            alert_message: 'Unable to find student. Please refresh the page and try agin.'
+          })
+        })
+    })
+    .catch(err => {
+      console.log("Unable to delete student with barcode " + req.params.barcode);
+      const name_query = "select * from get_all_names()"
+      db.any(name_query)
+        .then(function (rows) {
+          res.render('student_lookup', {
+            data: rows,
+            alert_message: 'Could not delete student. Please try again or notify Lurch'
+          })
+        })
+        .catch(function (err) {
+          console.log('Could not find students: ' + err)
+          res.render('student_lookup', {
+            data: '',
+            alert_message: 'Unable to find student. Please refresh the page and try agin.'
+          })
+        })
+    })
+  } else {
+    res.render('login', {
+    })
+  }
+})
 
 router.get('/create_test', passageAuthMiddleware, async(req, res) => {
   let userID = res.userID
