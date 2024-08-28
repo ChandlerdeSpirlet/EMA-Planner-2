@@ -5,7 +5,7 @@
 {% set bb_reg = 10 %}
 {% set bb_spar = 10 %}
 {% set bb_swat = 8 %}
-{% set email_addr = '' %}
+{% set email_addr = 'no@email.com' %}
 {% set level_num = 0 %}
 {% set curr = '' %}
 {% if alert_message != '' %}
@@ -13,7 +13,7 @@
 {% endif %}
 <title>Student Portal</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
+<link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.jpeg">
 <style>
   * {
     box-sizing: border-box;
@@ -170,13 +170,13 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3388621066074457"
      crossorigin="anonymous"></script>
   <h1>Student Portal</h1>
-  {% for student in stud_info %}
+  {% for student in studInfo %}
     {% if student.belt_order | int >= 4 %}
       {% set is_bb = 'true' %}
     {% endif %}
     {% set level_num = student.belt_order | int %}
     <label>Student's Name: </label>{{ student.first_name }} {{ student.last_name }}<br>
-    <label>Student's Email: </label>{{ student.email }} {% set email_addr = student.email %}<br>
+    <label>Student's Email: </label>{% if student.email == '' %}no@email.com{% set email_addr = 'no@email.com' %}{% else %}{{ student.email }} {% set email_addr = student.email %}{% endif %}<br>
     <label>Student's Belt Color and Size: </label>{{ student.belt_color }} - {{ student.belt_size }}<br>
     <label>Last Visit: </label>{{ student.last_visit }}<br>
     {% if is_bb == 'true' %}
@@ -205,7 +205,7 @@
 </head>
 <body>
   <h2>Progress Check</h2>
-  {% for student in stud_info %}
+  {% for student in studInfo %}
     <table id="pc">
       <tr>
         <th><a style="text-decoration: none;" href="/progress_check/month1/{{ barcode }}"><button id="pc_b">Month 1 (score {{ student.month_1 }}) </button></a></th>
@@ -427,7 +427,7 @@
             <tr>
               <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/Calendar.pdf"><button id="pc_b">{{ month }} Calendar</button></a></th>
               <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/schedule.pdf"><button id="pc_b">Schedule</button></a></th>
-              <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/yearly_calendar.pdf"><button id="pc_b">{{ month }} Yearly Calendar</button></a></th>
+              <th><a style="text-decoration: none;" href="https://ema-sidekick-lakewood-cf3bcec8ecb2.com/yearly_calendar.pdf"><button id="pc_b">Yearly Calendar</button></a></th>
             </tr>
           </table>
         {% endif %}

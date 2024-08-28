@@ -1,0 +1,354 @@
+<html>
+    <title>Black Belt Test History</title>
+    {% block content %}
+    {% if alert_message != '' %}
+        <script>alert('{{ alert_message }}')</script>
+    {% endif %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
+    <style>
+        html {
+            background-image: linear-gradient(#3274C4, #2E353B);
+      -webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+      min-height: 100%;
+        }
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            box-sizing: border-box;
+            color: #E7E5E3;
+        }
+        form > div {
+            margin-bottom: 20px;
+        }
+        button, label, input {
+            display: block;
+            font-size: 100%;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 5px;
+            height: 60px;
+            align-content: center;
+            background-color: transparent;
+            border: 1px solid black;
+        }
+        
+        select {
+            -webkit-appearance: none;
+            appearance: none;
+            display: block;
+            font-size: 100%;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 5px;
+            height: 60px;
+        }
+        .select-wrapper {
+            position: relative;
+        }
+        .select-wrapper::after {
+            content: "▼";
+            font-size: 1rem;
+            top: 24px;
+            right: 10px;
+            position: absolute;
+        }
+        select {
+            box-shadow: inset 1px 1px 3px #ccc;
+            border-radius: 5px;
+            background-color: transparent;
+        }
+        label {
+            margin-bottom: 5px;
+        }
+        button {
+            width: 60%;
+            margin: 0 auto;
+        }
+        label{
+            font-weight: bold;
+        }
+        p {
+            font-size: 16px;
+        }
+        h1, h3 {
+            text-align: center;
+        }
+        .column1 {
+            float: left;
+            width: 50%;
+            height: 100%;
+            padding-left: 10px;
+            padding-right: 5px;
+        }
+        .column2 {
+            float: right;
+            width: 50%;
+            height: 100%;
+            padding-right: 10px;
+            padding-left: 5px;
+        }
+        #page-container {
+            min-height: 90vh;
+            min-width: 95%;
+            vertical-align: middle;
+        }
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        .row {
+            height: 10%;
+            min-width: 90%;
+            padding-top: 60px;
+        }
+        .end {
+            max-width: 95%;
+            padding-left: 10px;
+            padding-right: 10px;
+            vertical-align: middle;
+        }
+        .autocomplete {
+            /*the container must be positioned relative:*/
+            position: relative;
+            display: inline-block;
+        }
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid black;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            /*position the autocomplete items to be the same width as the container:*/
+            top: 100%;
+            left: 0;
+            right: 0;
+        }
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: lightblue; 
+            border-bottom: 1px solid #d4d4d4; 
+        }
+        .autocomplete-items div:hover {
+            /*when hovering an item:*/
+            background-color: darkcyan; 
+        }
+        .autocomplete-active {
+            /*when navigating through the items using the arrow keys:*/
+            background-color: blue !important; 
+            color: black; 
+        }
+        td, th {
+            border: 1px solid #776D58;
+            padding: 8px;
+            background-color: transparent;
+            text-align: center;
+            padding: 8px;
+        }
+        table {
+            width: 90%;
+            align-content: center;
+            margin-left: auto;
+            margin-right: auto
+        }
+        a:visited, a:link {
+            text-decoration: none;
+            color: black;
+        }
+        .tablink {
+            background-color: #555;
+            color: white;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            font-size: 17px;
+            width: calc(100% / 3);
+        }
+        .tablink:hover {
+            background-color: #777;
+        }
+        /* Style the tab content (and add height:100% for full page content) */
+        .tabcontent {
+            color: white;
+            display: none;
+            padding: 100px 20px;
+        }
+        #SWAT {
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+        #pass {
+            border: 1px solid rgb(27, 192, 27);
+            padding: 8px;
+            background-color: transparent;
+            text-align: center;
+            padding: 8px;
+        }
+        #fail {
+            border: 1px solid rgb(151, 15, 15);
+            padding: 8px;
+            background-color: transparent;
+            text-align: center;
+            padding: 8px;
+        }
+        #REG {
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+        #SPAR {
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+    </style>
+    <head>
+        <h1>Black Belt Test History Tool</h1>
+    </head>
+    <body>
+        <div id="SWAT">
+            <h2>Previous Tests for {{ name_data[0].first_name }} {{ name_data[0].last_name }}</h2>
+            <table>
+                {% if test_data %}
+                    <tr>
+                        <th>Date</th>
+                        <th>Tested For</th>
+                        <th>Passed?</th>
+                    </tr>
+                    {% for test in test_data %}
+                        <tr>
+                            {% if test.pass_status == true %} 
+                                <td>{{ test.date_test }}</td>
+                                <td>{{ test.rank }}</td>
+                                <td>Yes</td>
+                            {% else %}
+                                <td>{{ test.test_date }}</td>
+                                <td>{{ test.rank }}</td>
+                                <td>No</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                {% elif test_data.length == 0 or test_data == ''%}
+                    <h3>No test history to display</h3>
+                {% else %}
+                    <h3>An error occured</h3>
+                {% endif %}
+            </table>
+        </div>
+        <div id="SWAT">
+            <h2>1st Degree Curriculum</h2>
+            <table>
+            {% if curr_data %}
+                <tr>
+                    <th>Curriculum</th>
+                    <th>Tested On</th>
+                </tr>
+                <tr>
+                    <td>Choi Yong/Knife Defense</td>
+                    {% if curr_data[0].choi_yong == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Se Jong/Shotokan</td>
+                    {% if curr_data[0].se_jong == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Kali Sticks 4</td>
+                    {% if curr_data[0].kali_sticks == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Beethoven/BJJ Submissions</td>
+                    {% if curr_data[0].beethoven == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Ko Dang/Boxing</td>
+                    {% if curr_data[0].ko_dang == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Hawaiian Kenpo/Kenpo Self Defense</td>
+                    {% if curr_data[0].kenpo == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Yoo Shin/Falls and Rolls</td>
+                    {% if curr_data[0].yoo_shin == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Trilogy</td>
+                    {% if curr_data[0].trilogy == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+            {% endif %}
+            </table>
+            <h2>2nd Degree Curriculum</h2>
+            <table>
+                {% if curr_data %}
+                <tr>
+                    <th>Curriculum</th>
+                    <th>Tested On</th>
+                </tr>
+                <tr>
+                    <td>Ul Gi/2 on 1 Sparring</td>
+                    {% if curr_data[0].ul_gi == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Granada/Kicking Set</td>
+                    {% if curr_data[0].granada == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Kwan Gye/Pressure Points</td>
+                    {% if curr_data[0].kwan_gye == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Nunchaku 2/Heian Godan</td>
+                    {% if curr_data[0].nunchaku == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Tong Il/Board Breaking</td>
+                    {% if curr_data[0].tong_il == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Ju Che</td>
+                    {% if curr_data[0].ju_che == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Bassai Dai/Kicking Set</td>
+                    {% if curr_data[0].bassa_dai == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Choon Jang/Pressure Points</td>
+                    {% if curr_data[0].choon_jang == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>So San/Kung Fu 1</td>
+                    {% if curr_data[0].so_san == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Moon Moo</td>
+                    {% if curr_data[0].moon_moo == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Sam Il/Kung Fu 2</td>
+                    {% if curr_data[0].sam_il == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+                <tr>
+                    <td>Papohak Sho/Offense & Defense</td>
+                    {% if curr_data[0].papohak_sho == "true" %} <td>Yes</td> {% else %} <td>No</td> {% endif %}
+                </tr>
+            {% endif %}
+            </table>
+        </div>
+    </body>
+</html>
+{% endblock %}

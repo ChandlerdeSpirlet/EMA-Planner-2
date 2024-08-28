@@ -1,0 +1,388 @@
+<html>
+    <title>Student List</title>
+    {% extends 'nav_bar.html' %}
+    {% set local = 'Students' %}
+    {% block content %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
+    <style>
+        html {
+            background-image: linear-gradient(#3274C4, #2E353B);
+      -webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+      min-height: 100%;
+        }
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            box-sizing: border-box;
+            color: #E7E5E3;
+        }
+        form > div {
+            margin-bottom: 20px;
+        }
+        button, label, input {
+            display: block;
+            font-size: 100%;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 5px;
+            height: 60px;
+            align-content: center;
+            background-color: transparent;
+            border: 1px solid black;
+        }
+        
+        select {
+            -webkit-appearance: none;
+            appearance: none;
+            display: block;
+            font-size: 100%;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 5px;
+            height: 60px;
+        }
+        .select-wrapper {
+            position: relative;
+        }
+        .select-wrapper::after {
+            content: "▼";
+            font-size: 1rem;
+            top: 24px;
+            right: 10px;
+            position: absolute;
+        }
+        select {
+            box-shadow: inset 1px 1px 3px #ccc;
+            border-radius: 5px;
+            background-color: transparent;
+        }
+        label {
+            margin-bottom: 5px;
+        }
+        button {
+            width: 60%;
+            margin: 0 auto;
+        }
+        label{
+            font-weight: bold;
+        }
+        p {
+            font-size: 16px;
+        }
+        h1, h3 {
+            text-align: center;
+        }
+        .column1 {
+            float: left;
+            width: 50%;
+            height: 100%;
+            padding-left: 10px;
+            padding-right: 5px;
+        }
+        .column2 {
+            float: right;
+            width: 50%;
+            height: 100%;
+            padding-right: 10px;
+            padding-left: 5px;
+        }
+        #page-container {
+            min-height: 90vh;
+            min-width: 95%;
+            vertical-align: middle;
+        }
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        .row {
+            height: 10%;
+            min-width: 90%;
+            padding-top: 60px;
+        }
+        .end {
+            max-width: 95%;
+            padding-left: 10px;
+            padding-right: 10px;
+            vertical-align: middle;
+        }
+        .autocomplete {
+            /*the container must be positioned relative:*/
+            position: relative;
+            display: inline-block;
+        }
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid black;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            /*position the autocomplete items to be the same width as the container:*/
+            top: 100%;
+            left: 0;
+            right: 0;
+        }
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: lightblue; 
+            border-bottom: 1px solid #d4d4d4; 
+        }
+        .autocomplete-items div:hover {
+            /*when hovering an item:*/
+            background-color: darkcyan; 
+        }
+        .autocomplete-active {
+            /*when navigating through the items using the arrow keys:*/
+            background-color: blue !important; 
+            color: black; 
+        }
+        td, th {
+            border: 1px solid black;
+            padding: 8px;
+            background-color: transparent;
+            text-align: center;
+            padding: 8px;
+            color: #2E353B;
+        }
+        table {
+            width: 90%;
+            align-content: center;
+            margin-left: auto;
+            margin-right: auto
+        }
+        a:visited, a:link {
+            text-decoration: none;
+            color: black;
+        }
+        .tablink {
+            background-color: #555;
+            color: white;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            font-size: 17px;
+            width: calc(100% / 6);
+        }
+        .tablink:hover {
+            background-color: #777;
+        }
+        /* Style the tab content (and add height:100% for full page content) */
+        .tabcontent {
+            color: white;
+            display: none;
+            padding: 100px 20px;
+        }
+        h2 {
+            color: black;
+        }
+        #Dragons {
+        background-image: linear-gradient(#43d4e7, #9ed7ff);
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+        }
+        #Basic {
+        background-image: linear-gradient(#e7e7e7, #fcff67);
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+        }
+        #L1 {
+        background-image: linear-gradient(#ec925d, #59e477);
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+        }
+        #L2 {
+        background-image: linear-gradient(#c768f3, #6c8be0);
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+        }
+        #L3 {
+        background-image: linear-gradient(#f36767, #bb9462);
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+        }
+        #BB {
+        background-image: linear-gradient(#d8d8d8, #6e6e6e);
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+        }
+    </style>
+    <head>
+        <h1>Students In Each Level</h1>
+    </head>
+    <body>
+    <button class="tablink" onclick="openPage('Dragons', this, 'orange')">Dragons</button>
+    <button class="tablink" onclick="openPage('Basic', this, '#fcff67')">Basic</button>
+    <button class="tablink" onclick="openPage('L1', this, 'green')" id="defaultOpen">Level 1</button>
+    <button class="tablink" onclick="openPage('L2', this, 'blue')">Level 2</button>
+    <button class="tablink" onclick="openPage('L3', this, 'red')">Level 3</button>
+    <button class="tablink" onclick="openPage('BB', this, 'grey')">Black Belt</button> 
+        <div id="Dragons" class="tabcontent">
+            <h2>Little Dragons</h2>
+            <table>
+                {% if students %}
+                    <tr>
+                        <th>Name</th>
+                        <th>Belt Info</th>
+                    </tr>
+                    {% for student in students %}
+                        {% if student.level_name == 'Dragons' %}
+                            <tr>
+                                <td>{{ student.first_name }} {{ student.last_name }}</td>
+                                <td>{{ student.belt_color }} -- {{ student.belt_size }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <h3>An error occured</h3>
+                {% endif %}
+            </table>
+        </div>
+        <div id="Basic" class="tabcontent">
+            <h2>Basic</h2>
+            <table>
+                {% if students %}
+                    <tr style="color:#2E353B;">
+                        <th style="color:#2E353B;">Name</th>
+                        <th style="color:#2E353B;">Belt Info</th>
+                    </tr>
+                    {% for student in students %}
+                        {% if student.level_name == 'Basic' %}
+                            <tr style="color:#2E353B;">
+                                <td style="color:#2E353B;">{{ student.first_name }} {{ student.last_name }}</td>
+                                <td style="color:#2E353B;">{{ student.belt_color }} -- {{ student.belt_size }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <h3>An error occured</h3>
+                {% endif %}
+            </table>
+        </div>
+        <div id="L1" class="tabcontent">
+            <h2>Level 1</h2>
+            <table>
+                {% if students %}
+                    <tr>
+                        <th>Name</th>
+                        <th>Belt Info</th>
+                    </tr>
+                    {% for student in students %}
+                        {% if student.level_name == 'Level 1' %}
+                            <tr>
+                                <td>{{ student.first_name }} {{ student.last_name }}</td>
+                                <td>{{ student.belt_color }} -- {{ student.belt_size }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <h3>An error occured</h3>
+                {% endif %}
+            </table>
+        </div>
+        <div id="L2" class="tabcontent">
+            <h2>Level 2</h2>
+            <table>
+                {% if students %}
+                    <tr>
+                        <th>Name</th>
+                        <th>Belt Info</th>
+                    </tr>
+                    {% for student in students %}
+                        {% if student.level_name == 'Level 2' %}
+                            <tr>
+                                <td>{{ student.first_name }} {{ student.last_name }}</td>
+                                <td>{{ student.belt_color }} -- {{ student.belt_size }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <h3>An error occured</h3>
+                {% endif %}
+            </table>
+        </div>
+        <div id="L3" class="tabcontent">
+            <h2>Level 3</h2>
+            <table>
+                {% if students %}
+                    <tr>
+                        <th>Name</th>
+                        <th>Belt Info</th>
+                    </tr>
+                    {% for student in students %}
+                        {% if student.level_name == 'Level 3' %}
+                            <tr>
+                                <td>{{ student.first_name }} {{ student.last_name }}</td>
+                                <td>{{ student.belt_color }} -- {{ student.belt_size }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <h3>An error occured</h3>
+                {% endif %}
+            </table>
+        </div>
+        <div id="BB" class="tabcontent">
+            <h2>Black Belt</h2>
+            <table>
+                {% if students %}
+                    <tr>
+                        <th>Name</th>
+                        <th>Belt Info</th>
+                    </tr>
+                    {% for student in students %}
+                        {% if student.level_name == 'Black Belt' %}
+                            <tr>
+                                <td>{{ student.first_name }} {{ student.last_name }}</td>
+                                <td>{{ student.belt_color }} -- {{ student.belt_size }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <h3>An error occured</h3>
+                {% endif %}
+            </table>
+        </div>
+    </body>
+</html>
+<script>
+    function openPage(pageName,elmnt,color) {
+      var i, tabcontent, tablinks;
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+      tablinks = document.getElementsByClassName("tablink");
+      for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].style.backgroundColor = "";
+      }
+      document.getElementById(pageName).style.display = "block";
+      elmnt.style.backgroundColor = color;
+    }
+    
+    // Get the element with id="defaultOpen" and click on it
+    document.getElementById("defaultOpen").click();
+    </script>
+{% endblock %}
