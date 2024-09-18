@@ -5853,155 +5853,166 @@ router.get('/delete_test/(:id)/(:level)', (req, res) => {
     })
 })
 
-router.post('/create_test', (req, res) => {
-  const item = {
-    level: req.sanitize('level_select').trim(),
-    month: req.sanitize('month_select').trim(),
-    day: req.sanitize('day_select').trim(),
-    time: req.sanitize('time_select').trim(),
-    curr: req.sanitize('curriculum_select').trim()
-  }
-  var notes = ''
-  switch (item.level) {
-    case '0.1':
-      item.level = '0'
-      notes = 'White Belts'
-      break;
-    case '0.2':
-      item.level = '0'
-      notes = 'Gold Belts'
-      break;
-    case '1.1':
-      item.level = '1'
-      notes = 'Orange and High Orange Belts'
-      break;
-    case '1.2':
-      item.level = '1'
-      notes = 'Green and High Green Belts'
-      break;
-    case '2.1':
-      item.level = '2'
-      notes = 'Purple and High Purple Belts'
-      break;
-    case '2.2':
-      item.level = '2'
-      notes = 'Blue and High Blue Belts'
-      break;
-    default:
-      notes = ''
-      break;
-  }
-  let temp_date = new Date();
-  let year = temp_date.getFullYear();
-  const built_date = item.month + ' ' + item.day + ', ' + year;
-  console.log('item.level: ' + item.level);
-  console.log('built_date: ' + built_date);
-  console.log('item.time: ' + item.time);
-  if (item.level == '9'){
-    console.log('creating a make-up test')
-    notes = 'Make Up Testing'
-    const levelArr = ['-1', '0', '1', '2']
-    const makeupQuery = "insert into test_instance (level, test_date, test_time, notes) values (($1)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4), (($5)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4), (($6)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4), (($7)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4)";
-    db.any(makeupQuery, [levelArr[0], built_date, item.time, notes, levelArr[1], levelArr[2], levelArr[3]])
-      .then(row => {
-        console.log('Make up test created');
-        const testQueryAll = "select id, level, to_char(test_date, 'Mon DD, YYYY') || ' - ' || to_char(test_time, 'HH:MI PM') as test_day, notes, curriculum from test_instance where test_date > CURRENT_DATE - INTERVAL '1 months' AND test_date < CURRENT_DATE + INTERVAL '2 months' order by test_date, test_time;"
-        db.any(testQueryAll)
-          .then(data => {
-            res.render('create_test', {
-              test_data: data,
-              alert_message: 'Make up test created on ' + built_date + ' at ' + item.time
-            })
-          })
-          .catch(err => {
-            res.render('create_test', {
-              test_data: '',
-              alert_message: 'CANNOT SHOW FUTURE TESTS. PLEASE REFRESH PAGE.'
-            })
-          })
-      })
-      .catch(err => {
-        console.log('Makeup testing query issue: ' + err);
-        var passing = false
-      })
+const testValidate = [
+  check('level_select', 'Level cannot be empty').isLength({ min: 1}).trim().escape().withMessage('Level cannot be empty'),
+  check('month_select', 'Month cannot be empty').isLength({ min: 1}).trim().escape().withMessage('Month cannot be empty'),
+  check('day_select', 'Day cannot be empty').isLength({ min: 1}).trim().escape().withMessage('Day cannot be empty'),
+  check('time_select', 'Level cannot be empty').isLength({ min: 1}).trim().escape().withMessage('Time cannot be empty')
+]
+router.post('/create_test', testValidate, (req, res) => {
+  const testErrors = validationResult(req)
+  if (!testErrors.isEmpty()) {
+    res.status(422).json({ errors: testErrors.array() })
   } else {
-    const new_test_query = "insert into test_instance (level, test_date, test_time, notes, curriculum) values (($1)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4, $5)";
-    db.any(new_test_query, [item.level, built_date, item.time, notes, item.curr])
-      .then(function (rows) {
-        const test_Query_All = "select id, level, to_char(test_date, 'Mon DD, YYYY') || ' - ' || to_char(test_time, 'HH:MI PM') as test_day, notes, curriculum from test_instance where test_date > CURRENT_DATE - INTERVAL '1 months' AND test_date < CURRENT_DATE + INTERVAL '2 months' order by test_date, test_time;"
-        db.any(test_Query_All)
-          .then(function (test_data) {
+    var item = {
+      level: req.body.level_select,
+      month: req..body.month_select,
+      day: req.body.day_select,
+      time: req.body.time_select,
+      curr: req.body.curriculum_select
+    }
+    var notes = ''
+    switch (item.level) {
+      case '0.1':
+        item.level = '0'
+        notes = 'White Belts'
+        break;
+      case '0.2':
+        item.level = '0'
+        notes = 'Gold Belts'
+        break;
+      case '1.1':
+        item.level = '1'
+        notes = 'Orange and High Orange Belts'
+        break;
+      case '1.2':
+        item.level = '1'
+        notes = 'Green and High Green Belts'
+        break;
+      case '2.1':
+        item.level = '2'
+        notes = 'Purple and High Purple Belts'
+        break;
+      case '2.2':
+        item.level = '2'
+        notes = 'Blue and High Blue Belts'
+        break;
+      default:
+        notes = ''
+        break;
+    }
+    let temp_date = new Date();
+    let year = temp_date.getFullYear();
+    const built_date = item.month + ' ' + item.day + ', ' + year;
+    console.log('item.level: ' + item.level);
+    console.log('built_date: ' + built_date);
+    console.log('item.time: ' + item.time);
+    if (item.level == '9'){
+      console.log('creating a make-up test')
+      notes = 'Make Up Testing'
+      const levelArr = ['-1', '0', '1', '2']
+      const makeupQuery = "insert into test_instance (level, test_date, test_time, notes) values (($1)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4), (($5)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4), (($6)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4), (($7)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4)";
+      db.any(makeupQuery, [levelArr[0], built_date, item.time, notes, levelArr[1], levelArr[2], levelArr[3]])
+        .then(row => {
+          console.log('Make up test created');
+          const testQueryAll = "select id, level, to_char(test_date, 'Mon DD, YYYY') || ' - ' || to_char(test_time, 'HH:MI PM') as test_day, notes, curriculum from test_instance where test_date > CURRENT_DATE - INTERVAL '1 months' AND test_date < CURRENT_DATE + INTERVAL '2 months' order by test_date, test_time;"
+          db.any(testQueryAll)
+            .then(data => {
+              res.render('create_test', {
+                test_data: data,
+                alert_message: 'Make up test created on ' + built_date + ' at ' + item.time
+              })
+            })
+            .catch(err => {
+              res.render('create_test', {
+                test_data: '',
+                alert_message: 'CANNOT SHOW FUTURE TESTS. PLEASE REFRESH PAGE.'
+              })
+            })
+        })
+        .catch(err => {
+          console.log('Makeup testing query issue: ' + err);
+          var passing = false
+        })
+    } else {
+      const new_test_query = "insert into test_instance (level, test_date, test_time, notes, curriculum) values (($1)::int, to_date($2, 'Month DD, YYYY'), ($3)::time, $4, $5)";
+      db.any(new_test_query, [item.level, built_date, item.time, notes, item.curr])
+        .then(function (rows) {
+          const test_Query_All = "select id, level, to_char(test_date, 'Mon DD, YYYY') || ' - ' || to_char(test_time, 'HH:MI PM') as test_day, notes, curriculum from test_instance where test_date > CURRENT_DATE - INTERVAL '1 months' AND test_date < CURRENT_DATE + INTERVAL '2 months' order by test_date, test_time;"
+          db.any(test_Query_All)
+            .then(function (test_data) {
 
-        switch (item.level) {
-          case '-1':
-            res.render('create_test', {
-              alert_message: 'Test created for Little Dragons on ' + built_date + ' at ' + item.time,
-              test_data: test_data
-            })
-            break;
-          case '0':
-            res.render('create_test', {
-              alert_message: 'Test created for Basic on ' + built_date + ' at ' + item.time,
-              test_data: test_data
-            })
-            break;
-          case '1':
-            res.render('create_test', {
-              alert_message: 'Test created for Level 1 on ' + built_date + ' at ' + item.time,
-              test_data: test_data
-            })
-            break;
-          case '2':
-            res.render('create_test', {
-              alert_message: 'Test created for Level 2 on ' + built_date + ' at ' + item.time,
-              test_data: test_data
-            })
-            break;
-          case '3':
-            res.render('create_test', {
-              alert_message: 'Test created for Level 3 on ' + built_date + ' at ' + item.time,
-              test_data: test_data
-            })
-            break;
-          case '7':
-            res.render('create_test', {
-              alert_message: 'Test created for Exclusive on ' + built_date + ' at ' + item.time,
-              test_data: test_data
-            })
-            break;
-          case '8':
-            res.render('create_test', {
-              alert_message: 'Test created for Black Belt on ' + built_date + ' at ' + item.time,
-              test_data: test_data
-            })
-            break;
-          case '9':
-            res.render('create_test', {
-              alert_message: 'Make up created for little dragons, basic, level 1, and level 2 on ' + built_date + ' at ' + item.time,
-              test_data: test_data
-            })
-            break;
-          default:
-            req.flash('error', 'Test Not Created! with data: (level: ' + item.level + ', built_date: ' + built_date + ', time: ' + item.time + ')');
-            console.log('Test Not Created! with data: (level: ' + item.level + ', built_date: ' + built_date + ', time: ' + item.time + ')');
-            res.redirect('/create_test');
-            break;
-        }
-      })
-      .catch(function (err) {
-        res.render('create_test', {
-          alert_message: 'Could not show future tests. Please refresh page.' + err,
-          test_data: ''
+          switch (item.level) {
+            case '-1':
+              res.render('create_test', {
+                alert_message: 'Test created for Little Dragons on ' + built_date + ' at ' + item.time,
+                test_data: test_data
+              })
+              break;
+            case '0':
+              res.render('create_test', {
+                alert_message: 'Test created for Basic on ' + built_date + ' at ' + item.time,
+                test_data: test_data
+              })
+              break;
+            case '1':
+              res.render('create_test', {
+                alert_message: 'Test created for Level 1 on ' + built_date + ' at ' + item.time,
+                test_data: test_data
+              })
+              break;
+            case '2':
+              res.render('create_test', {
+                alert_message: 'Test created for Level 2 on ' + built_date + ' at ' + item.time,
+                test_data: test_data
+              })
+              break;
+            case '3':
+              res.render('create_test', {
+                alert_message: 'Test created for Level 3 on ' + built_date + ' at ' + item.time,
+                test_data: test_data
+              })
+              break;
+            case '7':
+              res.render('create_test', {
+                alert_message: 'Test created for Exclusive on ' + built_date + ' at ' + item.time,
+                test_data: test_data
+              })
+              break;
+            case '8':
+              res.render('create_test', {
+                alert_message: 'Test created for Black Belt on ' + built_date + ' at ' + item.time,
+                test_data: test_data
+              })
+              break;
+            case '9':
+              res.render('create_test', {
+                alert_message: 'Make up created for little dragons, basic, level 1, and level 2 on ' + built_date + ' at ' + item.time,
+                test_data: test_data
+              })
+              break;
+            default:
+              req.flash('error', 'Test Not Created! with data: (level: ' + item.level + ', built_date: ' + built_date + ', time: ' + item.time + ')');
+              console.log('Test Not Created! with data: (level: ' + item.level + ', built_date: ' + built_date + ', time: ' + item.time + ')');
+              res.redirect('/create_test');
+              break;
+          }
         })
-      })
-      })
-      .catch(function (err) {
-        console.log("Error in creating test: " + err);
-        req.flash('error', 'Test not created. ERR: ' + err);
-        res.render('create_test', {
-          alert_message: 'Test not created. Error: ' + err
+        .catch(function (err) {
+          res.render('create_test', {
+            alert_message: 'Could not show future tests. Please refresh page.' + err,
+            test_data: ''
+          })
         })
-      })
+        })
+        .catch(function (err) {
+          console.log("Error in creating test: " + err);
+          req.flash('error', 'Test not created. ERR: ' + err);
+          res.render('create_test', {
+            alert_message: 'Test not created. Error: ' + err
+          })
+        })
+    }
   }
 })
 
