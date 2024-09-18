@@ -5866,7 +5866,7 @@ router.post('/create_test', testValidate, (req, res) => {
   } else {
     var item = {
       level: req.body.level_select,
-      month: req..body.month_select,
+      month: req.body.month_select,
       day: req.body.day_select,
       time: req.body.time_select,
       curr: req.body.curriculum_select
