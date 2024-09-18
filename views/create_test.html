@@ -50,7 +50,8 @@
     border: 1px solid #776D58;
   }
 
-  select {
+  select,
+  level_select {
     -webkit-appearance: none;
     appearance: none;
     display: block;
@@ -76,7 +77,8 @@
     color: #E7E5E3
   }
 
-  select {
+  select,
+  level_select {
     box-shadow: inset 1px 1px 3px #2D4861;
     border-radius: 5px;
     background-color: transparent;
@@ -177,7 +179,7 @@
       <div class="row">
         <div class="column1">
           <div class="select-wrapper">
-            <select id="select" name="level_select" required onchange="toggleCurriculumDropdown()">
+            <select id="level_select" name="level_select" required onchange="toggleCurriculumDropdown()">
               <option value="" disabled>Level</option>
               <option value="-1">Little Dragons</option>
               <option value="0">Basic</option>
