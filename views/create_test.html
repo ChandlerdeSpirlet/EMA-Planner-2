@@ -177,7 +177,7 @@
       <div class="row">
         <div class="column1">
           <div class="select-wrapper">
-            <select id="select" name="level_select" required>
+            <select id="select" name="level_select" required onchange="toggleCurriculumDropdown()">
               <option value="" disabled>Level</option>
               <option value="-1">Little Dragons</option>
               <option value="0">Basic</option>
@@ -255,7 +255,7 @@
               </select>
             </div>
           </div>
-          <div class="column1">
+          <div class="column1" id="curriculum_container" style="display: none;">
             <div class="select-wrapper">
               <select id="select" name="curriculum_select">
                 <option value="">Black Belt Curriculum</option>
@@ -331,6 +331,23 @@
 </body>
 
 </html>
+<script>
+  function toggleCurriculumDropdown() {
+    var levelSelect = document.getElementById('level_select');
+    var curriculumContainer = document.getElementById('curriculum_container');
+    
+    if (levelSelect.value == "8") {
+      curriculumContainer.style.display = "block";
+    } else {
+      curriculumContainer.style.display = "none";
+    }
+  }
+
+  // To ensure the correct dropdown visibility on page load
+  document.addEventListener('DOMContentLoaded', function () {
+    toggleCurriculumDropdown();
+  });
+</script>
 <script>
   function validate(form) {
     valid = true;
