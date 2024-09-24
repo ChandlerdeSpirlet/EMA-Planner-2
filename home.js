@@ -3818,9 +3818,9 @@ router.get('/testing_signup_blackbelt', passageAuthMiddleware, async(req, res) =
 })
 
 const testSignupValidate = [
-  check('result', 'Student Name cannot be empty').isLength({ min: 1}).trim().escape().withMessage('Student Name cannot be empty'),
+  check('result', 'Student Name cannot be empty').isLength({ min: 1 }).trim().escape(),
   check('belts', 'Belt Color cannot be empty').trim().escape(),
-  check('test_selection', 'Test Selection cannot be empty').trim().escape().withMessage('Test Selection cannot be empty')
+  check('test_selection', 'Test Selection cannot be empty').trim().escape()
 ]
 
 router.post('/testing_signup_dragons', testSignupValidate, (req, res) => {
