@@ -4084,11 +4084,11 @@ function belt_parser(color) {
 
 const previewBBValidate = [
   check('student_name', 'Student Name cannot be empty').isLength({ min: 1 }).trim().escape().withMessage('Student Name cannot be empty'),
-  check('belt_color', 'Belt Color cannot be empty').trim().escape().withMessage('Belt Color cannot be empty'),
+  check('belt_color', 'Belt Color cannot be empty').trim().escape(),
   check('test_id', 'Test ID cannot be empty').isLength({ min: 1 }).trim().escape().withMessage('Test ID cannot be empty'),
   check('barcode', 'Barcode cannot be empty').isLength({ min: 1 }).trim().escape().withMessage('Barcode cannot be empty'),
-  check('button', 'Button cannot be empty').trim().escape().withMessage('Button cannot be empty'),
-  check('current_belt', 'Current Belt cannot be empty').trim().escape().withMessage('Current Belt cannot be empty')
+  check('button', 'Button cannot be empty').trim().escape(),
+  check('current_belt', 'Current Belt cannot be empty').trim().escape()
 ]
 
 router.post('/test_preview_blackbelt', previewBBValidate, (req, res) => {
@@ -4153,10 +4153,10 @@ router.post('/test_preview_blackbelt', previewBBValidate, (req, res) => {
 
 const previewValidate = [
   check('student_name', 'Student Name cannot be empty').isLength({ min: 1 }).trim().escape().withMessage('Student Name cannot be empty'),
-  check('belt_color', 'Belt Color cannot be empty').trim().escape().withMessage('Belt Color cannot be empty'),
+  check('belt_color', 'Belt Color cannot be empty').trim().escape(),
   check('test_id', 'Test ID cannot be empty').isLength({ min: 1 }).trim().escape().withMessage('Test ID cannot be empty'),
   check('barcode', 'Barcode cannot be empty').isLength({ min: 1 }).trim().escape().withMessage('Barcode cannot be empty'),
-  check('button', 'Button cannot be empty').trim().escape().withMessage('Button cannot be empty')
+  check('button', 'Button cannot be empty').trim().escape()
 ]
 
 router.post('/test_preview', previewValidate, (req, res) => {
@@ -4662,7 +4662,7 @@ const testCheckValidateBB = [
   check('test_id', 'Test ID cannot be empty').isLength({ min: 1}).trim().escape().withMessage('Test ID cannot be empty'),
   check('result', 'Student Data cannot be empty').isLength({ min: 1}).trim().escape().withMessage('Student Data cannot be empty'),
   check('level', 'Level cannot be empty').isLength({ min: 1}).trim().escape().withMessage('Level cannot be empty'),
-  check('belts', 'Testing For Rank cannot be empty').isLength({ min: 1}).trim().escape().withMessage('Testing For Rank cannot be empty')
+  check('belts', 'Testing For Rank cannot be empty').trim().escape()
 ]
 
 router.post('/test_checkin_blackbelt', testCheckValidateBB, (req, res) => {
