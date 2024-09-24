@@ -4643,11 +4643,12 @@ router.post('/test_checkin', testCheckValidate, (req, res) => {
       stud_data: req.body.result,
       level: req.body.level
     }
+    console.log('item: ' + item)
     console.log('item.stud_data: ' + item.stud_data);
     const stud_info = parseStudentInfo(item.stud_data);//name, barcode
     console.log('stud_info: ' + stud_info);
     const insert_query = "insert into test_signups (student_name, test_id, belt_color, barcode) values ($1, $2, (select x.belt_color from student_list x where x.barcode = $3), $4) on conflict (session_id) do nothing;";
-    db.any(insert_query, [stud_info[0], item.test_id, stud_info[1], stud_info[1], stud_info[1]])
+    db.any(insert_query, [stud_info[0], item.test_id, stud_info[1], stud_info[1]])
       .then(rows => {
         res.redirect('test_checkin/' + item.test_id + '/' + item.level);
       })
