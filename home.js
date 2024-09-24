@@ -5827,13 +5827,23 @@ router.get('/test_lookup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.post('/test_lookup', (req, res) => {
-  const item = {
-    month: req.sanitize('month_select').trim(),
-    day: req.sanitize('day_select').trim()
+const testLookupValidate = [
+  check('month_select', 'Month cannot be empty').isLength({ min: 1}).trim().escape().withMessage('Month cannot be empty'),
+  check('day_select', 'Day cannot be empty').isLength({ min: 1}).trim().escape().withMessage('Day cannot be empty')
+]
+
+router.post('/test_lookup', testLookupValidate, (req, res) => {
+  const testLookupErrors = validationResult(req)
+  if (!testLookupErrors.isEmpty()) {
+    res.status(422).json({ errors: testLookupErrors.array() })
+  } else {
+    const item = {
+      month: req.body.month_select,
+      day: req.body.day_select
+    }
+    const redir_link = 'test_selector_force/' + item.month + '/' + item.day;
+    res.redirect(redir_link);
   }
-  const redir_link = 'test_selector_force/' + item.month + '/' + item.day;
-  res.redirect(redir_link);
 })
 
 router.get('/delete_student/(:barcode)', passageAuthMiddleware, async(req, res) => {
