@@ -4109,8 +4109,8 @@ router.post('/test_preview_blackbelt', previewBBValidate, (req, res) => {
       db.any(test_instance, [item.test_id])
         .then(rows => {
           var belt_id = item.belt_color.replace(' ', '').toLowerCase()
-          const insert_query = "insert into test_signups (student_name, test_id, belt_color, barcode, testing_for) values ($1, $2, $3, $4, $5) on conflict(session_id) do nothing;";
-          db.any(insert_query, [item.student_name, item.test_id, item.current_belt, item.barcode, item.belt_color])
+          const insert_query = "insert into test_signups (student_name, test_id, belt_color, barcode, testing_for, session_id) values ($1, $2, $3, $4, $5, $6) on conflict(session_id) do nothing;";
+          db.any(insert_query, [item.student_name, item.test_id, item.current_belt, item.barcode, item.belt_color, (String(item.test_id) + (String(item.barcode)))])
             .then(rows => {
               res.render('testing_confirmed_blackbelt', {
                 student_name: item.student_name,
@@ -4184,11 +4184,11 @@ router.post('/test_preview', previewValidate, (req, res) => {
             })
           } else {
             var belt_id = item.belt_color.replace(' ', '').toLowerCase()
-            const insert_query = "insert into test_signups (student_name, test_id, belt_color, barcode) values ($1, $2, $3, $4) on conflict(session_id) do nothing;";
+            const insert_query = "insert into test_signups (student_name, test_id, belt_color, barcode, session_id) values ($1, $2, $3, $4, $5) on conflict(session_id) do nothing;";
             const add_belt = "update belt_inventory set quantity = quantity + 1 where belt_id = $1 || (select belt_size from student_list where barcode = $2)::text"
             console.log('preview submit name: ' + item.student_name);
             console.log('preview submit barcode: ' + item.barcode);
-            db.any(insert_query, [item.student_name, item.test_id, item.belt_color, item.barcode])
+            db.any(insert_query, [item.student_name, item.test_id, item.belt_color, item.barcode, (String(item.test_id) + (String(item.barcode)))])
               .then(rows => {
                 db.any(add_belt, [belt_id, item.barcode])
                   .then(row => {
