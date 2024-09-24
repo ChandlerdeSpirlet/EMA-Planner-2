@@ -4643,7 +4643,7 @@ router.post('/test_checkin', testCheckValidate, (req, res) => {
       stud_data: req.body.result,
       level: req.body.level
     }
-    console.log('item: ' + item)
+    console.log('item: ' + JSON.stringify(item, null, 2))
     console.log('item.stud_data: ' + item.stud_data);
     const stud_info = parseStudentInfo(item.stud_data);//name, barcode
     console.log('stud_info: ' + stud_info);
