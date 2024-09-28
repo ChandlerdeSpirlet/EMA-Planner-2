@@ -1,0 +1,434 @@
+<html>
+<title>Create a Belt Test</title>
+{% extends 'nav_bar.html' %}
+{% set local = 'Tests' %}
+{% block content %}
+{% if alert_message != '' %}
+<script>alert("{{ alert_message }}")</script>
+{% endif %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
+<style>
+  * {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #E7E5E3;
+    box-sizing: border-box;
+  }
+
+  html {
+    background-image: linear-gradient(#3274C4, #2E353B);
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    min-height: 100vh;
+  }
+
+  #page-container {
+    min-height: 90vh;
+    min-width: 95%;
+    vertical-align: middle;
+  }
+
+  form>div {
+    margin-bottom: 20px;
+  }
+
+  button,
+  label,
+  input {
+    display: block;
+    font-size: 100%;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 5px;
+    height: 60px;
+    align-content: center;
+    background-color: transparent;
+    border: 1px solid #776D58;
+  }
+
+  select,
+  level_select {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    font-size: 100%;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 5px;
+    height: 60px;
+  }
+
+  .select-wrapper {
+    position: relative;
+  }
+
+  .select-wrapper::after {
+    content: "▼";
+    font-size: 1rem;
+    top: 24px;
+    right: 10px;
+    position: absolute;
+    color: #E7E5E3
+  }
+
+  select,
+  level_select {
+    box-shadow: inset 1px 1px 3px #2D4861;
+    border-radius: 5px;
+    background-color: transparent;
+    border-color: #776D58;
+  }
+
+  label {
+    margin-bottom: 5px;
+  }
+
+  button {
+    width: 60%;
+    margin: 0 auto;
+  }
+
+  label {
+    font-weight: bold;
+  }
+
+  p {
+    font-size: 16px;
+  }
+
+  h1,
+  h3 {
+    text-align: center;
+  }
+
+  .column1 {
+    float: left;
+    width: 50%;
+    height: 100%;
+    padding-left: 10px;
+    padding-right: 5px;
+  }
+
+  .column2 {
+    float: right;
+    width: 50%;
+    height: 100%;
+    padding-right: 10px;
+    padding-left: 5px;
+  }
+
+  .row:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+
+  .row {
+    height: 10%;
+    min-width: 90%;
+    padding-top: 90px;
+  }
+
+  .end {
+    max-width: 95%;
+    padding-left: 10px;
+    padding-right: 10px;
+    vertical-align: middle;
+  }
+
+  .isDisabled {
+    color: currentColor;
+    cursor: not-allowed;
+    opacity: 0.5;
+    text-decoration: none;
+  }
+
+  td,
+  th {
+    padding: 4px;
+    background-color: transparent;
+    text-align: center;
+  }
+
+  tr {
+    border-bottom: 1px dotted black;
+    border-top: 1px dotted black;
+    border-collapse: collapse;
+  }
+
+  table {
+    width: 90%;
+    align-content: center;
+  }
+</style>
+
+<head>
+  <h1>Belt Test Creation Tool</h1>
+  <h3>Create a belt test</h3>
+</head>
+
+<body>
+  <div id="page-container">
+    <form action="/create_test" method="POST" onsubmit="return validate(this);">
+      <div class="row">
+        <div class="column1">
+          <div class="select-wrapper">
+            <select id="level_select" name="level_select" required onchange="toggleCurriculumDropdown()">
+              <option value="" disabled>Level</option>
+              <option value="-1">Little Dragons</option>
+              <option value="0">Basic</option>
+              <option value="0.1">Basic (White Belt)</option>
+              <option value="0.2">Basic (Gold Belt)</option>
+              <option value="1.1">Level 1 (Orange and High Orange Belts)</option>
+              <option value="1.2">Level 1 (Green and High Green Belts</option>
+              <option value="2">Level 2 (All Belts)</option>
+              <option value="2.1">Level 2 (Purple and High Purple Belts)</option>
+              <option value="2.2">Level 2 (Blue and High Blue Belts</option>
+              <option value="3">Level 3</option>
+              <option value="7">Weapons</option>
+              <option value="8">Black Belt</option>
+              <option value="9">Make Up</option>
+            </select>
+          </div>
+        </div>
+        <div class="column2">
+          <div class="select-wrapper" style="width: 50%; float: left;">
+            <select id="select" name="month_select" required>
+              <script>
+                let denver_date_create_test = new Date().toLocaleDateString("en-US", { timeZone: "America/Denver" });
+                let n_create_test = new Date(denver_date_create_test);
+                const monthNames_create_test = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                var m_create_test = monthNames_create_test[n_create_test.getMonth()];
+                document.write('<option value="' + m_create_test + '">' + m_create_test + '</option>')
+              </script>
+              <option value="January">January</option>
+              <option value="February">February</option>
+              <option value="March">March</option>
+              <option value="April">April</option>
+              <option value="May">May</option>
+              <option value="June">June</option>
+              <option value="July">July</option>
+              <option value="August">August</option>
+              <option value="September">September</option>
+              <option value="October">October</option>
+              <option value="November">November</option>
+              <option value="December">December</option>
+            </select>
+          </div>
+          <div class="select-wrapper" style="width: 50%; float: right;">
+            <select id="select" name="day_select" required>
+              <script>
+                var d_create_test = ("0" + n_create_test.getDate()).slice(-2);
+                document.write('<option value="' + d_create_test + '">' + d_create_test + '</option>')
+              </script>
+              {% for i in range(1, 31 + 1) -%}
+              <option value="{{ i }}">{{ i }}</option>
+              {%- endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column2">
+            <div class="select-wrapper">
+              <select id="select" name="time_select" required>
+                <option value="" disabled>Time</option>
+                <optgroup label="Morning">
+                  {% for i in range(9, 11 + 1) -%}
+                  <option value="{{ i }}:00">{{ i }}:00 AM</option>
+                  <option value="{{ i }}:15">{{ i }}:15 AM</option>
+                  <option value="{{ i }}:30">{{ i }}:30 AM</option>
+                  <option value="{{ i }}:45">{{ i }}:45 AM</option>
+                  {%- endfor %}
+                </optgroup>
+                <optgroup label="Evening">
+                  {% for i in range(4, 8 + 1) -%}
+                  <option value="{{ i + 12 }}:00">{{ i }}:00 PM</option>
+                  <option value="{{ i + 12 }}:15">{{ i }}:15 PM</option>
+                  <option value="{{ i + 12 }}:30">{{ i }}:30 PM</option>
+                  <option value="{{ i + 12 }}:45">{{ i }}:45 PM</option>
+                  {%- endfor %}
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <div class="column1" id="curriculum_container" style="display: none;">
+            <div class="select-wrapper">
+              <select id="select" name="curriculum_select">
+                <option value="">Black Belt Curriculum</option>
+                <option value="choi_yong">Choi Yong/Knife Defense</option>
+                <option value="se_jong">Se Jong/Shotokan</option>
+                <option value="kali_sticks">Kali Sticks 4</option>
+                <option value="beethoven">Beethoven/BJJ Submissions</option>
+                <option value="ko_dang">Ko Dang/Boxing</option>
+                <option value="kenpo">Hawaiian Kenpo/Kenpo Self Defense</option>
+                <option value="yoo_shin">Yoo Shin/Falls and Rolls</option>
+                <option value="trilogy">Trilogy</option>
+                <option value="ul_gi">Ul Gi/2 on 1 Sparring</option>
+                <option value="granada">Granada/Kicking Set</option>
+                <option value="kwan_gye">Kwan Gye/Pressure Points</option>
+                <option value="nunchaku">Nunchaku 2/Heian Godan</option>
+                <option value="tong_il">Tong Il/Board Breaking</option>
+                <option value="ju_che">Ju Che</option>
+                <option value="bassa_dai">Bassai Dai/Kicking Set</option>
+                <option value="choon_jang">Choon Jang/Pressure Points</option>
+                <option value="so_san">So San/Kung Fu 1</option>
+                <option value="moon_moo">Moon Moo</option>
+                <option value="sam_il">Sam Il/Kung Fu 2</option>
+                <option value="papohak_sho">Papohak Sho/Offense & Defense</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <br>
+      <br>
+      <div class="row">
+        <input type="submit" name="Submit" value="Create">
+      </div>
+    </form>
+    <br>
+    <br>
+    <div class="row">
+      <div class="column1">
+        <button onclick="sortDayTime()">Sort Day/Time</button>
+      </div>
+      <div class="column2">
+        <button onclick="sortLevel()">Sort Levels</button>
+        <!--SORT BUTTONS https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_sort_table-->
+      </div>
+    </div>
+    <br>
+    <div class="row">
+      <table id="tests">
+        <tr>
+          <th>Test Date/Time</th>
+          <th style="display:none;">Level Num</th>
+          <th>Level</th>
+          <th>Notes/Curriculum</th>
+          <th>Edit/Delete</th>
+        </tr>
+        {% for test in test_data %}
+        <tr>
+          <td>{{ test.test_day }}</td>
+          <td style="display:none;">{{ test.level }}</td>
+          <td>{% if test.level == -1 %}Little Dragons{% elif test.level == 0 %}Basic{% elif test.level == 1 %}Level 1{%
+            elif test.level == 2 %}Level 2{% elif test.level == 3 %}Level 3{% elif test.level == 7 %}Weapons{% elif
+            test.level == 8 %}Black Belt{% else %}???{% endif %}</td>
+          <td>{% if test.notes != "" %}{{ test.notes }}{% endif %}{% if test.curriculum != null %}{{ test.curriculum
+            }}{% endif %}</td>
+          <td><a href="" class="isDisabled">Edit Test</a> <a
+              href="/delete_test/{{ test.id }}/{{ test.level }}">Delete Test</a></td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+  <br>
+</body>
+
+</html>
+<script>
+  function toggleCurriculumDropdown() {
+    var levelSelect = document.getElementById('level_select');
+    var curriculumContainer = document.getElementById('curriculum_container');
+    
+    if (levelSelect.value == "8") {
+      curriculumContainer.style.display = "block";
+    } else {
+      curriculumContainer.style.display = "none";
+    }
+  }
+
+  // To ensure the correct dropdown visibility on page load
+  document.addEventListener('DOMContentLoaded', function () {
+    toggleCurriculumDropdown();
+  });
+</script>
+<script>
+  function validate(form) {
+    valid = true;
+    var level = document.getElementsByName('level_select');
+    var curr = document.getElementsByName('curriculum_select');
+    if (level == "8") {
+      if (curr == null || curr == "") {
+        valid = false;
+        alert('Be sure to select black belt curriculum!')
+      }
+    }
+  }
+  function sortDayTime() {
+    var table, rows, switching, i, x, y, shouldSwitch;
+    table = document.getElementById("tests");
+    switching = true;
+    /*Make a loop that will continue until
+    no switching has been done:*/
+    while (switching) {
+      //start by saying: no switching is done:
+      switching = false;
+      rows = table.rows;
+      /*Loop through all table rows (except the
+      first, which contains table headers):*/
+      for (i = 1; i < (rows.length - 1); i++) {
+        //start by saying there should be no switching:
+        shouldSwitch = false;
+        /*Get the two elements you want to compare,
+        one from current row and one from the next:*/
+        x = rows[i].getElementsByTagName("TD")[0];
+        y = rows[i + 1].getElementsByTagName("TD")[0];
+        //check if the two rows should switch place:
+        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+          //if so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      }
+      if (shouldSwitch) {
+        /*If a switch has been marked, make the switch
+        and mark that a switch has been done:*/
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+      }
+    }
+  }
+  function sortLevel() {
+    var table, rows, switching, i, x, y, shouldSwitch;
+    table = document.getElementById("tests");
+    switching = true;
+    /*Make a loop that will continue until
+    no switching has been done:*/
+    while (switching) {
+      //start by saying: no switching is done:
+      switching = false;
+      rows = table.rows;
+      /*Loop through all table rows (except the
+      first, which contains table headers):*/
+      for (i = 1; i < (rows.length - 1); i++) {
+        //start by saying there should be no switching:
+        shouldSwitch = false;
+        /*Get the two elements you want to compare,
+        one from current row and one from the next:*/
+        x = rows[i].getElementsByTagName("TD")[1];
+        y = rows[i + 1].getElementsByTagName("TD")[1];
+        //check if the two rows should switch place:
+        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+          //if so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      }
+      if (shouldSwitch) {
+        /*If a switch has been marked, make the switch
+        and mark that a switch has been done:*/
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+      }
+    }
+  }
+</script>
+{% endblock %}
