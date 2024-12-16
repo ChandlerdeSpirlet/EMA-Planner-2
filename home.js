@@ -127,32 +127,7 @@ let passageAuthMiddleware = (() => {
   }
 })()
 
-router.post('/build_pcs', (req, res) => {
-  const pcs_query = "select first_name || ' ' || last_name as student_name, month_1, month_1_splits, month_2, month_2_splits from student_list order by last_name, first_name;";
-  db.any(pcs_query)
-    .then(data => {
-      var filename = 'progress_check_data.csv';
-      const json2csvParser = new Json2csvParser({header: true});
-      const csv = json2csvParser.parse(data);
-      fs.writeFile(`${__dirname}/` + filename, csv, function(error) {
-        if (error) throw error;
-        console.log("Progress scores successful");
-        res.redirect('/pcs_down/' + filename);
-      })
-    })
-    .catch(err => {
-      res.render('progress_check_scores', {
-        pc_data: '',
-        alert_message: 'Could not get scores for download. ERROR: ' + err
-      })
-    })
-})
 
-app.get('/pcs_down/(:filename)', function (req, res){
-  var data = readFileSync(__dirname + '/' + req.params.filename);
-  res.contentType("text/csv")
-  res.send(data);
-})
 
 function parseStudentInfo (info) {
   let studInfo = ['', 0]
