@@ -947,11 +947,11 @@ app.get('/logged-in', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/login', (req, res) => {
-  res.render('login', {
-    project_id: process.env.PROJECT_ID
-  })
-})
+// router.get('/login', (req, res) => {
+//   res.render('login', {
+//     project_id: process.env.PROJECT_ID
+//   })
+// })
 
 router.get('/profile', (req, res) => {
   res.render('profile', {
@@ -975,42 +975,42 @@ router.get('/login_failure/(:reason)', (req, res) => {
 const loginValidate = [
   check('username', 'Username must not be empty').isLength({ min: 1 }).trim().escape(), check('password').isLength({ min: 8 }).withMessage('Password must be greater than 8 characters').trim().escape()
 ]
-router.post('/login', loginValidate, (req, res) => {
-  const loginErrors = validationResult(req)
-  if (!loginErrors.isEmpty()) {
-    res.status(422).json({ errors: loginErrors.array() })
-  } else {
-    const item = {
-      username: req.body.username,
-      password: req.body.password,
-      go_to: req.body.go_to
-    }
-    if (item.username && item.password) {
-      db.query('select * from login where username = $1 and password = $2', [item.username, item.password])
-        .then(result => {
-          if (Number(result.length) > 0) {
-            console.log('Authenticated')
-            req.session.loggedin = true
-            req.session.username = item.username
-            if (req.session.username === 'cdespirlet') {
-              item.go_to = '/workout_home'
-            }
-            res.render('login_success', {
-              go_to: item.go_to
-            })
-          } else {
-            res.redirect('login_failure/username')
-          }
-        })
-        .catch(err => {
-          console.log('login error - ' + err)
-          res.redirect('login_failure/username')
-        })
-    } else {
-      console.log('Username and password not received')
-    }
-  }
-})
+// router.post('/login', loginValidate, (req, res) => {
+//   const loginErrors = validationResult(req)
+//   if (!loginErrors.isEmpty()) {
+//     res.status(422).json({ errors: loginErrors.array() })
+//   } else {
+//     const item = {
+//       username: req.body.username,
+//       password: req.body.password,
+//       go_to: req.body.go_to
+//     }
+//     if (item.username && item.password) {
+//       db.query('select * from login where username = $1 and password = $2', [item.username, item.password])
+//         .then(result => {
+//           if (Number(result.length) > 0) {
+//             console.log('Authenticated')
+//             req.session.loggedin = true
+//             req.session.username = item.username
+//             if (req.session.username === 'cdespirlet') {
+//               item.go_to = '/workout_home'
+//             }
+//             res.render('login_success', {
+//               go_to: item.go_to
+//             })
+//           } else {
+//             res.redirect('login_failure/username')
+//           }
+//         })
+//         .catch(err => {
+//           console.log('login error - ' + err)
+//           res.redirect('login_failure/username')
+//         })
+//     } else {
+//       console.log('Username and password not received')
+//     }
+//   }
+// })
 
 router.get('/documents', (req, res) => {
   res.render('documents', {
