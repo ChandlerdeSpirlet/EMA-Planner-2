@@ -23,7 +23,7 @@ const Json2csvParser = require("json2csv").Parser
 //const fs = require("fs")
 //const csv = require('csv-parser')
 const Passage = require('@passageidentity/passage-node')
-const { auth } = require('express-openid-connect')
+const { auth, requiresAuth } = require('express-openid-connect')
 
 const passageConfig = {
   appID: process.env.PASSAGE_ID,
@@ -749,6 +749,10 @@ app.use(auth(auth0Config))
 
 app.get('/', (req, res) => {
   res.send(req.oidc.isAuthenticated() ? 'Logged in': 'Logged out')
+})
+
+app.get('/profile', requiresAuth(), (req, res) => {
+  res.send(JSON.stringify(req.oidc.user))
 })
 
 // app.get('/', passageAuthMiddleware, async(req, res) => {
