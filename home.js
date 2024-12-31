@@ -23,12 +23,22 @@ const Json2csvParser = require("json2csv").Parser
 //const fs = require("fs")
 //const csv = require('csv-parser')
 const Passage = require('@passageidentity/passage-node')
+const { auth } = require('express-openid-connect')
 
 const passageConfig = {
   appID: process.env.PASSAGE_ID,
   apiKey: process.env.PASSAGE_API,
 }
 const staffArray = process.env.STAFF_USER_ID.split(',')
+
+const auth0Config = {
+  authRequired: false,
+  auth0Logout: true,
+  secret: process.env.AUTH0_SECRET,
+  baseURL: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com',
+  clientID: 'zHDE3rG81XjHokgkdxAKfhPpVlLlJ5Wv',
+  issuerBaseURL: 'https://dev-62prkp8hqiumzwh4.us.auth0.com'
+}
 
 JSON.safeStringify = (obj, indent = 2) => {
   let cache = [];
@@ -702,6 +712,16 @@ function parseID (idSet) {
   return setId
 }
 
+app.get('/logged-in-auth0', async(req, res) => {
+  let userID = res.userID
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+  } else {
+      res.render('logged-in', {
+      })
+  }
+})
+
 app.get('/logged-in', passageAuthMiddleware, async(req, res) => {
   let userID = res.userID
   if (req.headers['x-forwarded-proto'] !== 'https') {
@@ -725,152 +745,158 @@ app.get('/logged-in', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-app.get('/', passageAuthMiddleware, async(req, res) => {
-  let userID = res.userID
-  console.log('userID: ' + userID)
-  if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
-  } else {
-    if (req.cookies.psg_auth_token && userID && staffArray.includes(res.userID)) {
-      var event = new Date();
-      var options_1 = { 
-        month: 'long',
-        timeZone: 'America/Denver'
-      };
-      var options_2 = { 
-        day: 'numeric',
-        timeZone: 'America/Denver'
-      };
-      var options_3 = { 
-        year: 'numeric',
-        timeZone: 'America/Denver'
-      };
-      const month = event.toLocaleDateString('en-US', options_1);
-      const day = event.toLocaleDateString('en-US', options_2);
-      const year = event.toLocaleDateString('en-US', options_3);
-      const student_query = 'select level_name, count(level_name), belt_order from student_list group by level_name, belt_order order by belt_order;'
-      const p_count = 'select count(belt_order) as num from student_list where belt_order = 4;'
-      const c_count = 'select count(belt_order) as num from student_list where belt_order >= 5 and belt_order <= 6;'
-      const b_count = 'select count(belt_order) as num from student_list where belt_order >= 7;'
-      const total_new_student_list = "select count(barcode) as new_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year')));"
-      const karate_new_student_list = "select count(barcode) as karate_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year'))) and karate_student = true;"
-      const kickbox_new_student_list = "select count(barcode) as kickbox_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year'))) and kickboxer = true;"
-      const find_missing = 'select count(barcode) as num_barcodes from temp_payments;'
-      db.any(student_query)
-        .then(function (rows) {
-          // const stripe = require('stripe')(process.env.STRIPE_API_KEY)
-          // stripe.balance.retrieve((err, balance) => {
-          //  if (balance) {
-          const failure_query = 'select count(id_failed) as failed_num from failed_payments'
-          db.one(failure_query)
-            .then(function (row) {
-              const checked_in_query = "select count(class_session_id) as week_count from class_signups where class_session_id in (select class_id from classes where starts_at >= (now() - interval '7 hours') - interval '7 days' and starts_at < (now() + interval '17 hours'));";
-              db.any(checked_in_query)
-                .then(checked_week => {
-                  const day_query = "select count(class_session_id) as day_count from class_signups where class_session_id in (select class_id from classes where starts_at >= (now() - interval '7 hours') - interval '24 hours' and starts_at < (now() - interval '7 hours'));"
-                  db.any(day_query)
-                    .then(days => {
-                      const belt_count = "select count(belt_size) as belt_count from student_list where belt_size = -1;"
-                      db.any(belt_count)
-                        .then(belt_row => {
-                          db.any(total_new_student_list, [month, year])
-                            .then(stud_list => {
-                              db.any(karate_new_student_list, [month, year])
-                                .then(karate_list => {
-                                  db.any(kickbox_new_student_list, [month, year])
-                                    .then(kickbox_list => {
-                                      db.any(find_missing)
-                                        .then(missing => {
-                                          db.one(p_count)
-                                            .then(p_num => {
-                                              db.one(c_count)
-                                                .then(c_num => {
-                                                  db.one(b_count)
-                                                    .then(b_num => {
-                                                      res.render('home.html', {
-                                                        balance_available: '0',
-                                                        balance_pending: '0',
-                                                        checked_today: days,
-                                                        belt_counts: belt_row,
-                                                        checked_week: checked_week,
-                                                        student_data: rows,
-                                                        p_count: p_num,
-                                                        c_count: c_num,
-                                                        b_count: b_num,
-                                                        failure_num: row,
-                                                        month: month,
-                                                        day: day,
-                                                        year: year,
-                                                        student_list: stud_list,
-                                                        karate_list: karate_list,
-                                                        kickbox_list: kickbox_list,
-                                                        missing_names: missing
-                                                      })
-                                                    })
-                                                    .catch(err => {
-                                                      console.log('Could not get black belt counts ' + err);
-                                                      res.render('home.html');
-                                                    })
-                                                })
-                                                .catch(err => {
-                                                  console.log('Could not get conditional counts ' + err);
-                                                  res.render('home.html');
-                                                })
-                                            })
-                                            .catch(err => {
-                                              console.log('Could not get prep counts ' + err);
-                                              res.render('home.html');
-                                            })
-                                        })
-                                        .catch(err => {
-                                          console.log('Could not get missing students ' + err);
-                                          res.render('home.html');
-                                        })
-                                    })
-                                    .catch(err => {
-                                      console.log('Could not get new kickboxer list ' + err);
-                                      res.render('home.html')
-                                    })
-                                })
-                                .catch(err => {
-                                  console.log('Cound not get new karate list ' + err);
-                                  res.render('home.html')
-                                })
-                            })
-                            .catch(err => {
-                              console.log('Could not get new student list ' + err);
-                              res.render('home.html');
-                            })
-                        })
-                        .catch(err => {
-                          console.log('Could not get belt count nums ' + err);
-                          res.render('home.html');
-                        })
-                    })
-                    .catch(err => {
-                      console.log('Could not get checked in day numbers ' + err);
-                      res.render('home.html');
-                    })
-                })
-                .catch(err => {
-                  console.log('Could not get checked in week numbers ' + err);
-                  res.render('home.html');
-                })
-            })
-            .catch(function (err) {
-              console.log('Could not get failed_payment count ' + err)
-              res.render('home.html')
-            })
-            .catch(function (err) {
-              console.log('Could not run query to count students: ' + err)
-            })
-        })
-    } else {
-      res.render('login', {
-      })
-    }
-  }
+app.use(auth(auth0Config))
+
+app.get('/', (req, res) => {
+  res.send(req.oidc.isAuthenticated() ? 'Logged in': 'Logged out')
 })
+
+// app.get('/', passageAuthMiddleware, async(req, res) => {
+//   let userID = res.userID
+//   console.log('userID: ' + userID)
+//   if (req.headers['x-forwarded-proto'] !== 'https') {
+//     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+//   } else {
+//     if (req.cookies.psg_auth_token && userID && staffArray.includes(res.userID)) {
+//       var event = new Date();
+//       var options_1 = { 
+//         month: 'long',
+//         timeZone: 'America/Denver'
+//       };
+//       var options_2 = { 
+//         day: 'numeric',
+//         timeZone: 'America/Denver'
+//       };
+//       var options_3 = { 
+//         year: 'numeric',
+//         timeZone: 'America/Denver'
+//       };
+//       const month = event.toLocaleDateString('en-US', options_1);
+//       const day = event.toLocaleDateString('en-US', options_2);
+//       const year = event.toLocaleDateString('en-US', options_3);
+//       const student_query = 'select level_name, count(level_name), belt_order from student_list group by level_name, belt_order order by belt_order;'
+//       const p_count = 'select count(belt_order) as num from student_list where belt_order = 4;'
+//       const c_count = 'select count(belt_order) as num from student_list where belt_order >= 5 and belt_order <= 6;'
+//       const b_count = 'select count(belt_order) as num from student_list where belt_order >= 7;'
+//       const total_new_student_list = "select count(barcode) as new_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year')));"
+//       const karate_new_student_list = "select count(barcode) as karate_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year'))) and karate_student = true;"
+//       const kickbox_new_student_list = "select count(barcode) as kickbox_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year'))) and kickboxer = true;"
+//       const find_missing = 'select count(barcode) as num_barcodes from temp_payments;'
+//       db.any(student_query)
+//         .then(function (rows) {
+//           // const stripe = require('stripe')(process.env.STRIPE_API_KEY)
+//           // stripe.balance.retrieve((err, balance) => {
+//           //  if (balance) {
+//           const failure_query = 'select count(id_failed) as failed_num from failed_payments'
+//           db.one(failure_query)
+//             .then(function (row) {
+//               const checked_in_query = "select count(class_session_id) as week_count from class_signups where class_session_id in (select class_id from classes where starts_at >= (now() - interval '7 hours') - interval '7 days' and starts_at < (now() + interval '17 hours'));";
+//               db.any(checked_in_query)
+//                 .then(checked_week => {
+//                   const day_query = "select count(class_session_id) as day_count from class_signups where class_session_id in (select class_id from classes where starts_at >= (now() - interval '7 hours') - interval '24 hours' and starts_at < (now() - interval '7 hours'));"
+//                   db.any(day_query)
+//                     .then(days => {
+//                       const belt_count = "select count(belt_size) as belt_count from student_list where belt_size = -1;"
+//                       db.any(belt_count)
+//                         .then(belt_row => {
+//                           db.any(total_new_student_list, [month, year])
+//                             .then(stud_list => {
+//                               db.any(karate_new_student_list, [month, year])
+//                                 .then(karate_list => {
+//                                   db.any(kickbox_new_student_list, [month, year])
+//                                     .then(kickbox_list => {
+//                                       db.any(find_missing)
+//                                         .then(missing => {
+//                                           db.one(p_count)
+//                                             .then(p_num => {
+//                                               db.one(c_count)
+//                                                 .then(c_num => {
+//                                                   db.one(b_count)
+//                                                     .then(b_num => {
+//                                                       res.render('home.html', {
+//                                                         balance_available: '0',
+//                                                         balance_pending: '0',
+//                                                         checked_today: days,
+//                                                         belt_counts: belt_row,
+//                                                         checked_week: checked_week,
+//                                                         student_data: rows,
+//                                                         p_count: p_num,
+//                                                         c_count: c_num,
+//                                                         b_count: b_num,
+//                                                         failure_num: row,
+//                                                         month: month,
+//                                                         day: day,
+//                                                         year: year,
+//                                                         student_list: stud_list,
+//                                                         karate_list: karate_list,
+//                                                         kickbox_list: kickbox_list,
+//                                                         missing_names: missing
+//                                                       })
+//                                                     })
+//                                                     .catch(err => {
+//                                                       console.log('Could not get black belt counts ' + err);
+//                                                       res.render('home.html');
+//                                                     })
+//                                                 })
+//                                                 .catch(err => {
+//                                                   console.log('Could not get conditional counts ' + err);
+//                                                   res.render('home.html');
+//                                                 })
+//                                             })
+//                                             .catch(err => {
+//                                               console.log('Could not get prep counts ' + err);
+//                                               res.render('home.html');
+//                                             })
+//                                         })
+//                                         .catch(err => {
+//                                           console.log('Could not get missing students ' + err);
+//                                           res.render('home.html');
+//                                         })
+//                                     })
+//                                     .catch(err => {
+//                                       console.log('Could not get new kickboxer list ' + err);
+//                                       res.render('home.html')
+//                                     })
+//                                 })
+//                                 .catch(err => {
+//                                   console.log('Cound not get new karate list ' + err);
+//                                   res.render('home.html')
+//                                 })
+//                             })
+//                             .catch(err => {
+//                               console.log('Could not get new student list ' + err);
+//                               res.render('home.html');
+//                             })
+//                         })
+//                         .catch(err => {
+//                           console.log('Could not get belt count nums ' + err);
+//                           res.render('home.html');
+//                         })
+//                     })
+//                     .catch(err => {
+//                       console.log('Could not get checked in day numbers ' + err);
+//                       res.render('home.html');
+//                     })
+//                 })
+//                 .catch(err => {
+//                   console.log('Could not get checked in week numbers ' + err);
+//                   res.render('home.html');
+//                 })
+//             })
+//             .catch(function (err) {
+//               console.log('Could not get failed_payment count ' + err)
+//               res.render('home.html')
+//             })
+//             .catch(function (err) {
+//               console.log('Could not run query to count students: ' + err)
+//             })
+//         })
+//     } else {
+//       res.render('login', {
+//       })
+//     }
+//   }
+// })
 
 router.get('/home', passageAuthMiddleware, async(req, res) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
