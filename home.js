@@ -81,6 +81,7 @@ sdk.auth(auth_header)
 // }
 
 const app = express()
+app.use(auth(auth0Config))
 app.use(flash())
 const port = process.env.PORT
 const router = express.Router()
@@ -721,7 +722,7 @@ app.get('/logged-in', requiresAuth(), async(req, res) => {
   }
 })
 
-app.use(auth(auth0Config))
+// app.use(auth(auth0Config))
 
 app.get('/profile', requiresAuth(), (req, res) => {
   res.send(JSON.stringify(req.oidc.user))
@@ -4538,7 +4539,6 @@ router.get('/belt_resolved/(:stud_name)/(:barcode)', requiresAuth(), async(req, 
 
 router.get('/test_selector_force/(:month)/(:day)', requiresAuth(), async(req, res) => {
   if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
-    console.log('logged in as ' + req.session.user);
     let temp_date = new Date();
     let year = String(temp_date.getFullYear());
     const date_conversion = req.params.month + ' ' + req.params.day;
@@ -5953,7 +5953,7 @@ router.get('/delete_student/(:barcode)', requiresAuth(), async(req, res) => {
 
 router.get('/create_test', requiresAuth(), async(req, res) => {
   let userID = req.oidc.user.sub
-  if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
+  if (req.oidc.isAuthenticated() && staffArray.includes(homereq.oidc.user.sub)) {
     const testQueryAll = "select id, level, to_char(test_date, 'Mon DD, YYYY') || ' - ' || to_char(test_time, 'HH:MI PM') as test_day, notes, curriculum from test_instance where test_date > CURRENT_DATE - INTERVAL '1 months' AND test_date < CURRENT_DATE + INTERVAL '2 months' order by test_date, test_time;"
     db.any(testQueryAll)
       .then(tests => {
