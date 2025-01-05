@@ -5948,7 +5948,7 @@ router.get('/delete_student/(:barcode)', requiresAuth(), async(req, res) => {
 
 router.get('/create_test', requiresAuth(), async(req, res) => {
   let userID = req.oidc.user.sub
-  if (req.oidc.isAuthenticated() && staffArray.includes(homereq.oidc.user.sub)) {
+  if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
     const testQueryAll = "select id, level, to_char(test_date, 'Mon DD, YYYY') || ' - ' || to_char(test_time, 'HH:MI PM') as test_day, notes, curriculum from test_instance where test_date > CURRENT_DATE - INTERVAL '1 months' AND test_date < CURRENT_DATE + INTERVAL '2 months' order by test_date, test_time;"
     db.any(testQueryAll)
       .then(tests => {
