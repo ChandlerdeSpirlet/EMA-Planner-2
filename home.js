@@ -22,13 +22,8 @@ const fileUpload = require('express-fileupload')
 const Json2csvParser = require("json2csv").Parser
 //const fs = require("fs")
 //const csv = require('csv-parser')
-const Passage = require('@passageidentity/passage-node')
 const { auth, requiresAuth } = require('express-openid-connect')
 
-const passageConfig = {
-  appID: process.env.PASSAGE_ID,
-  apiKey: process.env.PASSAGE_API,
-}
 const staffArray = process.env.STAFF_USER_ID.split(',')
 
 const auth0Config = {
