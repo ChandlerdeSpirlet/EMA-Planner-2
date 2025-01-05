@@ -116,28 +116,6 @@ const { lookup } = require('dns')
 
 app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
 
-console.log('Passage is ' + typeof Passage)
-// let passage = new Passage(passageConfig)
-let passage = new Passage(passageConfig)
-console.log('passage is ' + typeof passage)
-let passageAuthMiddleware = (() => {
-  return async (req, res, next) => {
-    try {
-      let userID = await passage.authenticateRequest(req)
-      if (userID) {
-        res.userID = userID
-        next()
-      }
-    } catch (e) {
-      res.status(401).render('login')
-      console.log('Error authenticating: ' + e)
-      //res.status(401).send('Could not authenticate user!')
-    }
-  }
-})()
-
-
-
 function parseStudentInfo (info) {
   let studInfo = ['', 0]
   studInfo[0] = info.substring(0, info.indexOf(' - '))
@@ -296,8 +274,8 @@ function parseBB(currentColor, isPromotion) { //returns belt color, level, and b
   return beltInfo;
 }
 
-router.get('/student_level_list', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/student_level_list', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
     const student_list = 'select first_name, last_name, belt_color, belt_size, level_name from student_list order by belt_order, last_name;';
     db.any(student_list)
       .then(rows => {
@@ -713,7 +691,6 @@ function parseID (idSet) {
 }
 
 app.get('/logged-in-auth0', async(req, res) => {
-  let userID = res.userID
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
@@ -722,15 +699,14 @@ app.get('/logged-in-auth0', async(req, res) => {
   }
 })
 
-app.get('/logged-in', passageAuthMiddleware, async(req, res) => {
-  let userID = res.userID
+app.get('/logged-in', requiresAuth(), async(req, res) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
-    if (req.cookies.psg_auth_token && userID) {
+    if (req.oidc.isAuthenticated()) {
       console.log('staffArray = ' + staffArray)
       let authLevel = '/student_portal_login'
-      if (staffArray.includes(userID)) {
+      if (staffArray.includes(req.oidc.user.sub)) {
         authLevel = '/'
       } else {
         authLevel = '/student_portal_login'
@@ -751,13 +727,11 @@ app.get('/profile', requiresAuth(), (req, res) => {
   res.send(JSON.stringify(req.oidc.user))
 })
 
-app.get('/', passageAuthMiddleware, async(req, res) => {
-  let userID = res.userID
-  console.log('userID: ' + userID)
+app.get('/', requiresAuth(), async(req, res) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
-    if (req.cookies.psg_auth_token && userID && staffArray.includes(res.userID)) {
+    if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
       var event = new Date();
       var options_1 = { 
         month: 'long',
@@ -898,11 +872,11 @@ app.get('/', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/home', passageAuthMiddleware, async(req, res) => {
+router.get('/home', requiresAuth(), async(req, res) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
-    if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+    if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
       res.redirect('/')
     } else {
       res.render('login', {
@@ -924,15 +898,14 @@ app.get('/setCookie', async (_req, res) => {
   res.send('Cookie set!');
 });
 
-app.get('/logged-in', passageAuthMiddleware, async(req, res) => {
-  let userID = res.userID
+app.get('/logged-in', requiresAuth(), async(req, res) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
-    if (req.cookies.psg_auth_token && userID) {
+    if (req.oidc.isAuthenticated()) {
       const staffArray = process.env.STAFF_USER_ID.split(',')
       const authLevel = ''
-      if (staffArray.includes(userID)) {
+      if (staffArray.includes(req.oidc.user.sub)) {
         const authLevel = '/'
       } else {
         const authLevel = '/student_portal_login'
@@ -1335,8 +1308,8 @@ router.get('/SWAT1Tasks.pdf', function (req, res) {
   }
 })
 
-router.get('/dragons_signup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/dragons_signup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     var dragonsDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1402,8 +1375,8 @@ router.get('/dragons_signup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/basic_signup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/basic_signup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     var basicDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1469,8 +1442,8 @@ router.get('/basic_signup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/level1_signup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/level1_signup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     var level1DateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1536,8 +1509,8 @@ router.get('/level1_signup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/level2_signup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/level2_signup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     var level2DateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1603,8 +1576,8 @@ router.get('/level2_signup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/level3_signup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/level3_signup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     var level3DateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1670,8 +1643,8 @@ router.get('/level3_signup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/wfc_signup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/wfc_signup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     var wfcDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1737,8 +1710,8 @@ router.get('/wfc_signup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/sparapalooza_signup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/sparapalooza_signup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     var sparapaloozaDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1804,8 +1777,8 @@ router.get('/sparapalooza_signup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/bb_signup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/bb_signup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     var bbDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1871,8 +1844,8 @@ router.get('/bb_signup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/weapons_signup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/weapons_signup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     var weaponsDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1938,8 +1911,8 @@ router.get('/weapons_signup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/bjj_signup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/bjj_signup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     var bjjDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -2005,8 +1978,8 @@ router.get('/bjj_signup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/conditional_signup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/conditional_signup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     var conditionalDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -2072,8 +2045,8 @@ router.get('/conditional_signup', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/swat_signup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/swat_signup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     var swatDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -2502,8 +2475,8 @@ router.post('/swat_signup', loginValidateClasses, (req, res) => {
   }
 })
 
-router.get('/update_checkin/(:barcode)/(:class_id)/(:class_level)/(:class_time)/(:class_check)/(:class_type)/(:can_view)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/update_checkin/(:barcode)/(:class_id)/(:class_level)/(:class_time)/(:class_check)/(:class_type)/(:can_view)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const update_status = 'update class_signups set checked_in = true where class_check = $1;';
     const update_visit = "update student_list set last_visit = (select to_char(starts_at, 'Month DD, YYYY')::date as visit from classes where class_id = $1) where barcode = $2 and (last_visit < (select to_char(starts_at, 'Month DD, YYYY')::date as visit from classes where class_id = $3) or last_visit is null);"
     console.log('class_type: ' + req.params.class_type);
@@ -2944,8 +2917,8 @@ router.get('/process_classes/(:stud_info)/(:stud_info2)/(:stud_info3)/(:stud_inf
   }
 })
 
-router.get('/class_checkin/(:class_id)/(:class_level)/(:class_time)/(:class_type)/(:can_view)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/class_checkin/(:class_id)/(:class_level)/(:class_time)/(:class_type)/(:can_view)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     console.log('req.params.class_id = ' + req.params.class_id);
     const query = "select * from get_class_names($1);";
     const checked_in = "select s.student_name, s.barcode, s.class_check, l.failed_charge, to_char(now() at time zone 'MST', 'Month DD') as curr_date, to_char(l.bday, 'Month DD') as bday from class_signups s, student_list l where s.class_session_id = $1 and s.checked_in = true and l.barcode = s.barcode;";
@@ -3561,8 +3534,8 @@ app.get('/cal_down/(:filename)', function (req, res) {
   res.send(data)
 })
 
-router.get('/student_tests', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/student_tests', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     res.render('student_tests'), {
 
     }
@@ -3583,8 +3556,8 @@ app.get('/student_classes', requiresAuth(), (req, res) => {
   }
 })
 
-// router.get('/student_classes', passageAuthMiddleware, async(req, res) => {
-//   if (req.cookies.psg_auth_token && res.userID) {
+// router.get('/student_classes', requiresAuth(), async(req, res) => {
+//   if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
 //     res.render('student_classes'), {
 
 //     }
@@ -3604,11 +3577,11 @@ router.get('/download_done/(:url)', (req, res) => {
   res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_classes')
 })
 
-router.get('/student_portal_login', passageAuthMiddleware, async (req, res) => {
+router.get('/student_portal_login', requiresAuth(), async (req, res) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login')
   } else {
-    if (req.cookies.psg_auth_token && res.userID) {
+    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
       const portalQuery = 'select * from get_all_names()'
       db.any(portalQuery)
         .then(function (rows) {
@@ -3632,11 +3605,11 @@ router.get('/student_portal_login', passageAuthMiddleware, async (req, res) => {
   }
 })
 
-router.get('/testing_signup_dragons', passageAuthMiddleware, async(req, res) => {
+router.get('/testing_signup_dragons', requiresAuth(), async(req, res) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_dragons');
   } else {
-    if (req.cookies.psg_auth_token && res.userID) {
+    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
       const name_query = "select * from signup_names(-1);";
       const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = -1 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
       db.any(name_query)
@@ -3668,11 +3641,11 @@ router.get('/testing_signup_dragons', passageAuthMiddleware, async(req, res) => 
   }
 })
 
-router.get('/testing_signup_basic', passageAuthMiddleware, async(req, res) => {
+router.get('/testing_signup_basic', requiresAuth(), async(req, res) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_basic');
   } else {
-    if (req.cookies.psg_auth_token && res.userID) {
+    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
       const name_query = "select * from signup_names(0);";
       const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 0 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
       db.any(name_query)
@@ -3704,11 +3677,11 @@ router.get('/testing_signup_basic', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/testing_signup_level1', passageAuthMiddleware, async(req, res) => {
+router.get('/testing_signup_level1', requiresAuth(), async(req, res) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_level1');
   } else {
-    if (req.cookies.psg_auth_token && res.userID) {
+    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
       const name_query = "select * from signup_names(0);";
       const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 1 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
       db.any(name_query)
@@ -3740,11 +3713,11 @@ router.get('/testing_signup_level1', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/testing_signup_level2', passageAuthMiddleware, async(req, res) => {
+router.get('/testing_signup_level2', requiresAuth(), async(req, res) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_level2');
   } else {
-    if (req.cookies.psg_auth_token && res.userID) {
+    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
       const name_query = "select * from signup_names(0);";
       const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 2 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
       db.any(name_query)
@@ -3776,11 +3749,11 @@ router.get('/testing_signup_level2', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/testing_signup_level3', passageAuthMiddleware, async(req, res) => {
+router.get('/testing_signup_level3', requiresAuth(), async(req, res) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_level3');
   } else {
-    if (req.cookies.psg_auth_token && res.userID) {
+    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
       const name_query = "select * from signup_names(0);";
       const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 3 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
       db.any(name_query)
@@ -3812,11 +3785,11 @@ router.get('/testing_signup_level3', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/testing_signup_weapons', passageAuthMiddleware, async(req, res) => {
+router.get('/testing_signup_weapons', requiresAuth(), async(req, res) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_weapons');
   } else {
-    if (req.cookies.psg_auth_token && res.userID) {
+    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
       const name_query = "select * from signup_names(0);";
       const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 7 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
       db.any(name_query)
@@ -3848,11 +3821,11 @@ router.get('/testing_signup_weapons', passageAuthMiddleware, async(req, res) => 
   }
 })
 
-router.get('/testing_signup_blackbelt', passageAuthMiddleware, async(req, res) => {
+router.get('/testing_signup_blackbelt', requiresAuth(), async(req, res) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_blackbelt');
   } else {
-    if (req.cookies.psg_auth_token && res.userID) {
+    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
       const name_query = "select * from signup_names(4);";
       const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes, curriculum from test_instance where level = 8 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
       db.any(name_query)
@@ -4433,8 +4406,8 @@ router.post('/test_preview', previewValidate, (req, res) => {
   }
 })
 
-router.get('/refresh_belts', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/refresh_belts', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const belt_query = "update belt_inventory set quantity = 0;"
     db.none(belt_query)
       .then(row => {
@@ -4450,8 +4423,8 @@ router.get('/refresh_belts', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     const dropTest = 'delete from test_signups where session_id = $1 and barcode = $2;'
     const dropClass = 'delete from class_signups where class_check = $1 and barcode = $2;'
     const updateClassCount = 'update classes set student_count = student_count - 1 where class_id = $1;'
@@ -4533,8 +4506,8 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', passage
   }
 })
 
-router.get('/need_belts', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/need_belts', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const belt_query = 'select first_name, last_name, barcode from student_list where belt_size = -1;';
     db.any(belt_query)
       .then(belts => {
@@ -4554,8 +4527,8 @@ router.get('/need_belts', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/belt_resolved/(:stud_name)/(:barcode)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/belt_resolved/(:stud_name)/(:barcode)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     res.redirect('/student_lookup');
   } else {
     res.render('login', {
@@ -4563,8 +4536,8 @@ router.get('/belt_resolved/(:stud_name)/(:barcode)', passageAuthMiddleware, asyn
   }
 })
 
-router.get('/test_selector_force/(:month)/(:day)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/test_selector_force/(:month)/(:day)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     console.log('logged in as ' + req.session.user);
     let temp_date = new Date();
     let year = String(temp_date.getFullYear());
@@ -4586,8 +4559,8 @@ router.get('/test_selector_force/(:month)/(:day)', passageAuthMiddleware, async(
   }
 })
 
-router.get('/test_checkin_blackbelt/(:id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/test_checkin_blackbelt/(:id)/(:level)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     //if (req.session.user == 'Authorized'){
       const belt_counts = 'select testing_for, count(*) as "num" from test_signups where test_id = $1 group by testing_for;'
       const test_info = "select to_char(test_date, 'Month DD') as test_day, to_char(test_time, 'HH:MI PM') as testing_time, level, notes from test_instance where id = $1;"
@@ -4644,8 +4617,8 @@ router.get('/test_checkin_blackbelt/(:id)/(:level)', passageAuthMiddleware, asyn
   }
 })
 
-router.get('/test_checkin/(:id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/test_checkin/(:id)/(:level)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const test_info = "select to_char(test_date, 'Month DD') as test_day, to_char(test_time, 'HH:MI PM') as testing_time, level, notes from test_instance where id = $1;";
     const student_query = "select distinct session_id, student_name, barcode, belt_color, pass_status from test_signups where test_id = $1 and pass_status is null;";
     const pass_status = "select distinct session_id, student_name, barcode, belt_color, pass_status from test_signups where test_id = $1 and pass_status is not null;";
@@ -4759,8 +4732,8 @@ router.post('/test_checkin_blackbelt', testCheckValidateBB, (req, res) => {
     }
 })
 
-router.get('/test_remove/(:barcode)/(:test_id)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/test_remove/(:barcode)/(:test_id)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const remove_query = "delete from test_signups where barcode = $1 and test_id = $2;";
     db.any(remove_query, [req.params.barcode, req.params.test_id])
       .then(rows => {
@@ -4777,8 +4750,8 @@ router.get('/test_remove/(:barcode)/(:test_id)', passageAuthMiddleware, async(re
   }
 })
 
-router.get('/test_remove_blackbelt/(:barcode)/(:test_id)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/test_remove_blackbelt/(:barcode)/(:test_id)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const remove_query = "delete from test_signups where barcode = $1 and test_id = $2;";
     db.any(remove_query, [req.params.barcode, req.params.test_id])
       .then(rows => {
@@ -4795,8 +4768,8 @@ router.get('/test_remove_blackbelt/(:barcode)/(:test_id)', passageAuthMiddleware
   }
 })
 
-router.get('/update_test_checkin/(:barcode)/(:session_id)/(:test_id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/update_test_checkin/(:barcode)/(:session_id)/(:test_id)/(:level)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const insert_query = "insert into student_tests (test_id, barcode) values ($1, $2) on conflict (session_id) do nothing;";
     const update_status = "update test_signups set checked_in = true where session_id = $1";
     db.any(insert_query, [req.params.test_id, req.params.barcode])
@@ -5141,8 +5114,8 @@ router.post('/progress_check', pcValidate, (req, res) => {
   }
 })
 
-router.get('/progress_check_scores', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/progress_check_scores', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const pc_scores = "select first_name || ' ' || last_name as student_name, month_1, month_1_splits, month_2, month_2_splits from student_list order by last_name, first_name;";
     db.any(pc_scores)
       .then(rows => {
@@ -5176,8 +5149,8 @@ router.get('/reset_counts', function (req, res) {
     })
 })
 
-router.get('/refresh_scores', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/refresh_scores', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const reset_query = "update student_list set month_1 = 0, month_2 = 0, month_1_splits = '0:00', month_2_splits = '0:00';";
     db.none(reset_query)
     .then(row => {
@@ -5224,8 +5197,8 @@ function parseURL(data_set) { //class_id, level, time, type, can_view
   return values;
 }
 
-router.get('/set_can_view/(:combined_data)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/set_can_view/(:combined_data)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     console.log('combined data: ' + req.params.combined_data);
     const update_set_view = 'update classes set can_view = $1 where class_id = $2;';
     const url_vals = parseURL(req.params.combined_data);
@@ -5265,9 +5238,9 @@ router.get('/set_can_view/(:combined_data)', passageAuthMiddleware, async(req, r
   }
 })
 
-router.get('/class_remove/(:barcode)/(:class_id)/(:class_level)/(:class_time)/(:class_type)/(:can_view)', passageAuthMiddleware, async(req, res) => {
+router.get('/class_remove/(:barcode)/(:class_id)/(:class_level)/(:class_time)/(:class_type)/(:can_view)', requiresAuth(), async(req, res) => {
   var update_class_total = null;
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const remove_query = 'delete from class_signups where class_session_id = $1 and barcode = $2;'
     if (req.params.class_type == 'reg'){
       var update_count = "update student_list set reg_class = reg_class - 1 where barcode = $1";
@@ -5319,8 +5292,8 @@ router.get('/class_remove/(:barcode)/(:class_id)/(:class_level)/(:class_time)/(:
   }
 })
 
-router.get('/pass_test_bb/(:belt_color)/(:barcode)/(:test_id)/(:level)/(:testing_for)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/pass_test_bb/(:belt_color)/(:barcode)/(:test_id)/(:level)/(:testing_for)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const update_status = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";//color, level, order
     const belt_info = parseBB(req.params.testing_for, false);
     console.log('belt color was: ' + req.params.belt_color);
@@ -5360,8 +5333,8 @@ router.get('/pass_test_bb/(:belt_color)/(:barcode)/(:test_id)/(:level)/(:testing
   }
 })
 
-router.get('/pass_test/(:belt_color)/(:barcode)/(:test_id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/pass_test/(:belt_color)/(:barcode)/(:test_id)/(:level)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     if (req.params.level == '7') {
       const false_update = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";
       db.one(false_update, [req.params.barcode, req.params.test_id])
@@ -5402,8 +5375,8 @@ router.get('/pass_test/(:belt_color)/(:barcode)/(:test_id)/(:level)', passageAut
   }
 })
 
-router.get('/fail_test/(:barcode)/(:test_id)/(:level)/(:belt_color)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/fail_test/(:barcode)/(:test_id)/(:level)/(:belt_color)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const update_status = "update test_signups set pass_status = false where barcode = $1 and test_id = $2;";
     const make_up_test = "insert into test_signups (student_name, test_id, belt_color, barcode) values ((select first_name || ' ' || last_name from student_list where barcode = $2), (select id from test_instance where level = $3 and test_date >= now() and notes = 'Make Up Testing' limit 1), $1, $2);"
     db.any(update_status, [req.params.barcode, req.params.test_id])
@@ -5427,8 +5400,8 @@ router.get('/fail_test/(:barcode)/(:test_id)/(:level)/(:belt_color)', passageAut
   }
 })
 
-router.get('/fail_test_blackbelt/(:barcode)/(:test_id)/(:level)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/fail_test_blackbelt/(:barcode)/(:test_id)/(:level)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const update_status = "update test_signups set pass_status = false where barcode = $1 and test_id = $2;";
     const regex_fail = /\(pc\)/i;
     var rank_fail = req.params.level.replace(regex_fail, '- Progress Check');
@@ -5455,8 +5428,8 @@ router.get('/fail_test_blackbelt/(:barcode)/(:test_id)/(:level)', passageAuthMid
   }
 })
 
-router.get('/class_selector', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/class_selector', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const query = "select x.class_id, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = FALSE) as signed_up, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = TRUE) as checked_in, to_char(x.starts_at, 'Month') as class_month, to_char(x.starts_at, 'DD') as class_day, to_char(x.starts_at, 'HH:MI PM') as class_time, to_char(x.ends_at, 'HH:MI PM') as end_time, x.level, x.class_type from classes x where to_char(x.starts_at, 'Month DD YYYY') = to_char(to_date($1, 'Month DD YYYY'), 'Month DD YYYY') order by x.starts_at;"
     var d = new Date();
     var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -5480,8 +5453,8 @@ router.get('/class_selector', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/class_selector_force/(:month)/(:day)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/class_selector_force/(:month)/(:day)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const currentYear = new Date().getFullYear();
     const date_conversion = req.params.month + ' ' + req.params.day + ' ' + currentYear
     const query = "select x.class_id, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = FALSE) as signed_up, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = TRUE) as checked_in, to_char(x.starts_at, 'Month') as class_month, to_char(x.starts_at, 'DD') as class_day, to_char(x.starts_at, 'HH:MI PM') as class_time, to_char(x.ends_at, 'HH:MI PM') as end_time, x.level, x.class_type, x.can_view from classes x where to_char(x.starts_at, 'Month DD YYYY') = to_char(to_date($1, 'Month DD YYYY'), 'Month DD YYYY') order by x.starts_at;"
@@ -5501,8 +5474,8 @@ router.get('/class_selector_force/(:month)/(:day)', passageAuthMiddleware, async
   }
 })
 
-router.get('/class_lookup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/class_lookup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     var event = new Date();
     var options_1 = { 
       month: 'long',
@@ -5541,8 +5514,8 @@ router.post('/class_lookup', dateValidate, (req, res) => {
   }
 })
 
-router.get('/belt_resolved/(:stud_name)/(:barcode)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/belt_resolved/(:stud_name)/(:barcode)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     res.redirect('/student_lookup');
   } else {
     res.render('login', {
@@ -5550,8 +5523,8 @@ router.get('/belt_resolved/(:stud_name)/(:barcode)', passageAuthMiddleware, asyn
   }
 })
 
-router.get('/refresh_memberships', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/refresh_memberships', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     res.render('refresh_memberships', {   
     })
   } else {
@@ -5560,8 +5533,8 @@ router.get('/refresh_memberships', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/student_lookup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/student_lookup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const name_query = "select * from get_all_names()"
     db.any(name_query)
       .then(function (rows) {
@@ -5599,8 +5572,8 @@ router.post('/student_lookup', lookupValidate, (req, res) => {
   }
 })
 
-router.get('/lookup_message/(:alert_message)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/lookup_message/(:alert_message)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const name_query = "select * from get_all_names()"
     db.any(name_query)
       .then(function (rows) {
@@ -5622,8 +5595,8 @@ router.get('/lookup_message/(:alert_message)', passageAuthMiddleware, async(req,
   }
 })
 
-router.get('/student_data', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/student_data', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     res.render('student_data', {
       data: '',
       name: '',
@@ -5657,9 +5630,9 @@ router.get('/json_data', (req, res) => {
   })
 })
 
-router.get('/student_data_loading/(:name)/(:barcode)', passageAuthMiddleware, async(req, res) => {
-  let userID = res.userID
-  if (req.cookies.psg_auth_token && userID && staffArray.includes(res.userID)) {
+router.get('/student_data_loading/(:name)/(:barcode)', requiresAuth(), async(req, res) => {
+  let userID = req.oidc.user.sub
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub)) {
     var name = req.params.name;
     var barcode = req.params.barcode;
     let options4 = {
@@ -5868,8 +5841,8 @@ router.post('/student_data', dataValidate, (req, res) => {
     }
 })
 
-router.get('/test_lookup', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/test_lookup', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     var event = new Date();
     var options_1 = { 
       month: 'long',
@@ -5914,8 +5887,8 @@ router.post('/test_lookup', testLookupValidate, (req, res) => {
   }
 })
 
-router.get('/delete_student/(:barcode)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/delete_student/(:barcode)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     const del_query = 'delete from student_list where barcode = $1;';
     db.none(del_query, [req.params.barcode])
     .then(row => {
@@ -5978,9 +5951,9 @@ router.get('/delete_student/(:barcode)', passageAuthMiddleware, async(req, res) 
   }
 })
 
-router.get('/create_test', passageAuthMiddleware, async(req, res) => {
-  let userID = res.userID
-  if (req.cookies.psg_auth_token && userID && staffArray.includes(res.userID)) {
+router.get('/create_test', requiresAuth(), async(req, res) => {
+  let userID = req.oidc.user.sub
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub)) {
     const testQueryAll = "select id, level, to_char(test_date, 'Mon DD, YYYY') || ' - ' || to_char(test_time, 'HH:MI PM') as test_day, notes, curriculum from test_instance where test_date > CURRENT_DATE - INTERVAL '1 months' AND test_date < CURRENT_DATE + INTERVAL '2 months' order by test_date, test_time;"
     db.any(testQueryAll)
       .then(tests => {
@@ -6200,8 +6173,8 @@ router.post('/student_portal_login', portalValidate, (req, res) => {
   }
 })
 
-router.get('/student_portal/(:barcode)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID) {
+router.get('/student_portal/(:barcode)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
     const studInfo = "select first_name, last_name, email, belt_order, belt_color, belt_size, to_char(last_visit, 'Month DD, YYYY') as last_visit, reg_class, spar_class, swat_count, month_1, month_2 from student_list where barcode = $1;"
     const testQuery = "select s.student_name, s.session_id, s.test_id, to_char(i.test_date, 'Month') || ' ' || to_char(i.test_date, 'DD') || ' at ' || to_char(i.test_time, 'HH:MI PM') || ' ' || i.notes as test_instance, i.curriculum from test_signups s, test_instance i where s.barcode = $1 and i.id = s.test_id order by i.test_date;"
     const classQuery = "select s.student_name, s.email, s.class_check, s.class_session_id, s.is_swat, to_char(c.starts_at, 'Month') || ' ' || to_char(c.starts_at, 'DD') || ' at ' || to_char(c.starts_at, 'HH:MI PM') as class_instance, c.starts_at, c.class_id from classes c, class_signups s where s.barcode = $1 and s.class_session_id = c.class_id and s.is_swat = false and c.starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date order by s.student_name, c.starts_at;"
@@ -6285,8 +6258,8 @@ router.get('/student_portal/(:barcode)', passageAuthMiddleware, async(req, res) 
     }
 })
 
-router.get('/enrollStudent', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/enrollStudent', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     res.render('enrollStudent', {
       firstName: '',
       lastName: '',
@@ -6447,8 +6420,8 @@ router.post('/enrollStudent', studentValidate, (req, res) => {
   }
 })
 
-router.get('/viewNew', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/viewNew', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     let options = {
       method: "GET",
       uri: settings.apiv4url + '/customer',
@@ -6490,8 +6463,8 @@ router.get('/viewNew', passageAuthMiddleware, async(req, res) => {
   }
 })
 
-router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)/(:phone)', passageAuthMiddleware, async(req, res) => {
-  if (req.cookies.psg_auth_token && res.userID && staffArray.includes(res.userID)) {
+router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)/(:phone)', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub && req.oidc.user.sub)) {
     if (String(req.params.inList) == 'true'){
       const update_import_query = 'update student_list set barcode = $1 where Lower(first_name) = $2 and Lower(last_name) = $3';
       db.any(update_import_query, [req.params.new_id, req.params.fname, req.params.lname])
