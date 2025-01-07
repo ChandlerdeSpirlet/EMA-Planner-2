@@ -23,6 +23,7 @@ const Json2csvParser = require("json2csv").Parser
 //const fs = require("fs")
 //const csv = require('csv-parser')
 const { auth, requiresAuth } = require('express-openid-connect')
+const forceHTTPS = require('express-force-https')
 
 const staffArray = process.env.STAFF_USER_ID.split(',')
 
@@ -76,6 +77,7 @@ sdk.auth(auth_header)
 // }
 
 const app = express()
+app.use(forceHTTPS)
 app.use(auth(auth0Config))
 app.use(flash())
 const port = process.env.PORT
