@@ -140,38 +140,6 @@
   <head>
     <meta name="name_data" content="{% for student in names %} {{ student.signup_names }} {% endfor %}"/>
     <h1>Level 1 Class Signup</h1>
-    <p>One person per signup please.</p>
-    <p>Level 1 class times are available at the school at the times below.</p>
-    <p><strong>LEVEL 1 CLASS TIMES</strong></p>
-    <ul>
-      <li>Monday
-        <ul>
-            <li>5:45 PM - 6:30 PM</li>
-        </ul>
-      </li>
-      <li>Tuesday
-        <ul>
-            <li>5:45 PM - 6:30 PM (FLOOR 2) (Orange/High Orange)</li>
-            <li>6:45 PM - 7:30 PM (FLOOR 2) (Green/High Green)</li>
-        </ul>
-      </li>
-      <li>Wednesday
-        <ul>
-            <li>5:15 PM - 6:00 PM</li>
-        </ul>
-      </li>
-      <li>Thursday
-        <ul>
-          <li>5:45 PM - 6:30 PM (FLOOR 2) (Green/High Green)</li>
-          <li>6:45 PM - 7:30 PM (FLOOR 2) (Orange/High Orange)</li>
-        </ul>
-      </li>
-      <li>Friday
-        <ul>
-            <li>5:45 PM - 6:30 PM</li>
-        </ul>
-      </li>
-  </ul>
   </head>
   <body>
     <form onsubmit="return ValidateForm()" name="Form" action="/level1_signup" method="POST" autocomplete="off">

@@ -142,31 +142,6 @@
   <head>
     <meta name="name_data" content="{% for student in names %} {{ student.signup_names }} {% endfor %}"/>
     <h1>Black Belt Class Signup</h1>
-    <p>One person per signup please.</p>
-    <p>Black Belt class times are available at the school at the times below.</p>
-    <p><strong>BLACK BELT CLASS TIMES</strong></p>
-    <ul>
-      <li>Monday
-        <ul>
-            <li>7:45 PM - 8:30 PM</li>
-        </ul>
-      </li>
-      <li>Tuesday
-        <ul>
-            <li>7:15 PM - 8:00 PM</li>
-        </ul>
-      </li>
-      <li>Thursday
-        <ul>
-            <li>7:15 PM - 8:00 PM <b>(Sparring Night, Bring Your Gear)</b></li>
-        </ul>
-      </li>
-      <li>Friday
-        <ul>
-            <li>6:45 PM - 7:30 PM <b>(Sparring Night, Bring Your Gear)</b></li>
-        </ul>
-      </li>
-    </ul>
   </head>
   <body>
     <form name="Form" action="/bb_signup" method="POST" autocomplete="off" onsubmit="return ValidateForm()" >

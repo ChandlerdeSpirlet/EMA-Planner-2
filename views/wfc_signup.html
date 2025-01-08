@@ -140,7 +140,6 @@
   <head>
     <meta name="name_data" content="{% for student in names %} {{ student.signup_names }} {% endfor %}"/>
     <h1>Exclusive Fight Club Signup</h1>
-    <p>One person per signup please.</p>
   </head>
   <body>
     <form onsubmit="return ValidateForm()" autocomplete="off" name="Form" action="/wfc_signup" method="POST">
