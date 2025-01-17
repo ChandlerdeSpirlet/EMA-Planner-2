@@ -943,6 +943,12 @@ router.get('/login_failure/(:reason)', (req, res) => {
   })
 })
 
+app.get('/logout', requiresAuth(), (req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub){
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/logout');
+  }
+})
+
 const loginValidate = [
   check('username', 'Username must not be empty').isLength({ min: 1 }).trim().escape(), check('password').isLength({ min: 8 }).withMessage('Password must be greater than 8 characters').trim().escape()
 ]
