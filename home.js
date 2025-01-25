@@ -730,6 +730,7 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
         url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/users/' + req.oidc.user.sub,
         headers: {'content-type': 'application/json', 'authorization': 'Bearer ' + access_token}
       }
+      console.log('url is ' + delete_options.url)
       axios.request(delete_options).then(function (response) {
         console.log('User deleted')
         res.render('detete-user-done', {})
