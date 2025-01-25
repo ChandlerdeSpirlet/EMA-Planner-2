@@ -708,6 +708,7 @@ app.get('/delete-user', requiresAuth(), async(req, res) => {
     res.render('login', {})
   }
 })
+//https://dev-62prkp8hqiumzwh4.us.auth0.com/api/v2/users/auth0%7CC679486c435558d6cdaed4243/sessions
 
 app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
   if (req.oidc.isAuthenticated() && req.oidc.user.sub){
@@ -743,9 +744,9 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
           url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + user_ID + '/sessions',
           headers: {'Authorization': 'Bearer ' + access_token}
         }
+        console.log('session_options: ' + JSON.stringify(session_options))
         axios.request(session_options).then(function (response) {
           console.log('User sessions deleted')
-          console.log('session_options: ' + JSON.stringify(session_options))
           console.log('session data: ' + JSON.stringify(response.data))
           res.render('delete-user-done', {})
         }).catch(function (error) {
