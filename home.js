@@ -719,7 +719,7 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
         grant_type: 'client_credentials',
         client_id: process.env.AUTH0_CLIENT,
         client_secret: process.env.AUTH0_CLIENT_SECRET,
-        audience: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com'
+        audience: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/'
       })
     }
     axios.request(options).then(function (response) {
