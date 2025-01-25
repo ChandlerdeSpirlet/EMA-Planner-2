@@ -718,7 +718,7 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
         grant_type: 'client_credentials',
         client_id: process.env.AUTH0_CLIENT,
         client_secret: process.env.AUTH0_CLIENT_SECRET,
-        audience: 'https://ema-planner.herokuapp.com/delete-user-confirmed'
+        audience: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com'
       })
     }
     axios.request(options).then(function (response) {
@@ -727,7 +727,7 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
       const delete_options = {
         method: 'DELETE',
         maxBodyLength: 'Infinity',
-        url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + req.oidc.user.sub,
+        url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/users/' + req.oidc.user.sub,
         headers: {'content-type': 'application/json', 'authorization': 'Bearer ' + access_token}
       }
       axios.request(delete_options).then(function (response) {
