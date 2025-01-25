@@ -721,14 +721,13 @@ function getAccessToken() {
       audience: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/'
     })
   }
-  let access_token = 'ERROR'
   axios.request(options).then(function (response) {
-    access_token=response.data.access_token
+    console.log('token: ' + response.data.access_token)
+    return response.data.access_token
   }).catch(function (error) {
     console.error('ERROR token: ' + error);
+    return 'ERROR'
   })
-  console.log('access token: ' + access_token)
-  return access_token
 }
 
 function deleteUser(userID) {
