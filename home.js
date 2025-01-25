@@ -726,11 +726,12 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
     axios.request(options).then(function (response) {
       const access_token = response.access_token
       console.log('response data' + JSON.stringify(response.data))
+      console.log('access token: ' + access_token)
       const delete_options = {
         method: 'DELETE',
         maxBodyLength: 'Infinity',
         url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + user_ID,
-        headers: {'content-type': 'application/json', 'authorization': 'Bearer ' + access_token}
+        headers: {'Authorization': 'Bearer ' + access_token}
       }
       console.log('url is ' + delete_options.url)
       axios.request(delete_options).then(function (response) {
@@ -740,20 +741,20 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
           method: 'DELETE',
           maxBodyLength: 'Infinity',
           url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + user_ID + '/sessions',
-          headers: {'content-type': 'application/json', 'authorization': 'Bearer ' + access_token}
+          headers: {'Authorization': 'Bearer ' + access_token}
         }
         axios.request(session_options).then(function (response) {
           console.log('User sessions deleted')
           console.log('session data: ' + JSON.stringify(response.data))
           res.render('delete-user-done', {})
         }).catch(function (error) {
-          console.error('ERROR: ' + error)
+          console.error('ERROR session: ' + error)
         })
       }).catch(function (error) {
-        console.error('ERROR: ' + error)
+        console.error('ERROR user: ' + error)
       })
     }).catch(function (error) {
-      console.error('ERROR: ' + error);
+      console.error('ERROR token: ' + error);
     })
   } else {
     res.render('login', {})
