@@ -756,8 +756,8 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
     }
     axios.request(options).then(function (response) {
       console.log('token: ' + response.data.access_token)
-      deleteUser(req.oidc.user.sub, response.data.access_token)
       deleteSessions(req.oidc.user.sub, response.data.access_token)
+      deleteUser(req.oidc.user.sub, response.data.access_token)
       res.render('delete-user-done', {})
     }).catch(function (error) {
       console.error('ERROR token: ' + error);
