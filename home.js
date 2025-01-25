@@ -709,79 +709,63 @@ app.get('/delete-user', requiresAuth(), async(req, res) => {
   }
 })
 
-app.get('/delete-user-final', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub){
-    const options = {
-      method: 'POST',
-      url: 'https://' + process.env.AUTH0_DOMAIN + '/oauth/token',
-      headers: {'content-type': 'application/x-www-form-urlencoded'},
-      data: new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: process.env.AUTH0_CLIENT,
-        client_secret: process.env.AUTH0_CLIENT_SECRET,
-        audience: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/'
-      })
-    }
-    axios.request(options).then(function (response) {
-      const access_token = response.data.access_token
-      const user_ID = req.oidc.user.sub.replace('|', '%7C')
-      const session_options = {
-        method: 'DELETE',
-        maxBodyLength: 'Infinity',
-        url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + user_ID + '/sessions',
-        headers: {'Authorization': 'Bearer ' + access_token}
-      }
-      console.log('session_options: ' + JSON.stringify(session_options))
-      axios.request(session_options).then(function (response) {
-        console.log('User sessions deleted')
-        console.log('session data: ' + JSON.stringify(response.data))
-        res.render('delete-user-done', {})
-      }).catch(function (error) {
-        console.error('ERROR session: ' + error)
-      })
-    }).catch(function (error) {
-      console.error('ERROR token: ' + error);
+function getAccessToken() {
+  const options = {
+    method: 'POST',
+    url: 'https://' + process.env.AUTH0_DOMAIN + '/oauth/token',
+    headers: {'content-type': 'application/x-www-form-urlencoded'},
+    data: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: process.env.AUTH0_CLIENT,
+      client_secret: process.env.AUTH0_CLIENT_SECRET,
+      audience: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/'
     })
-  } else {
-    res.render('login', {})
   }
-})
+  let access_token = 'ERROR'
+  axios.request(options).then(function (response) {
+    access_token=response.data.access_token
+  }).catch(function (error) {
+    console.error('ERROR token: ' + error);
+  })
+  return access_token
+}
+
+function deleteUser(userID) {
+  const user_ID = userID.replace('|', '%7C')
+  const access_token = getAccessToken()
+  const delete_options = {
+    method: 'DELETE',
+    maxBodyLength: 'Infinity',
+    url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + user_ID,
+    headers: {'Authorization': 'Bearer ' + access_token}
+  }
+  axios.request(delete_options).then(function (response) {
+    console.log('User deleted')
+  }).catch(function (error) {
+    console.error('ERROR user: ' + error)
+  })
+}
+
+function deleteSessions(userID) {
+  const user_ID = userID.replace('|', '%7C')
+  const access_token = getAccessToken()
+  const session_options = {
+    method: 'DELETE',
+    url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + user_ID + '/sessions',
+    headers: {'Authorization': 'Bearer ' + access_token}
+  }
+  axios.request(session_options).then(function (response) {
+    console.log('User sessions deleted')
+  }).catch(function (error) {
+    console.error('ERROR session: ' + error)
+  })
+}
 
 app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
   if (req.oidc.isAuthenticated() && req.oidc.user.sub){
-    const user_ID = req.oidc.user.sub.replace('|', '%7C')
-    console.log('user_ID: ' + req.oidc.user.sub)
-    const options = {
-      method: 'POST',
-      url: 'https://' + process.env.AUTH0_DOMAIN + '/oauth/token',
-      headers: {'content-type': 'application/x-www-form-urlencoded'},
-      data: new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: process.env.AUTH0_CLIENT,
-        client_secret: process.env.AUTH0_CLIENT_SECRET,
-        audience: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/'
-      })
-    }
-    axios.request(options).then(function (response) {
-      console.log('token response: ' + JSON.stringify(response.data))
-      const access_token = response.data.access_token
-      console.log('access token: ' + access_token)
-      const delete_options = {
-        method: 'DELETE',
-        maxBodyLength: 'Infinity',
-        url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + user_ID,
-        headers: {'Authorization': 'Bearer ' + access_token}
-      }
-      console.log('url is ' + delete_options.url)
-      axios.request(delete_options).then(function (response) {
-        console.log('User deleted')
-        res.render('delete-user-final', {})
-      }).catch(function (error) {
-        console.error('ERROR user: ' + error)
-      })
-    }).catch(function (error) {
-      console.error('ERROR token: ' + error);
-    })
+    deleteUser(req.oidc.user.sub)
+    deleteSessions(req.oidc.user.sub)
+    res.render('delete-user-done', {})
   } else {
     res.render('login', {})
   }
