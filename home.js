@@ -725,8 +725,7 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
     }
     axios.request(options).then(function (response) {
       console.log('token response: ' + JSON.stringify(response.data))
-      const access_token = response.access_token
-      console.log('response data' + JSON.stringify(response.data))
+      const access_token = response.data.access_token
       console.log('access token: ' + access_token)
       const delete_options = {
         method: 'DELETE',
