@@ -728,7 +728,7 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
       const delete_options = {
         method: 'DELETE',
         maxBodyLength: 'Infinity',
-        url: 'https://' + process.loadEnvFile.AUTH0_DOMAIN + '/api/v2/users/' + req.oidc.user.sub,
+        url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + req.oidc.user.sub,
         headers: {'content-type': 'application/json', 'authorization': 'Bearer ' + access_token}
       }
       console.log('url is ' + delete_options.url)
@@ -738,7 +738,7 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
         const session_options = {
           method: 'DELETE',
           maxBodyLength: 'Infinity',
-          url: 'https://' + process.loadEnvFile.AUTH0_DOMAIN + '/api/v2/users/' + req.oidc.user.sub + '/sessions',
+          url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + req.oidc.user.sub + '/sessions',
           headers: {'content-type': 'application/json', 'authorization': 'Bearer ' + access_token}
         }
         axios.request(session_options).then(function (response) {
