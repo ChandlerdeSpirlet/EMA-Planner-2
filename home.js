@@ -724,6 +724,7 @@ app.get('/delete-user-final', requiresAuth(), async(req, res) => {
     }
     axios.request(options).then(function (response) {
       const access_token = response.data.access_token
+      const user_ID = req.oidc.user.sub.replace('|', '%7C')
       const session_options = {
         method: 'DELETE',
         maxBodyLength: 'Infinity',
