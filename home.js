@@ -24,6 +24,7 @@ const Json2csvParser = require("json2csv").Parser
 //const csv = require('csv-parser')
 const { auth, requiresAuth } = require('express-openid-connect')
 const forceHTTPS = require('express-force-https')
+const axios = require('axios').default;
 
 const staffArray = process.env.STAFF_USER_ID.split(',')
 
@@ -695,6 +696,56 @@ app.get('/logged-in-auth0', async(req, res) => {
       res.render('logged-in', {
       })
   }
+})
+
+app.get('/delete-user', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub){
+    res.render('delete-user', {
+      user_data: req.oidc.user
+    })
+  } else {
+    res.render('login', {})
+  }
+})
+
+app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
+  if (req.oidc.isAuthenticated() && req.oidc.user.sub){
+    const options = {
+      method: 'POST',
+      url: 'https://' + process.env.AUTH0_DOMAIN + '/oauth/token',
+      headers: {'content-type': 'application/x-www-form-urlencoded'},
+      data: new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: process.env.AUTH0_CLIENT,
+        client_secret: process.env.AUTH0_CLIENT_SECRET,
+        audience: 'https://ema-planner.herokuapp.com/delete-user-confirmed'
+      })
+    }
+    axios.request(options).then(function (response) {
+      const access_token = response.access_token
+      console.log('response data' + JSON.stringify(response.data))
+      const delete_options = {
+        method: 'DELETE',
+        maxBodyLength: 'Infinity',
+        url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + req.oidc.user.sub,
+        headers: {'content-type': 'application/json', 'authorization': 'Bearer ' + access_token}
+      }
+      axios.request(delete_options).then(function (response) {
+        console.log('User deleted')
+        res.render('detete-user-done', {})
+      }).catch(function (error) {
+        console.error('ERROR: ' + error)
+      })
+    }).catch(function (error) {
+      console.error('ERROR: ' + error);
+    })
+  } else {
+    res.render('login', {})
+  }
+})
+
+app.get('/delete-user-done', (req, res) => {
+  res.render('delete-user-done', {})
 })
 
 app.get('/logged-in', requiresAuth(), async(req, res) => {
