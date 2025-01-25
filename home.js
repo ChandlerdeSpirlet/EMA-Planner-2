@@ -727,7 +727,8 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
       const delete_options = {
         method: 'DELETE',
         maxBodyLength: 'Infinity',
-        url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/users/' + req.oidc.user.sub,
+        //url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/users/' + req.oidc.user.sub,
+        url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/users/auth0%7C67946ab8f01e3aefdba35ddf',
         headers: {'content-type': 'application/json', 'authorization': 'Bearer ' + access_token}
       }
       console.log('url is ' + delete_options.url)
