@@ -108,6 +108,7 @@ app.use('/', router)
 const db = require('./database')
 const { type } = require('os')
 const { lookup } = require('dns')
+const { url } = require('inspector')
 // const { proc } = require('./database')
 // const { get } = require('http')
 // const { json } = require('body-parser')
@@ -727,15 +728,26 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
       const delete_options = {
         method: 'DELETE',
         maxBodyLength: 'Infinity',
-        //url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/users/' + req.oidc.user.sub,
-        url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/users/auth0%7C67946ab8f01e3aefdba35ddf',
+        url: 'https://' + process.loadEnvFile.AUTH0_DOMAIN + '/api/v2/users/' + req.oidc.user.sub,
         headers: {'content-type': 'application/json', 'authorization': 'Bearer ' + access_token}
       }
       console.log('url is ' + delete_options.url)
       axios.request(delete_options).then(function (response) {
         console.log('User deleted')
         console.log('delete data: ' + JSON.stringify(response.data))
-        res.render('delete-user-done', {})
+        const session_options = {
+          method: 'DELETE',
+          maxBodyLength: 'Infinity',
+          url: 'https://' + process.loadEnvFile.AUTH0_DOMAIN + '/api/v2/users/' + req.oidc.user.sub + '/sessions',
+          headers: {'content-type': 'application/json', 'authorization': 'Bearer ' + access_token}
+        }
+        axios.request(session_options).then(function (response) {
+          console.log('User sessions deleted')
+          console.log('session data: ' + JSON.stringify(response.data))
+          res.render('delete-user-done', {})
+        }).catch(function (error) {
+          console.error('ERROR: ' + error)
+        })
       }).catch(function (error) {
         console.error('ERROR: ' + error)
       })
@@ -745,10 +757,6 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
   } else {
     res.render('login', {})
   }
-})
-
-app.delete('/users/:id', (req, res) => {
-  res.render('delete-user-done', {})
 })
 
 app.get('/delete-user-done', (req, res) => {
