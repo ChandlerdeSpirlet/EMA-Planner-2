@@ -734,6 +734,7 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
       console.log('url is ' + delete_options.url)
       axios.request(delete_options).then(function (response) {
         console.log('User deleted')
+        console.log('delete data: ' + JSON.stringify(response.data))
         res.render('delete-user-done', {})
       }).catch(function (error) {
         console.error('ERROR: ' + error)
