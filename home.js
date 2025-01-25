@@ -709,30 +709,9 @@ app.get('/delete-user', requiresAuth(), async(req, res) => {
   }
 })
 
-function getAccessToken() {
-  const options = {
-    method: 'POST',
-    url: 'https://' + process.env.AUTH0_DOMAIN + '/oauth/token',
-    headers: {'content-type': 'application/x-www-form-urlencoded'},
-    data: new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: process.env.AUTH0_CLIENT,
-      client_secret: process.env.AUTH0_CLIENT_SECRET,
-      audience: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/'
-    })
-  }
-  axios.request(options).then(function (response) {
-    console.log('token: ' + response.data.access_token)
-    return response.data.access_token
-  }).catch(function (error) {
-    console.error('ERROR token: ' + error);
-    return 'ERROR'
-  })
-}
-
-function deleteUser(userID) {
+function deleteUser(userID, access_token) {
   const user_ID = userID.replace('|', '%7C')
-  const access_token = getAccessToken()
+  console.log('access_token in deleteUser: ' + access_token)
   const delete_options = {
     method: 'DELETE',
     maxBodyLength: 'Infinity',
@@ -747,9 +726,8 @@ function deleteUser(userID) {
   })
 }
 
-function deleteSessions(userID) {
+function deleteSessions(userID, access_token) {
   const user_ID = userID.replace('|', '%7C')
-  const access_token = getAccessToken()
   const session_options = {
     method: 'DELETE',
     url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + user_ID + '/sessions',
@@ -765,9 +743,26 @@ function deleteSessions(userID) {
 
 app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
   if (req.oidc.isAuthenticated() && req.oidc.user.sub){
-    deleteUser(req.oidc.user.sub)
-    deleteSessions(req.oidc.user.sub)
-    res.render('delete-user-done', {})
+    const options = {
+      method: 'POST',
+      url: 'https://' + process.env.AUTH0_DOMAIN + '/oauth/token',
+      headers: {'content-type': 'application/x-www-form-urlencoded'},
+      data: new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: process.env.AUTH0_CLIENT,
+        client_secret: process.env.AUTH0_CLIENT_SECRET,
+        audience: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/'
+      })
+    }
+    axios.request(options).then(function (response) {
+      console.log('token: ' + response.data.access_token)
+      deleteUser(req.oidc.user.sub, response.data.access_token)
+      deleteSessions(req.oidc.user.sub, response.data.access_token)
+      res.render('delete-user-done', {})
+    }).catch(function (error) {
+      console.error('ERROR token: ' + error);
+      res.render('delete-user-done', {})
+    })
   } else {
     res.render('login', {})
   }
