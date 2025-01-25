@@ -711,14 +711,12 @@ app.get('/delete-user', requiresAuth(), async(req, res) => {
 
 function deleteUser(userID, access_token) {
   const user_ID = userID.replace('|', '%7C')
-  console.log('access_token in deleteUser: ' + access_token)
   const delete_options = {
     method: 'DELETE',
     maxBodyLength: 'Infinity',
     url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + user_ID,
     headers: {'Authorization': 'Bearer ' + access_token}
   }
-  console.log('delete_options: ' + JSON.safeStringify(delete_options))
   axios.request(delete_options).then(function (response) {
     console.log('User deleted')
   }).catch(function (error) {
@@ -733,7 +731,6 @@ function deleteSessions(userID, access_token) {
     url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + user_ID + '/sessions',
     headers: {'Authorization': 'Bearer ' + access_token}
   }
-  console.log('session_options: ' + JSON.safeStringify(session_options))
   axios.request(session_options).then(function (response) {
     console.log('User sessions deleted')
   }).catch(function (error) {
@@ -755,8 +752,7 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
       })
     }
     axios.request(options).then(function (response) {
-      console.log('token: ' + response.data.access_token)
-      deleteSessions(req.oidc.user.sub, response.data.access_token)
+      //deleteSessions(req.oidc.user.sub, response.data.access_token)
       deleteUser(req.oidc.user.sub, response.data.access_token)
       res.render('delete-user-done', {})
     }).catch(function (error) {
