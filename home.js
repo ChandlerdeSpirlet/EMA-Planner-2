@@ -733,7 +733,7 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
       console.log('url is ' + delete_options.url)
       axios.request(delete_options).then(function (response) {
         console.log('User deleted')
-        res.render('detete-user-done', {})
+        res.render('delete-user-done', {})
       }).catch(function (error) {
         console.error('ERROR: ' + error)
       })
@@ -743,6 +743,10 @@ app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
   } else {
     res.render('login', {})
   }
+})
+
+app.delete('/users/:id', (req, res) => {
+  res.render('delete-user-done', {})
 })
 
 app.get('/delete-user-done', (req, res) => {
