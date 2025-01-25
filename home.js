@@ -727,6 +727,7 @@ function getAccessToken() {
   }).catch(function (error) {
     console.error('ERROR token: ' + error);
   })
+  console.log('access token: ' + access_token)
   return access_token
 }
 
@@ -739,6 +740,7 @@ function deleteUser(userID) {
     url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + user_ID,
     headers: {'Authorization': 'Bearer ' + access_token}
   }
+  console.log('delete_options: ' + JSON.safeStringify(delete_options))
   axios.request(delete_options).then(function (response) {
     console.log('User deleted')
   }).catch(function (error) {
@@ -754,6 +756,7 @@ function deleteSessions(userID) {
     url: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/users/' + user_ID + '/sessions',
     headers: {'Authorization': 'Bearer ' + access_token}
   }
+  console.log('session_options: ' + JSON.safeStringify(session_options))
   axios.request(session_options).then(function (response) {
     console.log('User sessions deleted')
   }).catch(function (error) {
