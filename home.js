@@ -708,11 +708,11 @@ app.get('/delete-user', requiresAuth(), async(req, res) => {
     res.render('login', {})
   }
 })
-//https://dev-62prkp8hqiumzwh4.us.auth0.com/api/v2/users/auth0%7CC679486c435558d6cdaed4243/sessions
 
 app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
   if (req.oidc.isAuthenticated() && req.oidc.user.sub){
     const user_ID = req.oidc.user.sub.replace('|', '%7C')
+    console.log('user_ID: ' + req.oidc.user.sub)
     const options = {
       method: 'POST',
       url: 'https://' + process.env.AUTH0_DOMAIN + '/oauth/token',
