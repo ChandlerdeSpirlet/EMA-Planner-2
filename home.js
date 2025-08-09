@@ -795,12 +795,13 @@ app.get('/logged-in', requiresAuth(), async(req, res) => {
 app.get('/profile', requiresAuth(), (req, res) => {
   res.send(JSON.stringify(req.oidc.user))
 })
-app.get('/', async(req, res) => {
-//app.get('/', requiresAuth(), async(req, res) => {
+
+app.get('/', requiresAuth(), async(req, res) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
     if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
+      
       var event = new Date();
       var options_1 = { 
         month: 'long',
