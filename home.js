@@ -25,14 +25,6 @@ const Json2csvParser = require("json2csv").Parser
 const { auth, requiresAuth } = require('express-openid-connect')
 const forceHTTPS = require('express-force-https')
 const axios = require('axios').default;
-const stytch = require('stytch')
-const STYTCH_PROJECT_ID = 'project-test-5f754912-f998-4824-88ae-36c07c6265d2'
-const STYTCH_SECRET = 'secret-test-73alryMdoMp-qtlIibaNpUPQw2ORGphrAoE='
-const stytchClient = new stytch.Client({
-  project_id: STYTCH_PROJECT_ID,
-  secret: STYTCH_SECRET
-})
-const StytchSessionToken = 'stytchSessionToken'
 
 const staffArray = process.env.STAFF_USER_ID.split(',')
 
@@ -321,65 +313,6 @@ router.post('/build_pcs', (req, res) => {
       })
     })
 })
-
-app.post('/stytch_login', (req, res) => {
-  const email = req.body.email
-  stytchClient.magicLinks.email.loginOrCreate({
-    email: email
-  })
-  .then(response => {
-    res.json(response)
-  })
-  .catch(err => {
-    res.status(500).send(err.toString())
-  })
-})
-app.get('/stytch_authenticate', (req, res) => {
-  const token = req.query.token
-  const tokenType = req.query.sketch_token_type
-  if (tokenType !== 'magic_links') {
-    console.error(`Unsupported token type: '${tokenType}'`)
-    res.status(400).send()
-    return
-  }
-  stytchClient.magicLinks.authenticate({
-    token: token,
-    session_duration_minutes: 60,
-  })
-  .then(response => {
-    // Using express sessions to store the returned session cookie
-    req.session.StytchSessionToken = response.session_token
-    res.send(`Hello, ${response.user.emails[0].email}!`)
-  })
-  .catch(err => {
-    res.status(401).send(err.toString())
-  });
-})
-app.get('/stytch_profile', async(req, res) => {
-    const user = await getAuthenticatedUser(req);
-    if (user) {
-      res.send(`Hello, ${user.emails[0].email}!`);
-      return;
-    }
-    res.send("Log in to view this page");
-});
-
-async function getAuthenticatedUser(req) {
-    const sessionToken = req.session.StytchSessionToken;
-    if (!sessionToken) {
-      return null;
-    }
-
-    const resp = await stytchClient.sessions.authenticate({session_token: sessionToken});
-    if (resp.status_code !== 200) {
-      console.log('Session invalid or expired');
-      req.session.StytchSessionToken = undefined;
-      return null;
-    }
-
-    req.session.StytchSessionToken = resp.session_token;
-    return resp.user;
-}
 
 app.get('/pcs_down/(:filename)', function (req, res){
   var data = readFileSync(__dirname + '/' + req.params.filename);
