@@ -802,7 +802,7 @@ app.get('/', requiresAuth(), async(req, res) => {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
     if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
-
+      console.log('User profile: ' + JSON.safeStringify(req.oidc.user, 2))
       var event = new Date();
       var options_1 = { 
         month: 'long',
