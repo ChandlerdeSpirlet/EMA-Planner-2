@@ -794,6 +794,7 @@ app.get('/logged-in', requiresAuth(), async(req, res) => {
 
 app.get('/profile', requiresAuth(), (req, res) => {
   res.send(JSON.stringify(req.oidc.user))
+  console.log('User profile: ' + JSON.safeStringify(req.oidc.user, 2))
 })
 
 app.get('/', requiresAuth(), async(req, res) => {
@@ -801,7 +802,7 @@ app.get('/', requiresAuth(), async(req, res) => {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
     if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
-      
+
       var event = new Date();
       var options_1 = { 
         month: 'long',
