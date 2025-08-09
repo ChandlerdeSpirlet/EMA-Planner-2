@@ -324,7 +324,7 @@ router.post('/build_pcs', (req, res) => {
 
 app.post('/stytch_login', (req, res) => {
   const email = req.body.email
-  stytchClient.email.loginOrCreate({
+  stytchClient.magicLinks.email.loginOrCreate({
     email: email
   })
   .then(response => {
