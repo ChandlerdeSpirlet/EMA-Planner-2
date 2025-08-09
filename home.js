@@ -795,8 +795,8 @@ app.get('/logged-in', requiresAuth(), async(req, res) => {
 app.get('/profile', requiresAuth(), (req, res) => {
   res.send(JSON.stringify(req.oidc.user))
 })
-
-app.get('/', requiresAuth(), async(req, res) => {
+app.get('/', async(req, res) => {
+//app.get('/', requiresAuth(), async(req, res) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
   } else {
