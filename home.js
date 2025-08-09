@@ -26,8 +26,8 @@ const { auth, requiresAuth } = require('express-openid-connect')
 const forceHTTPS = require('express-force-https')
 const axios = require('axios').default;
 const stytch = require('stytch')
-const STYTCH_PROJECT_ID = ''
-const STYTCH_SECRET = ''
+const STYTCH_PROJECT_ID = 'project-test-5f754912-f998-4824-88ae-36c07c6265d2'
+const STYTCH_SECRET = 'secret-test-73alryMdoMp-qtlIibaNpUPQw2ORGphrAoE='
 const stytchClient = new stytch.Client({
   project_id: STYTCH_PROJECT_ID,
   secret: STYTCH_SECRET
