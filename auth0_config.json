@@ -1,4 +1,7 @@
 {
   "domain": "dev-62prkp8hqiumzwh4.us.auth0.com",
-  "clientId": "p17WEHx6J7r1a2HBkuW6b0teVWVl1LqR"
+  "clientId": "p17WEHx6J7r1a2HBkuW6b0teVWVl1LqR",
+  "lakewoodPortalURL": "https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login",
+  "littletonPortalURL": "https://ema-planner.herokuapp.com/student_portal_login",
+  "auth0DomainAPI": "https://dev-62prkp8hqiumzwh4.us.auth0.com/api/v2/"
 }
