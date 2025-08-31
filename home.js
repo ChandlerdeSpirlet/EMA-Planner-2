@@ -24,7 +24,11 @@ const Json2csvParser = require("json2csv").Parser
 //const csv = require('csv-parser')
 const { auth, requiresAuth } = require('express-openid-connect')
 const forceHTTPS = require('express-force-https')
-const axios = require('axios').default;
+const axios = require('axios');
+const jwt = require('jsonwebtoken')
+const jwksRsa = require('jwks-rsa')
+const { Issuer } = require('openid-client')
+
 
 const staffArray = process.env.STAFF_USER_ID.split(',')
 
@@ -32,9 +36,12 @@ const auth0Config = {
   authRequired: false,
   auth0Logout: true,
   secret: process.env.AUTH0_SECRET,
-  baseURL: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com',
-  clientID: 'zHDE3rG81XjHokgkdxAKfhPpVlLlJ5Wv',
-  issuerBaseURL: 'https://dev-62prkp8hqiumzwh4.us.auth0.com'
+  baseURL: process.env.AUTH0_BASEURL,
+  clientID: process.env.AUTH0_CLIENT,
+  issuerBaseURL: process.env.AUTH0_ISSUER_BASEURL,
+  routes: {
+    callback: false
+  }
 }
 
 JSON.safeStringify = (obj, indent = 2) => {
@@ -85,12 +92,35 @@ const port = process.env.PORT
 const router = express.Router()
 app.use(cookieParser('side-kick-2'))
 router.use(fileUpload())
-router.use(session({
-  secret: process.env.secret_key,
-  resave: true,
-  saveUninitialized: true,
-  cookie: { maxAge: 60 * 60 * 1000, secure: false }
-}))
+app.set('trust proxy', 1)
+app.use(
+  session({
+    name: 'sid',
+    secret: process.env.secret_key,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: true,
+      httpOnly: false,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 1000 * 12
+    }
+  })
+)
+router.use(
+  session({
+    name: 'sid',
+    secret: process.env.secret_key,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: true,
+      httpOnly: false,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 1000 * 12
+    }
+  })
+)
 
 app.set('view engine', 'html')
 app.engine('html', nunjucks.render)
@@ -115,6 +145,71 @@ const { url } = require('inspector')
 // const { resolveObjectURL } = require('buffer')
 
 app.use(flash({ sessionKeyName: 'ema-Planner-two' }))
+
+const jwksClient = jwksRsa({
+  cache: true,
+  rateLimit: true,
+  jwksUri: 'https://dev-62prkp8hqiumzwh4.us.auth0.com/.well-known/jwks.json'
+})
+function getKey(header, callback) {
+  jwksClient.getSigningKey(header.kid, function (err, key) {
+    if (err) {
+      callback(err);
+    } else {
+      const signingKey = key.getPublicKey();
+      callback(null, signingKey);
+    }
+  });
+}
+function requiresLogin(req, res, next) {
+  if (req.session.user) {
+    return next();
+  }
+  // Save the originally requested URL so we can redirect back after login
+  req.session.returnTo = req.originalUrl;
+  // Generate and save a CSRF state token
+  const state = crypto.randomBytes(16).toString('hex');
+  req.session.oauthState = state;
+  // Build the Auth0 authorize URL
+  const authUrl = new URL(`https://${process.env.AUTH0_DOMAIN}/authorize`);
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('client_id', process.env.AUTH0_CLIENT);
+  authUrl.searchParams.set('redirect_uri', `${process.env.AUTH0_BASEURL}/callback`);
+  authUrl.searchParams.set('scope', 'openid profile email');
+  authUrl.searchParams.set('audience', `${process.env.AUTH0_ISSUER_BASEURL}/api/v2/`);
+  authUrl.searchParams.set('state', state);
+  // Redirect user to Auth0 for login
+  res.redirect(authUrl.toString());
+}
+function authenticateTokenFromQuery(req, res, next) {
+  if (req.session.user) {
+    console.log('✅ Session already exists for user:', req.session.user.sub);
+    return next();
+  }
+  const token = req.query.access_token;
+  if (!token) {
+    console.log('❌ No token in query');
+    return res.redirect('/login');
+  }
+  jwt.verify(
+    token,
+    getKey,
+    {
+      audience: 'https://dev-62prkp8hqiumzwh4.us.auth0.com/api/v2/',
+      issuer: 'https://dev-62prkp8hqiumzwh4.us.auth0.com/',
+      algorithms: ['RS256'],
+    },
+    (err, decoded) => {
+      if (err) {
+        console.error('❌ Token verification error:', err);
+        return res.redirect('/login');
+      }
+      console.log('✅ Token verified. Decoded payload:', decoded);
+      req.session.user = decoded;
+      next();
+    }
+  );
+}
 
 function parseStudentInfo (info) {
   let studInfo = ['', 0]
@@ -274,7 +369,69 @@ function parseBB(currentColor, isPromotion) { //returns belt color, level, and b
   return beltInfo;
 }
 
-router.get('/student_level_list', requiresAuth(), async(req, res) => {
+app.get('/token', (req, res) => {
+  let options = {
+    method: "POST",
+    uri: settings.apiv4url + '/checkouttoken',
+    headers: {
+      Authorization: getAuthHeader()
+    },
+    body: {},
+    json: true,
+  };
+
+  request(options, function(error, response, body) {
+    if (!error && response && res.statusCode < 300) {
+      res.json(body.Response);
+      return;
+    }
+    res.status((response && response.statusCode) || 500).send(error);
+  });
+});
+
+router.get('/callback', async(req, res, next) => {
+  try {
+    const { code, state } = req.query;
+
+    // Verify state matches session to prevent CSRF
+    if (!code || !state) {
+      return res.status(400).send('Missing code or state parameter')
+    }
+    if (!state || state !== req.session.oauthState) {
+      return res.status(403).send('Invalid state parameter');
+    }
+    delete req.session.oauthState;
+
+    const tokenRes = await axios.post(`https://${process.env.AUTH0_DOMAIN}/oauth/token`, {
+      grant_type: 'authorization_code',
+      client_id: process.env.AUTH0_CLIENT,
+      client_secret: process.env.AUTH0_CLIENT_SECRET,
+      code,
+      redirect_uri: `${process.env.AUTH0_BASEURL}/callback`
+    }, {
+      headers: { 'Content-Type': 'application/json' }
+    })
+
+    const { access_token, id_token } = tokenRes.data;
+
+    const userRes = await axios.get(`https://${process.env.AUTH0_DOMAIN}/userinfo`, {
+      headers: { Authorization: `Bearer ${access_token}` }
+    })
+    req.session.user = userRes.data
+    req.session.tokens = { access_token, id_token }
+    if (req.session.returnTo) {
+      res.redirect(req.session.returnTo);
+    } else {
+      res.redirect('/student_portal_login');
+    }
+
+  } catch (err) {
+    console.error('Auth callback error: ', err.response?.data || err.message)
+    res.status(500).send('Authentication failed. Please try again.')
+  }
+})
+
+router.get('/student_level_list', (req, res, next) => {
   if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
     const student_list = 'select first_name, last_name, belt_color, belt_size, level_name from student_list order by belt_order, last_name;';
     db.any(student_list)
@@ -699,7 +856,7 @@ app.get('/logged-in-auth0', async(req, res) => {
   }
 })
 
-app.get('/delete-user', requiresAuth(), async(req, res) => {
+app.get('/delete-user', (req, res, next) => {
   if (req.oidc.isAuthenticated() && req.oidc.user.sub){
     res.render('delete-user', {
       user_data: req.oidc.user
@@ -738,8 +895,18 @@ function deleteSessions(userID, access_token) {
   })
 }
 
-app.get('/delete-user-confirmed', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub){
+app.get('/delete-user-confirmed', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+  }, (req, res, next) => {
+    console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+    if (req.user && !req.session.user) {
+      req.session.user = req.user
+    }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const options = {
       method: 'POST',
       url: 'https://' + process.env.AUTH0_DOMAIN + '/oauth/token',
@@ -768,25 +935,31 @@ app.get('/delete-user-done', (req, res) => {
   res.render('delete-user-done', {})
 })
 
-app.get('/logged-in', requiresAuth(), async(req, res) => {
-  if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+app.get('/logged-in', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
   } else {
-    if (req.oidc.isAuthenticated()) {
-      console.log('staffArray = ' + staffArray)
-      let authLevel = '/student_portal_login'
-      if (staffArray.includes(req.oidc.user.sub)) {
-        authLevel = '/'
-      } else {
-        authLevel = '/student_portal_login'
-      }
-      res.render('logged-in', {
-        authLevel: authLevel
-      })
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
+    console.log('staffArray = ' + staffArray)
+    let authLevel = '/student_portal_login'
+    if (staffArray.includes(req.session.user.sub)) {
+      authLevel = '/'
     } else {
-      res.render('login', {
-      })
+      authLevel = '/student_portal_login'
     }
+    res.render('logged-in', {
+      authLevel: authLevel
+    })
+  } else {
+    res.render('login', {
+    })
   }
 })
 
@@ -797,172 +970,190 @@ app.get('/profile', requiresAuth(), (req, res) => {
   console.log('User profile: ' + JSON.safeStringify(req.oidc.user, 2))
 })
 
-app.get('/', requiresAuth(), async(req, res) => {
+app.get('/', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+  } 
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
   } else {
-    if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
-      console.log('User profile: ' + JSON.safeStringify(req.oidc.user, 2))
-      var event = new Date();
-      var options_1 = { 
-        month: 'long',
-        timeZone: 'America/Denver'
-      };
-      var options_2 = { 
-        day: 'numeric',
-        timeZone: 'America/Denver'
-      };
-      var options_3 = { 
-        year: 'numeric',
-        timeZone: 'America/Denver'
-      };
-      const month = event.toLocaleDateString('en-US', options_1);
-      const day = event.toLocaleDateString('en-US', options_2);
-      const year = event.toLocaleDateString('en-US', options_3);
-      const student_query = 'select level_name, count(level_name), belt_order from student_list group by level_name, belt_order order by belt_order;'
-      const p_count = 'select count(belt_order) as num from student_list where belt_order = 4;'
-      const c_count = 'select count(belt_order) as num from student_list where belt_order >= 5 and belt_order <= 6;'
-      const b_count = 'select count(belt_order) as num from student_list where belt_order >= 7;'
-      const total_new_student_list = "select count(barcode) as new_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year')));"
-      const karate_new_student_list = "select count(barcode) as karate_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year'))) and karate_student = true;"
-      const kickbox_new_student_list = "select count(barcode) as kickbox_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year'))) and kickboxer = true;"
-      const find_missing = 'select count(barcode) as num_barcodes from temp_payments;'
-      db.any(student_query)
-        .then(function (rows) {
-          // const stripe = require('stripe')(process.env.STRIPE_API_KEY)
-          // stripe.balance.retrieve((err, balance) => {
-          //  if (balance) {
-          const failure_query = 'select count(id_failed) as failed_num from failed_payments'
-          db.one(failure_query)
-            .then(function (row) {
-              const checked_in_query = "select count(class_session_id) as week_count from class_signups where class_session_id in (select class_id from classes where starts_at >= (now() - interval '7 hours') - interval '7 days' and starts_at < (now() + interval '17 hours'));";
-              db.any(checked_in_query)
-                .then(checked_week => {
-                  const day_query = "select count(class_session_id) as day_count from class_signups where class_session_id in (select class_id from classes where starts_at >= (now() - interval '7 hours') - interval '24 hours' and starts_at < (now() - interval '7 hours'));"
-                  db.any(day_query)
-                    .then(days => {
-                      const belt_count = "select count(belt_size) as belt_count from student_list where belt_size = -1;"
-                      db.any(belt_count)
-                        .then(belt_row => {
-                          db.any(total_new_student_list, [month, year])
-                            .then(stud_list => {
-                              db.any(karate_new_student_list, [month, year])
-                                .then(karate_list => {
-                                  db.any(kickbox_new_student_list, [month, year])
-                                    .then(kickbox_list => {
-                                      db.any(find_missing)
-                                        .then(missing => {
-                                          db.one(p_count)
-                                            .then(p_num => {
-                                              db.one(c_count)
-                                                .then(c_num => {
-                                                  db.one(b_count)
-                                                    .then(b_num => {
-                                                      res.render('home.html', {
-                                                        balance_available: '0',
-                                                        balance_pending: '0',
-                                                        checked_today: days,
-                                                        belt_counts: belt_row,
-                                                        checked_week: checked_week,
-                                                        student_data: rows,
-                                                        p_count: p_num,
-                                                        c_count: c_num,
-                                                        b_count: b_num,
-                                                        failure_num: row,
-                                                        month: month,
-                                                        day: day,
-                                                        year: year,
-                                                        student_list: stud_list,
-                                                        karate_list: karate_list,
-                                                        kickbox_list: kickbox_list,
-                                                        missing_names: missing
-                                                      })
+    requiresLogin(req, res, next)
+  }
+  }, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
+    console.log('User profile: ' + JSON.safeStringify(req.oidc.user, 2))
+    var event = new Date();
+    var options_1 = { 
+      month: 'long',
+      timeZone: 'America/Denver'
+    };
+    var options_2 = { 
+      day: 'numeric',
+      timeZone: 'America/Denver'
+    };
+    var options_3 = { 
+      year: 'numeric',
+      timeZone: 'America/Denver'
+    };
+    const month = event.toLocaleDateString('en-US', options_1);
+    const day = event.toLocaleDateString('en-US', options_2);
+    const year = event.toLocaleDateString('en-US', options_3);
+    const student_query = 'select level_name, count(level_name), belt_order from student_list group by level_name, belt_order order by belt_order;'
+    const p_count = 'select count(belt_order) as num from student_list where belt_order = 4;'
+    const c_count = 'select count(belt_order) as num from student_list where belt_order >= 5 and belt_order <= 6;'
+    const b_count = 'select count(belt_order) as num from student_list where belt_order >= 7;'
+    const total_new_student_list = "select count(barcode) as new_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year')));"
+    const karate_new_student_list = "select count(barcode) as karate_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year'))) and karate_student = true;"
+    const kickbox_new_student_list = "select count(barcode) as kickbox_student_count from student_list where text(extract(month from join_date)) = text(extract(month from to_date($1, 'Month'))) and text(extract(year from join_date)) = text(extract(year from to_date($2, 'Year'))) and kickboxer = true;"
+    const find_missing = 'select count(barcode) as num_barcodes from temp_payments;'
+    db.any(student_query)
+      .then(function (rows) {
+        // const stripe = require('stripe')(process.env.STRIPE_API_KEY)
+        // stripe.balance.retrieve((err, balance) => {
+        //  if (balance) {
+        const failure_query = 'select count(id_failed) as failed_num from failed_payments'
+        db.one(failure_query)
+          .then(function (row) {
+            const checked_in_query = "select count(class_session_id) as week_count from class_signups where class_session_id in (select class_id from classes where starts_at >= (now() - interval '7 hours') - interval '7 days' and starts_at < (now() + interval '17 hours'));";
+            db.any(checked_in_query)
+              .then(checked_week => {
+                const day_query = "select count(class_session_id) as day_count from class_signups where class_session_id in (select class_id from classes where starts_at >= (now() - interval '7 hours') - interval '24 hours' and starts_at < (now() - interval '7 hours'));"
+                db.any(day_query)
+                  .then(days => {
+                    const belt_count = "select count(belt_size) as belt_count from student_list where belt_size = -1;"
+                    db.any(belt_count)
+                      .then(belt_row => {
+                        db.any(total_new_student_list, [month, year])
+                          .then(stud_list => {
+                            db.any(karate_new_student_list, [month, year])
+                              .then(karate_list => {
+                                db.any(kickbox_new_student_list, [month, year])
+                                  .then(kickbox_list => {
+                                    db.any(find_missing)
+                                      .then(missing => {
+                                        db.one(p_count)
+                                          .then(p_num => {
+                                            db.one(c_count)
+                                              .then(c_num => {
+                                                db.one(b_count)
+                                                  .then(b_num => {
+                                                    res.render('home.html', {
+                                                      balance_available: '0',
+                                                      balance_pending: '0',
+                                                      checked_today: days,
+                                                      belt_counts: belt_row,
+                                                      checked_week: checked_week,
+                                                      student_data: rows,
+                                                      p_count: p_num,
+                                                      c_count: c_num,
+                                                      b_count: b_num,
+                                                      failure_num: row,
+                                                      month: month,
+                                                      day: day,
+                                                      year: year,
+                                                      student_list: stud_list,
+                                                      karate_list: karate_list,
+                                                      kickbox_list: kickbox_list,
+                                                      missing_names: missing
                                                     })
-                                                    .catch(err => {
-                                                      console.log('Could not get black belt counts ' + err);
-                                                      res.render('home.html');
-                                                    })
-                                                })
-                                                .catch(err => {
-                                                  console.log('Could not get conditional counts ' + err);
-                                                  res.render('home.html');
-                                                })
-                                            })
-                                            .catch(err => {
-                                              console.log('Could not get prep counts ' + err);
-                                              res.render('home.html');
-                                            })
-                                        })
-                                        .catch(err => {
-                                          console.log('Could not get missing students ' + err);
-                                          res.render('home.html');
-                                        })
-                                    })
-                                    .catch(err => {
-                                      console.log('Could not get new kickboxer list ' + err);
-                                      res.render('home.html')
-                                    })
-                                })
-                                .catch(err => {
-                                  console.log('Cound not get new karate list ' + err);
-                                  res.render('home.html')
-                                })
-                            })
-                            .catch(err => {
-                              console.log('Could not get new student list ' + err);
-                              res.render('home.html');
-                            })
-                        })
-                        .catch(err => {
-                          console.log('Could not get belt count nums ' + err);
-                          res.render('home.html');
-                        })
-                    })
-                    .catch(err => {
-                      console.log('Could not get checked in day numbers ' + err);
-                      res.render('home.html');
-                    })
-                })
-                .catch(err => {
-                  console.log('Could not get checked in week numbers ' + err);
-                  res.render('home.html');
-                })
-            })
-            .catch(function (err) {
-              console.log('Could not get failed_payment count ' + err)
-              res.render('home.html')
-            })
-            .catch(function (err) {
-              console.log('Could not run query to count students: ' + err)
-            })
-        })
-    } else if (req.oidc.isAuthenticated() && !staffArray.includes(req.oidc.user.sub)) {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login')
-    } else {
-      res.render('login', {
+                                                  })
+                                                  .catch(err => {
+                                                    console.log('Could not get black belt counts ' + err);
+                                                    res.render('home.html');
+                                                  })
+                                              })
+                                              .catch(err => {
+                                                console.log('Could not get conditional counts ' + err);
+                                                res.render('home.html');
+                                              })
+                                          })
+                                          .catch(err => {
+                                            console.log('Could not get prep counts ' + err);
+                                            res.render('home.html');
+                                          })
+                                      })
+                                      .catch(err => {
+                                        console.log('Could not get missing students ' + err);
+                                        res.render('home.html');
+                                      })
+                                  })
+                                  .catch(err => {
+                                    console.log('Could not get new kickboxer list ' + err);
+                                    res.render('home.html')
+                                  })
+                              })
+                              .catch(err => {
+                                console.log('Cound not get new karate list ' + err);
+                                res.render('home.html')
+                              })
+                          })
+                          .catch(err => {
+                            console.log('Could not get new student list ' + err);
+                            res.render('home.html');
+                          })
+                      })
+                      .catch(err => {
+                        console.log('Could not get belt count nums ' + err);
+                        res.render('home.html');
+                      })
+                  })
+                  .catch(err => {
+                    console.log('Could not get checked in day numbers ' + err);
+                    res.render('home.html');
+                  })
+              })
+              .catch(err => {
+                console.log('Could not get checked in week numbers ' + err);
+                res.render('home.html');
+              })
+          })
+          .catch(function (err) {
+            console.log('Could not get failed_payment count ' + err)
+            res.render('home.html')
+          })
+          .catch(function (err) {
+            console.log('Could not run query to count students: ' + err)
+          })
       })
-    }
+  } else if (req.oidc.isAuthenticated() && !staffArray.includes(req.oidc.user.sub)) {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login')
+  } else {
+    res.render('login', {
+    })
   }
 })
 
-app.get('/login', (req, res) => {
+app.get('/login', (req, res, next) => {
   res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/login')
 })
 
-router.get('/home', requiresAuth(), async(req, res) => {
+router.get('/home', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+  } 
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
   } else {
-    if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
-      res.redirect('/')
-    } else {
-      res.render('login', {
-        username: '',
-        password: '',
-        go_to: '/',
-        alert_message: ''
-      })
-    }
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
+    res.redirect('/')
+  } else {
+    res.render('login', {
+      username: '',
+      password: '',
+      go_to: '/',
+      alert_message: ''
+    })
   }
 })
 
@@ -975,25 +1166,34 @@ app.get('/setCookie', async (_req, res) => {
   res.send('Cookie set!');
 });
 
-app.get('/logged-in', requiresAuth(), async(req, res) => {
+app.get('/logged-in', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+  } 
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
   } else {
-    if (req.oidc.isAuthenticated()) {
-      const staffArray = process.env.STAFF_USER_ID.split(',')
-      const authLevel = ''
-      if (staffArray.includes(req.oidc.user.sub)) {
-        const authLevel = '/'
-      } else {
-        const authLevel = '/student_portal_login'
-      }
-      res.render('logged-in', {
-        authLevel: authLevel
-      })
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
+    const staffArray = process.env.STAFF_USER_ID.split(',')
+    const authLevel = ''
+    if (staffArray.includes(req.oidc.user.sub)) {
+      const authLevel = '/'
     } else {
-      res.render('login', {
-      })
+      const authLevel = '/student_portal_login'
     }
+    res.render('logged-in', {
+      authLevel: authLevel
+    })
+  } else {
+    res.render('login', {
+    })
   }
 })
 
@@ -1022,7 +1222,7 @@ router.get('/login_failure/(:reason)', (req, res) => {
   })
 })
 
-app.get('/logout', requiresAuth(), (req, res) => {
+app.get('/logout', (req, res, next) => {
   if (req.oidc.isAuthenticated() && req.oidc.user.sub){
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/logout');
   }
@@ -1391,8 +1591,18 @@ router.get('/SWAT1Tasks.pdf', function (req, res) {
   }
 })
 
-router.get('/dragons_signup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/dragons_signup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     var dragonsDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1458,8 +1668,18 @@ router.get('/dragons_signup', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/basic_signup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/basic_signup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     var basicDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1525,8 +1745,18 @@ router.get('/basic_signup', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/level1_signup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/level1_signup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     var level1DateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1592,8 +1822,18 @@ router.get('/level1_signup', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/level2_signup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/level2_signup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     var level2DateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1659,8 +1899,18 @@ router.get('/level2_signup', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/level3_signup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/level3_signup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     var level3DateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1726,8 +1976,18 @@ router.get('/level3_signup', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/wfc_signup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/wfc_signup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     var wfcDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1793,8 +2053,18 @@ router.get('/wfc_signup', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/sparapalooza_signup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/sparapalooza_signup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     var sparapaloozaDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1860,8 +2130,18 @@ router.get('/sparapalooza_signup', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/bb_signup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/bb_signup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     var bbDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1927,8 +2207,18 @@ router.get('/bb_signup', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/weapons_signup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/weapons_signup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     var weaponsDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -1994,8 +2284,18 @@ router.get('/weapons_signup', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/bjj_signup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/bjj_signup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     var bjjDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -2061,8 +2361,18 @@ router.get('/bjj_signup', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/conditional_signup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/conditional_signup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     var conditionalDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -2128,8 +2438,18 @@ router.get('/conditional_signup', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/swat_signup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/swat_signup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     var swatDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
@@ -2558,8 +2878,18 @@ router.post('/swat_signup', loginValidateClasses, (req, res) => {
   }
 })
 
-router.get('/update_checkin/(:barcode)/(:class_id)/(:class_level)/(:class_time)/(:class_check)/(:class_type)/(:can_view)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
+router.get('/update_checkin/(:barcode)/(:class_id)/(:class_level)/(:class_time)/(:class_check)/(:class_type)/(:can_view)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const update_status = 'update class_signups set checked_in = true where class_check = $1;';
     const update_visit = "update student_list set last_visit = (select to_char(starts_at, 'Month DD, YYYY')::date as visit from classes where class_id = $1) where barcode = $2 and (last_visit < (select to_char(starts_at, 'Month DD, YYYY')::date as visit from classes where class_id = $3) or last_visit is null);"
     console.log('class_type: ' + req.params.class_type);
@@ -3000,8 +3330,18 @@ router.get('/process_classes/(:stud_info)/(:stud_info2)/(:stud_info3)/(:stud_inf
   }
 })
 
-router.get('/class_checkin/(:class_id)/(:class_level)/(:class_time)/(:class_type)/(:can_view)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
+router.get('/class_checkin/(:class_id)/(:class_level)/(:class_time)/(:class_type)/(:can_view)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     console.log('req.params.class_id = ' + req.params.class_id);
     const query = "select * from get_class_names($1);";
     const checked_in = "select s.student_name, s.barcode, s.class_check, l.failed_charge, to_char(now() at time zone 'MST', 'Month DD') as curr_date, to_char(l.bday, 'Month DD') as bday from class_signups s, student_list l where s.class_session_id = $1 and s.checked_in = true and l.barcode = s.barcode;";
@@ -3617,8 +3957,18 @@ app.get('/cal_down/(:filename)', function (req, res) {
   res.send(data)
 })
 
-router.get('/student_tests', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/student_tests', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     res.render('student_tests'), {
 
     }
@@ -3629,8 +3979,18 @@ router.get('/student_tests', requiresAuth(), async(req, res) => {
   }
 })
 
-app.get('/student_classes', requiresAuth(), (req, res) => {
-  if (req.oidc.isAuthenticated()) {
+app.get('/student_classes', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     res.render('student_classes'), {
 
     }
@@ -3639,7 +3999,7 @@ app.get('/student_classes', requiresAuth(), (req, res) => {
   }
 })
 
-// router.get('/student_classes', requiresAuth(), async(req, res) => {
+// router.get('/student_classes', (req, res, next) => {
 //   if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
 //     res.render('student_classes'), {
 
@@ -3660,284 +4020,356 @@ router.get('/download_done/(:url)', (req, res) => {
   res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_classes')
 })
 
-router.get('/student_portal_login', requiresAuth(), async (req, res) => {
+router.get('/student_portal_login', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login')
-  } else {
-    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
-      const portalQuery = 'select * from get_all_names()'
-      db.any(portalQuery)
-        .then(function (rows) {
-          res.render('student_portal_login', {
-            data: rows,
-            alert_message: ''
-          })
-        })
-        .catch(function (err) {
-          console.log('Could not find students: ' + err)
-          res.render('student_portal_login', {
-            data: '',
-            alert_message: 'Unable to find student. Please refresh the page and try agin.'
-          })
-        })
-      } else {
-        res.render('login', {
-
-        })
-      }
   }
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
+    const portalQuery = 'select * from get_all_names()'
+    db.any(portalQuery)
+      .then(function (rows) {
+        res.render('student_portal_login', {
+          data: rows,
+          alert_message: ''
+        })
+      })
+      .catch(function (err) {
+        console.log('Could not find students: ' + err)
+        res.render('student_portal_login', {
+          data: '',
+          alert_message: 'Unable to find student. Please refresh the page and try agin.'
+        })
+      })
+    } else {
+      res.render('login', {
+
+      })
+    }
 })
 
-router.get('/testing_signup_dragons', requiresAuth(), async(req, res) => {
+router.get('/testing_signup_dragons', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_dragons');
+  }
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
   } else {
-    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
-      const name_query = "select * from signup_names(-1);";
-      const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = -1 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
-      db.any(name_query)
-        .then(rows_names => {
-          db.any(tests)
-            .then(rows => {
-              res.render('testing_signup_dragons', {
-                names: rows_names,
-                belts: '',
-                tests: rows
-              })
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
+    const name_query = "select * from signup_names(-1);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = -1 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_dragons', {
+              names: rows_names,
+              belts: '',
+              tests: rows
             })
-            .catch(err => {
-              console.log('Could not get tests. Error: ' + err);
-              res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
-              res.redirect('/testing_signup_dragons');
-            })
-        })
-        .catch(err => {
-          console.log('Could not get names. Error: ' + err);
-          req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
-          res.redirect('/testing_signup_dragons');
-        })
-    } else {
-      res.render('login', {
-
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_dragons');
+          })
       })
-    }
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_dragons');
+      })
+  } else {
+    res.render('login', {
+
+    })
   }
 })
 
-router.get('/testing_signup_basic', requiresAuth(), async(req, res) => {
+router.get('/testing_signup_basic', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_basic');
+  }
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
   } else {
-    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
-      const name_query = "select * from signup_names(0);";
-      const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 0 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
-      db.any(name_query)
-        .then(rows_names => {
-          db.any(tests)
-            .then(rows => {
-              res.render('testing_signup_basic', {
-                names: rows_names,
-                belts: '',
-                tests: rows
-              })
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
+    const name_query = "select * from signup_names(0);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 0 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_basic', {
+              names: rows_names,
+              belts: '',
+              tests: rows
             })
-            .catch(err => {
-              console.log('Could not get tests. Error: ' + err);
-              res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
-              res.redirect('/testing_signup_basic');
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_basic');
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_basic');
+      })
+  } else {
+    res.render('login', {
+
+    })
+  }
+})
+
+router.get('/testing_signup_level1', (req, res, next) => {
+  if (req.headers['x-forwarded-proto'] != 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_level1');
+  }
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
+    const name_query = "select * from signup_names(0);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 1 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_level1', {
+              names: rows_names,
+              belts: '',
+              tests: rows
             })
-        })
-        .catch(err => {
-          console.log('Could not get names. Error: ' + err);
-          req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
-          res.redirect('/testing_signup_basic');
-        })
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_level1');
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_level1');
+      })
     } else {
       res.render('login', {
 
       })
     }
-  }
 })
 
-router.get('/testing_signup_level1', requiresAuth(), async(req, res) => {
-  if (req.headers['x-forwarded-proto'] != 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_level1');
-  } else {
-    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
-      const name_query = "select * from signup_names(0);";
-      const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 1 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
-      db.any(name_query)
-        .then(rows_names => {
-          db.any(tests)
-            .then(rows => {
-              res.render('testing_signup_level1', {
-                names: rows_names,
-                belts: '',
-                tests: rows
-              })
-            })
-            .catch(err => {
-              console.log('Could not get tests. Error: ' + err);
-              res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
-              res.redirect('/testing_signup_level1');
-            })
-        })
-        .catch(err => {
-          console.log('Could not get names. Error: ' + err);
-          req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
-          res.redirect('/testing_signup_level1');
-        })
-      } else {
-        res.render('login', {
-
-        })
-      }
-  }
-})
-
-router.get('/testing_signup_level2', requiresAuth(), async(req, res) => {
+router.get('/testing_signup_level2', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_level2');
+  } 
+    if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
   } else {
-    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
-      const name_query = "select * from signup_names(0);";
-      const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 2 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
-      db.any(name_query)
-        .then(rows_names => {
-          db.any(tests)
-            .then(rows => {
-              res.render('testing_signup_level2', {
-                names: rows_names,
-                belts: '',
-                tests: rows
-              })
-            })
-            .catch(err => {
-              console.log('Could not get tests. Error: ' + err);
-              res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
-              res.redirect('/testing_signup_level2');
-            })
-        })
-        .catch(err => {
-          console.log('Could not get names. Error: ' + err);
-          req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
-          res.redirect('/testing_signup_level2');
-        })
-      } else {
-        res.render('login', {
-
-        })
-      }
+    requiresLogin(req, res, next)
   }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
+    const name_query = "select * from signup_names(0);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 2 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_level2', {
+              names: rows_names,
+              belts: '',
+              tests: rows
+            })
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_level2');
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_level2');
+      })
+    } else {
+      res.render('login', {
+
+      })
+    }
 })
 
-router.get('/testing_signup_level3', requiresAuth(), async(req, res) => {
+router.get('/testing_signup_level3', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_level3');
+  } 
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
   } else {
-    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
-      const name_query = "select * from signup_names(0);";
-      const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 3 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
-      db.any(name_query)
-        .then(rows_names => {
-          db.any(tests)
-            .then(rows => {
-              res.render('testing_signup_level3', {
-                names: rows_names,
-                belts: '',
-                tests: rows
-              })
-            })
-            .catch(err => {
-              console.log('Could not get tests. Error: ' + err);
-              res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
-              res.redirect('/testing_signup_level3');
-            })
-        })
-        .catch(err => {
-          console.log('Could not get names. Error: ' + err);
-          req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
-          res.redirect('/testing_signup_level3');
-        })
-      } else {
-        res.render('login', {
-
-        })
-      }
+    requiresLogin(req, res, next)
   }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
+    const name_query = "select * from signup_names(0);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 3 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_level3', {
+              names: rows_names,
+              belts: '',
+              tests: rows
+            })
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_level3');
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_level3');
+      })
+    } else {
+      res.render('login', {
+
+      })
+    }
 })
 
-router.get('/testing_signup_weapons', requiresAuth(), async(req, res) => {
+router.get('/testing_signup_weapons', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_weapons');
+  } 
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
   } else {
-    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
-      const name_query = "select * from signup_names(0);";
-      const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 7 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
-      db.any(name_query)
-        .then(rows_names => {
-          db.any(tests)
-            .then(rows => {
-              res.render('testing_signup_weapons', {
-                names: rows_names,
-                belts: '',
-                tests: rows
-              })
-            })
-            .catch(err => {
-              console.log('Could not get tests. Error: ' + err);
-              res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
-              res.redirect('/testing_signup_weapons');
-            })
-        })
-        .catch(err => {
-          console.log('Could not get names. Error: ' + err);
-          req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
-          res.redirect('/testing_signup_weapons');
-        })
-      } else {
-        res.render('login', {
-
-        })
-      }
+    requiresLogin(req, res, next)
   }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
+    const name_query = "select * from signup_names(0);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes from test_instance where level = 7 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_weapons', {
+              names: rows_names,
+              belts: '',
+              tests: rows
+            })
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_weapons');
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_weapons');
+      })
+    } else {
+      res.render('login', {
+
+      })
+      }
 })
 
-router.get('/testing_signup_blackbelt', requiresAuth(), async(req, res) => {
+router.get('/testing_signup_blackbelt', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_blackbelt');
+  } 
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
   } else {
-    if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
-      const name_query = "select * from signup_names(4);";
-      const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes, curriculum from test_instance where level = 8 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
-      db.any(name_query)
-        .then(rows_names => {
-          db.any(tests)
-            .then(rows => {
-              res.render('testing_signup_blackbelt', {
-                names: rows_names,
-                belts: '',
-                tests: rows
-              })
-            })
-            .catch(err => {
-              console.log('Could not get tests. Error: ' + err);
-              res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
-              res.redirect('/testing_signup_blackbelt');
-            })
-        })
-        .catch(err => {
-          console.log('Could not get names. Error: ' + err);
-          req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
-          res.redirect('/testing_signup_blackbelt');
-        })
-      } else {
-        res.render('login', {
-
-        })
-      }
+    requiresLogin(req, res, next)
   }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
+    const name_query = "select * from signup_names(4);";
+    const tests = "select TO_CHAR(test_date, 'Month') || ' ' || extract(DAY from test_date) || ' at ' || to_char(test_time, 'HH12:MI PM') as test_instance, id, notes, curriculum from test_instance where level = 8 and test_date >= (CURRENT_DATE - INTERVAL '7 hour')::date;";
+    db.any(name_query)
+      .then(rows_names => {
+        db.any(tests)
+          .then(rows => {
+            res.render('testing_signup_blackbelt', {
+              names: rows_names,
+              belts: '',
+              tests: rows
+            })
+          })
+          .catch(err => {
+            console.log('Could not get tests. Error: ' + err);
+            res.send(req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.'));
+            res.redirect('/testing_signup_blackbelt');
+          })
+      })
+      .catch(err => {
+        console.log('Could not get names. Error: ' + err);
+        req.flash('error', 'Signup UNSUCCESSFUL. Please see a staff member.');
+        res.redirect('/testing_signup_blackbelt');
+      })
+    } else {
+      res.render('login', {
+
+      })
+    }
 })
 
 const testSignupValidate = [
@@ -4489,8 +4921,18 @@ router.post('/test_preview', previewValidate, (req, res) => {
   }
 })
 
-router.get('/refresh_belts', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/refresh_belts', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const belt_query = "update belt_inventory set quantity = 0;"
     db.none(belt_query)
       .then(row => {
@@ -4506,8 +4948,18 @@ router.get('/refresh_belts', requiresAuth(), async(req, res) => {
   }
 })
 
-app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     const dropTest = 'delete from test_signups where session_id = $1 and barcode = $2;'
     const dropClass = 'delete from class_signups where class_check = $1 and barcode = $2;'
     const updateClassCount = 'update classes set student_count = student_count - 1 where class_id = $1;'
@@ -4589,8 +5041,18 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', require
   }
 })
 
-router.get('/need_belts', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/need_belts', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const belt_query = 'select first_name, last_name, barcode from student_list where belt_size = -1;';
     db.any(belt_query)
       .then(belts => {
@@ -4610,8 +5072,18 @@ router.get('/need_belts', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/belt_resolved/(:stud_name)/(:barcode)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/belt_resolved/(:stud_name)/(:barcode)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     res.redirect('/student_lookup');
   } else {
     res.render('login', {
@@ -4619,8 +5091,18 @@ router.get('/belt_resolved/(:stud_name)/(:barcode)', requiresAuth(), async(req, 
   }
 })
 
-router.get('/test_selector_force/(:month)/(:day)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/test_selector_force/(:month)/(:day)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     let temp_date = new Date();
     let year = String(temp_date.getFullYear());
     const date_conversion = req.params.month + ' ' + req.params.day;
@@ -4641,8 +5123,18 @@ router.get('/test_selector_force/(:month)/(:day)', requiresAuth(), async(req, re
   }
 })
 
-router.get('/test_checkin_blackbelt/(:id)/(:level)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/test_checkin_blackbelt/(:id)/(:level)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     //if (req.session.user == 'Authorized'){
       const belt_counts = 'select testing_for, count(*) as "num" from test_signups where test_id = $1 group by testing_for;'
       const test_info = "select to_char(test_date, 'Month DD') as test_day, to_char(test_time, 'HH:MI PM') as testing_time, level, notes from test_instance where id = $1;"
@@ -4699,8 +5191,18 @@ router.get('/test_checkin_blackbelt/(:id)/(:level)', requiresAuth(), async(req, 
   }
 })
 
-router.get('/test_checkin/(:id)/(:level)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/test_checkin/(:id)/(:level)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const test_info = "select to_char(test_date, 'Month DD') as test_day, to_char(test_time, 'HH:MI PM') as testing_time, level, notes from test_instance where id = $1;";
     const student_query = "select distinct session_id, student_name, barcode, belt_color, pass_status from test_signups where test_id = $1 and pass_status is null;";
     const pass_status = "select distinct session_id, student_name, barcode, belt_color, pass_status from test_signups where test_id = $1 and pass_status is not null;";
@@ -4814,8 +5316,18 @@ router.post('/test_checkin_blackbelt', testCheckValidateBB, (req, res) => {
     }
 })
 
-router.get('/test_remove/(:barcode)/(:test_id)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/test_remove/(:barcode)/(:test_id)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const remove_query = "delete from test_signups where barcode = $1 and test_id = $2;";
     db.any(remove_query, [req.params.barcode, req.params.test_id])
       .then(rows => {
@@ -4832,8 +5344,18 @@ router.get('/test_remove/(:barcode)/(:test_id)', requiresAuth(), async(req, res)
   }
 })
 
-router.get('/test_remove_blackbelt/(:barcode)/(:test_id)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/test_remove_blackbelt/(:barcode)/(:test_id)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const remove_query = "delete from test_signups where barcode = $1 and test_id = $2;";
     db.any(remove_query, [req.params.barcode, req.params.test_id])
       .then(rows => {
@@ -4850,8 +5372,18 @@ router.get('/test_remove_blackbelt/(:barcode)/(:test_id)', requiresAuth(), async
   }
 })
 
-router.get('/update_test_checkin/(:barcode)/(:session_id)/(:test_id)/(:level)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/update_test_checkin/(:barcode)/(:session_id)/(:test_id)/(:level)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const insert_query = "insert into student_tests (test_id, barcode) values ($1, $2) on conflict (session_id) do nothing;";
     const update_status = "update test_signups set checked_in = true where session_id = $1";
     db.any(insert_query, [req.params.test_id, req.params.barcode])
@@ -5196,8 +5728,18 @@ router.post('/progress_check', pcValidate, (req, res) => {
   }
 })
 
-router.get('/progress_check_scores', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/progress_check_scores', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const pc_scores = "select first_name || ' ' || last_name as student_name, month_1, month_1_splits, month_2, month_2_splits from student_list order by last_name, first_name;";
     db.any(pc_scores)
       .then(rows => {
@@ -5231,8 +5773,18 @@ router.get('/reset_counts', function (req, res) {
     })
 })
 
-router.get('/refresh_scores', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/refresh_scores', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const reset_query = "update student_list set month_1 = 0, month_2 = 0, month_1_splits = '0:00', month_2_splits = '0:00';";
     db.none(reset_query)
     .then(row => {
@@ -5279,8 +5831,18 @@ function parseURL(data_set) { //class_id, level, time, type, can_view
   return values;
 }
 
-router.get('/set_can_view/(:combined_data)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/set_can_view/(:combined_data)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     console.log('combined data: ' + req.params.combined_data);
     const update_set_view = 'update classes set can_view = $1 where class_id = $2;';
     const url_vals = parseURL(req.params.combined_data);
@@ -5320,9 +5882,19 @@ router.get('/set_can_view/(:combined_data)', requiresAuth(), async(req, res) => 
   }
 })
 
-router.get('/class_remove/(:barcode)/(:class_id)/(:class_level)/(:class_time)/(:class_type)/(:can_view)', requiresAuth(), async(req, res) => {
+router.get('/class_remove/(:barcode)/(:class_id)/(:class_level)/(:class_time)/(:class_type)/(:can_view)', (req, res, next) => {
   var update_class_total = null;
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const remove_query = 'delete from class_signups where class_session_id = $1 and barcode = $2;'
     if (req.params.class_type == 'reg'){
       var update_count = "update student_list set reg_class = reg_class - 1 where barcode = $1";
@@ -5374,8 +5946,18 @@ router.get('/class_remove/(:barcode)/(:class_id)/(:class_level)/(:class_time)/(:
   }
 })
 
-router.get('/pass_test_bb/(:belt_color)/(:barcode)/(:test_id)/(:level)/(:testing_for)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/pass_test_bb/(:belt_color)/(:barcode)/(:test_id)/(:level)/(:testing_for)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const update_status = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";//color, level, order
     const belt_info = parseBB(req.params.testing_for, false);
     console.log('belt color was: ' + req.params.belt_color);
@@ -5415,8 +5997,18 @@ router.get('/pass_test_bb/(:belt_color)/(:barcode)/(:test_id)/(:level)/(:testing
   }
 })
 
-router.get('/pass_test/(:belt_color)/(:barcode)/(:test_id)/(:level)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/pass_test/(:belt_color)/(:barcode)/(:test_id)/(:level)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     if (req.params.level == '7') {
       const false_update = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";
       db.one(false_update, [req.params.barcode, req.params.test_id])
@@ -5457,8 +6049,18 @@ router.get('/pass_test/(:belt_color)/(:barcode)/(:test_id)/(:level)', requiresAu
   }
 })
 
-router.get('/fail_test/(:barcode)/(:test_id)/(:level)/(:belt_color)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/fail_test/(:barcode)/(:test_id)/(:level)/(:belt_color)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const update_status = "update test_signups set pass_status = false where barcode = $1 and test_id = $2;";
     const make_up_test = "insert into test_signups (student_name, test_id, belt_color, barcode) values ((select first_name || ' ' || last_name from student_list where barcode = $2), (select id from test_instance where level = $3 and test_date >= now() and notes = 'Make Up Testing' limit 1), $1, $2);"
     db.any(update_status, [req.params.barcode, req.params.test_id])
@@ -5482,8 +6084,18 @@ router.get('/fail_test/(:barcode)/(:test_id)/(:level)/(:belt_color)', requiresAu
   }
 })
 
-router.get('/fail_test_blackbelt/(:barcode)/(:test_id)/(:level)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/fail_test_blackbelt/(:barcode)/(:test_id)/(:level)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const update_status = "update test_signups set pass_status = false where barcode = $1 and test_id = $2;";
     const regex_fail = /\(pc\)/i;
     var rank_fail = req.params.level.replace(regex_fail, '- Progress Check');
@@ -5510,8 +6122,18 @@ router.get('/fail_test_blackbelt/(:barcode)/(:test_id)/(:level)', requiresAuth()
   }
 })
 
-router.get('/class_selector', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/class_selector', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const query = "select x.class_id, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = FALSE) as signed_up, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = TRUE) as checked_in, to_char(x.starts_at, 'Month') as class_month, to_char(x.starts_at, 'DD') as class_day, to_char(x.starts_at, 'HH:MI PM') as class_time, to_char(x.ends_at, 'HH:MI PM') as end_time, x.level, x.class_type from classes x where to_char(x.starts_at, 'Month DD YYYY') = to_char(to_date($1, 'Month DD YYYY'), 'Month DD YYYY') order by x.starts_at;"
     var d = new Date();
     var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -5535,8 +6157,18 @@ router.get('/class_selector', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/class_selector_force/(:month)/(:day)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/class_selector_force/(:month)/(:day)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const currentYear = new Date().getFullYear();
     const date_conversion = req.params.month + ' ' + req.params.day + ' ' + currentYear
     const query = "select x.class_id, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = FALSE) as signed_up, (select count(class_session_id) from class_signups where class_session_id = x.class_id and checked_in = TRUE) as checked_in, to_char(x.starts_at, 'Month') as class_month, to_char(x.starts_at, 'DD') as class_day, to_char(x.starts_at, 'HH:MI PM') as class_time, to_char(x.ends_at, 'HH:MI PM') as end_time, x.level, x.class_type, x.can_view from classes x where to_char(x.starts_at, 'Month DD YYYY') = to_char(to_date($1, 'Month DD YYYY'), 'Month DD YYYY') order by x.starts_at;"
@@ -5556,8 +6188,18 @@ router.get('/class_selector_force/(:month)/(:day)', requiresAuth(), async(req, r
   }
 })
 
-router.get('/class_lookup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/class_lookup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     var event = new Date();
     var options_1 = { 
       month: 'long',
@@ -5596,8 +6238,18 @@ router.post('/class_lookup', dateValidate, (req, res) => {
   }
 })
 
-router.get('/belt_resolved/(:stud_name)/(:barcode)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/belt_resolved/(:stud_name)/(:barcode)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     res.redirect('/student_lookup');
   } else {
     res.render('login', {
@@ -5605,8 +6257,18 @@ router.get('/belt_resolved/(:stud_name)/(:barcode)', requiresAuth(), async(req, 
   }
 })
 
-router.get('/refresh_memberships', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/refresh_memberships', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     res.render('refresh_memberships', {   
     })
   } else {
@@ -5615,8 +6277,18 @@ router.get('/refresh_memberships', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/student_lookup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/student_lookup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const name_query = "select * from get_all_names()"
     db.any(name_query)
       .then(function (rows) {
@@ -5654,8 +6326,18 @@ router.post('/student_lookup', lookupValidate, (req, res) => {
   }
 })
 
-router.get('/lookup_message/(:alert_message)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/lookup_message/(:alert_message)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const name_query = "select * from get_all_names()"
     db.any(name_query)
       .then(function (rows) {
@@ -5677,8 +6359,18 @@ router.get('/lookup_message/(:alert_message)', requiresAuth(), async(req, res) =
   }
 })
 
-router.get('/student_data', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/student_data', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     res.render('student_data', {
       data: '',
       name: '',
@@ -5712,9 +6404,19 @@ router.get('/json_data', (req, res) => {
   })
 })
 
-router.get('/student_data_loading/(:name)/(:barcode)', requiresAuth(), async(req, res) => {
+router.get('/student_data_loading/(:name)/(:barcode)', (req, res, next) => {
   let userID = req.oidc.user.sub
-  if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     var name = req.params.name;
     var barcode = req.params.barcode;
     let options4 = {
@@ -5923,8 +6625,18 @@ router.post('/student_data', dataValidate, (req, res) => {
     }
 })
 
-router.get('/test_lookup', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/test_lookup', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     var event = new Date();
     var options_1 = { 
       month: 'long',
@@ -5969,8 +6681,18 @@ router.post('/test_lookup', testLookupValidate, (req, res) => {
   }
 })
 
-router.get('/delete_student/(:barcode)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/delete_student/(:barcode)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const del_query = 'delete from student_list where barcode = $1;';
     db.none(del_query, [req.params.barcode])
     .then(row => {
@@ -6033,9 +6755,19 @@ router.get('/delete_student/(:barcode)', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/create_test', requiresAuth(), async(req, res) => {
+router.get('/create_test', (req, res, next) => {
   let userID = req.oidc.user.sub
-  if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const testQueryAll = "select id, level, to_char(test_date, 'Mon DD, YYYY') || ' - ' || to_char(test_time, 'HH:MI PM') as test_day, notes, curriculum from test_instance where test_date > CURRENT_DATE - INTERVAL '1 months' AND test_date < CURRENT_DATE + INTERVAL '2 months' order by test_date, test_time;"
     db.any(testQueryAll)
       .then(tests => {
@@ -6255,8 +6987,18 @@ router.post('/student_portal_login', portalValidate, (req, res) => {
   }
 })
 
-router.get('/student_portal/(:barcode)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub) {
+router.get('/student_portal/(:barcode)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user) {
     const studInfo = "select first_name, last_name, email, belt_order, belt_color, belt_size, to_char(last_visit, 'Month DD, YYYY') as last_visit, reg_class, spar_class, swat_count, month_1, month_2 from student_list where barcode = $1;"
     const testQuery = "select s.student_name, s.session_id, s.test_id, to_char(i.test_date, 'Month') || ' ' || to_char(i.test_date, 'DD') || ' at ' || to_char(i.test_time, 'HH:MI PM') || ' ' || i.notes as test_instance, i.curriculum from test_signups s, test_instance i where s.barcode = $1 and i.id = s.test_id order by i.test_date;"
     const classQuery = "select s.student_name, s.email, s.class_check, s.class_session_id, s.is_swat, to_char(c.starts_at, 'Month') || ' ' || to_char(c.starts_at, 'DD') || ' at ' || to_char(c.starts_at, 'HH:MI PM') as class_instance, c.starts_at, c.class_id from classes c, class_signups s where s.barcode = $1 and s.class_session_id = c.class_id and s.is_swat = false and c.starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date order by s.student_name, c.starts_at;"
@@ -6340,8 +7082,18 @@ router.get('/student_portal/(:barcode)', requiresAuth(), async(req, res) => {
     }
 })
 
-router.get('/enrollStudent', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/enrollStudent', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     res.render('enrollStudent', {
       firstName: '',
       lastName: '',
@@ -6502,8 +7254,18 @@ router.post('/enrollStudent', studentValidate, (req, res) => {
   }
 })
 
-router.get('/viewNew', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/viewNew', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     let options = {
       method: "GET",
       uri: settings.apiv4url + '/customer',
@@ -6545,8 +7307,18 @@ router.get('/viewNew', requiresAuth(), async(req, res) => {
   }
 })
 
-router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)/(:phone)', requiresAuth(), async(req, res) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub && staffArray.includes(req.oidc.user.sub)) {
+router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)/(:phone)', (req, res, next) => {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     if (String(req.params.inList) == 'true'){
       const update_import_query = 'update student_list set barcode = $1 where Lower(first_name) = $2 and Lower(last_name) = $3';
       db.any(update_import_query, [req.params.new_id, req.params.fname, req.params.lname])
