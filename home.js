@@ -86,7 +86,6 @@ sdk.auth(auth_header)
 
 const app = express()
 app.use(forceHTTPS)
-app.use(auth(auth0Config))
 app.use(flash())
 const port = process.env.PORT
 const router = express.Router()
@@ -125,7 +124,7 @@ router.use(
 app.set('view engine', 'html')
 app.engine('html', nunjucks.render)
 nunjucks.configure('views', { noCache: true })
-
+app.use(auth(auth0Config))
 app.use(express.static(__dirname))
 app.use(bodyParser())
 app.use(bodyParser.json())
@@ -1127,8 +1126,17 @@ app.get('/', (req, res, next) => {
   }
 })
 
-app.get('/login', (req, res, next) => {
-  res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/login')
+app.get('/login', (req, res) => {
+  const state = crypto.randomBytes(16).toString('hex')
+  req.session.oauthState = state
+  const authUrl = new URL(`https://${process.env.AUTH0_DOMAIN}/authorize`)
+  authUrl.searchParams.set('response_type', 'token', 'token')
+  authUrl.searchParams.set('client_id', process.env.AUTH0_CLIENT),
+  authUrl.searchParams.set('redirect_uri', `${process.env.AUTH0_BASEURL}/callback`)
+  authUrl.searchParams.set('scope', 'openid profile email')
+  authUrl.searchParams.set('audience', `${process.env.AUTH0_ISSUER_BASEURL}/api/v2/`)
+  authUrl.searchParams.set('state', state)
+  res.redirect(authUrl.toString())
 })
 
 router.get('/home', (req, res, next) => {
