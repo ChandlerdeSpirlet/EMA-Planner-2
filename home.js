@@ -3987,7 +3987,7 @@ router.get('/student_tests', (req, res, next) => {
   }
 })
 
-app.get('/student_classes', (req, res, next) => {
+router.get('/student_classes', (req, res, next) => {
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
   } else {
@@ -4029,9 +4029,6 @@ router.get('/download_done/(:url)', (req, res) => {
 })
 
 router.get('/student_portal_login', (req, res, next) => {
-  if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login')
-  }
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
   } else {
