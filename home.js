@@ -3998,12 +3998,14 @@ router.get('/student_classes', (req, res, next) => {
   if (req.user && !req.session.user) {
     req.session.user = req.user
   }
-  if (req.session.user && staffArray.includes(req.session.user.sub)) {
+  if (req.session.user) {
     res.render('student_classes'), {
 
     }
   } else {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/callback')
+    res.render('login', {
+
+    })
   }
 })
 
