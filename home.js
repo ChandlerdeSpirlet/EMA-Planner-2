@@ -1118,7 +1118,7 @@ app.get('/', (req, res, next) => {
             console.log('Could not run query to count students: ' + err)
           })
       })
-  } else if (req.user && !staffArray.includes(req.session.user)) {
+  } else if (req.session.user && !staffArray.includes(req.session.user.sub)) {
       res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login')
   } else {
     res.render('login', {
