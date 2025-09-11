@@ -1687,7 +1687,7 @@ router.get('/basic_signup', (req, res, next) => {
   if (req.user && !req.session.user) {
     req.session.user = req.user
   }
-  if (req.session.user && staffArray.includes(req.session.user.sub)) {
+  if (req.session.user) {
     var basicDateCalculation = String(convertTZ(new Date(), 'America/Denver').getMonth() + 2) + ' 10, ' + String(convertTZ(new Date(), 'America/Denver').getFullYear())
 
     if ((convertTZ(new Date(), 'America/Denver').getMonth() + 2) === 13) {
