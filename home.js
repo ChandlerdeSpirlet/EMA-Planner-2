@@ -431,7 +431,17 @@ router.get('/callback', async(req, res, next) => {
 })
 
 router.get('/student_level_list', (req, res, next) => {
-  if (req.oidc.isAuthenticated() && staffArray.includes(req.oidc.user.sub)) {
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+  }, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     const student_list = 'select first_name, last_name, belt_color, belt_size, level_name from student_list order by belt_order, last_name;';
     db.any(student_list)
       .then(rows => {
@@ -856,7 +866,17 @@ app.get('/logged-in-auth0', async(req, res) => {
 })
 
 app.get('/delete-user', (req, res, next) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub){
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+  }, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     res.render('delete-user', {
       user_data: req.oidc.user
     })
@@ -1191,7 +1211,7 @@ app.get('/logged-in', (req, res, next) => {
   if (req.session.user) {
     const staffArray = process.env.STAFF_USER_ID.split(',')
     const authLevel = ''
-    if (staffArray.includes(req.oidc.user.sub)) {
+    if (staffArray.includes(req.session.user.sub)) {
       const authLevel = '/'
     } else {
       const authLevel = '/student_portal_login'
@@ -1231,7 +1251,17 @@ router.get('/login_failure/(:reason)', (req, res) => {
 })
 
 app.get('/logout', (req, res, next) => {
-  if (req.oidc.isAuthenticated() && req.oidc.user.sub){
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+  }, (req, res, next) => {
+  console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/logout');
   }
 })
@@ -6412,13 +6442,12 @@ router.get('/json_data', (req, res) => {
 })
 
 router.get('/student_data_loading/(:name)/(:barcode)', (req, res, next) => {
-  let userID = req.oidc.user.sub
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
   } else {
     requiresLogin(req, res, next)
   }
-}, (req, res, next) => {
+  }, (req, res, next) => {
   console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
   if (req.user && !req.session.user) {
     req.session.user = req.user
