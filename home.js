@@ -6763,13 +6763,12 @@ router.get('/delete_student/(:barcode)', (req, res, next) => {
 })
 
 router.get('/create_test', (req, res, next) => {
-  let userID = req.oidc.user.sub
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
   } else {
     requiresLogin(req, res, next)
   }
-}, (req, res, next) => {
+  }, (req, res, next) => {
   console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
   if (req.user && !req.session.user) {
     req.session.user = req.user
