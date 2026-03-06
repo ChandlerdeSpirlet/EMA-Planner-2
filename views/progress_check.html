@@ -3,11 +3,11 @@
     <script>alert("{{ alert_message }}")</script>
   {% endif %}
   {% if month_val == 'month1' %}
-    <title>Progress Check &mdash; Month 1</title>
+    <title>Fitness Test &mdash; Month 1</title>
   {% elif month_val == 'month2' %}
-    <title>Progress Check &mdash; Month 2</title>
+    <title>Fitness Test &mdash; Month 2</title>
   {% else %}
-    <title>Progress Check</title>
+    <title>Fitness Test</title>
   {% endif %}
   <link rel="icon" type="image/png" href="https://ema-planner.herokuapp.com/views/ema.png">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -184,20 +184,20 @@
   </style>
   <head>
   {% if month_val == 'month1' %}
-    <h1>Progress Check &mdash; Month 1</h1>
+    <h1>Fitness Test &mdash; Month 1</h1>
     <h2>{{ student_data[0].student_name }}</h2>
     {% if student_data[0].month_1 != 0 %}
       <p style="text-align: center;"><strong>Month 1 Score: {{ student_data[0].month_1 }}</strong></p>
     {% endif %}
   {% elif month_val == 'month2' %}
-    <h1>Progress Check &mdash; Month 2</h1>
+    <h1>Fitness Test &mdash; Month 2</h1>
     <h2>{{ student_data[0].student_name }}</h2>
     <p style="text-align: center;"><strong>Month 1 Score: {{ student_data[0].month_1 }}</strong></p>
     {% if student_data[0].month_2 != 0 %}
       <p style="text-align: center;"><strong>Month 2 Score: {{ student_data[0].month_2 }}</strong></p>
     {% endif %}
   {% else %}
-    <h1>Progress Check</h1>
+    <h1>Fitness Test</h1>
     <h2>{{ student_data[0].student_name }}</h2>
   {% endif %}
   {% if student_data[0].level_name == 'Dragons' or student_data[0].level_name == 'Basic' %}
