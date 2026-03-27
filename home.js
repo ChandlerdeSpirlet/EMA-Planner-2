@@ -989,6 +989,86 @@ app.get('/profile', requiresAuth(), (req, res) => {
   console.log('User profile: ' + JSON.safeStringify(req.oidc.user, 2))
 })
 
+app.get('/get_app_links', async(req, res) => {
+  const query = 'select app_page, url from app_urls'
+  try {
+    db.any(query)
+      .then(rows => {
+        res.json(rows);
+      })
+      .catch(err => {
+        console.log('ERROR: ' + err);
+        res.status(400).json(err);
+      })
+  } catch (err) {
+    console.error('Error querying db: ' + err)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+});
+
+app.get('/update_app_links', (req, res, next) => {
+  if (req.headers['x-forwarded-proto'] != 'https') {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+  }
+  if (req.query.access_token) {
+    authenticateTokenFromQuery(req, res, next)
+  } else {
+    requiresLogin(req, res, next)
+  }
+}, (req, res, next) => {
+  if (req.user && !req.session.user) {
+    req.session.user = req.user
+  }
+  if (req.session.user && staffArray.includes(req.session.user.sub)) {
+    const getter = 'select app_page, url, human_page from app_urls order by human_page;';
+    db.any(getter)
+      .then(rows => {
+        res.render('update_app_links', {
+          app_links: rows,
+          alert_message: ''
+        })
+      })
+      .catch(err => {
+        console.log('Could not find any app_links: ' + err);
+        res.render('home.html');
+      })
+  } else if (req.session.user && !staffArray.includes(req.session.user.sub)) {
+    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login')
+  } else {
+    res.render('login', {
+    })
+  }
+})
+
+app.post('/update_app_links', async(req, res, next) => {
+  const update_query = 'update app_urls set url = $1 where app_page = $2;';
+  try {
+    // Build all update promises and wait for ALL of them to finish
+    const updates = Object.entries(req.body)
+      .filter(([key]) => key !== 'Update')
+      .map(([key, value]) => {
+        console.log('Updating ' + key + ' to ' + value[0]);
+        return db.query(update_query, [value[0], key]);
+      });
+
+    await Promise.all(updates); // ← waits for every update before continuing
+
+    const getter = 'select app_page, url, human_page from app_urls order by human_page;';
+    const rows = await db.any(getter);
+
+    res.render('update_app_links', {
+      app_links: rows,
+      alert_message: 'App links updated successfully.'
+    });
+
+  } catch (err) {
+    console.log('Error: ' + err);
+    res.render('update_app_links', {
+      alert_message: 'Error updating app links. Please refresh and try again. ERROR: ' + err
+    });
+  }
+})
+
 app.get('/', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
