@@ -858,7 +858,7 @@ function parseID (idSet) {
 
 app.get('/logged-in-auth0', async(req, res) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/')
   } else {
       res.render('logged-in', {
       })
@@ -1008,7 +1008,7 @@ app.get('/get_app_links', async(req, res) => {
 
 app.get('/update_app_links', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/')
   }
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
@@ -1033,7 +1033,7 @@ app.get('/update_app_links', (req, res, next) => {
         res.render('home.html');
       })
   } else if (req.session.user && !staffArray.includes(req.session.user.sub)) {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal_login')
   } else {
     res.render('login', {
     })
@@ -1071,7 +1071,7 @@ app.post('/update_app_links', async(req, res, next) => {
 
 app.get('/', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/')
   } 
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
@@ -1219,7 +1219,7 @@ app.get('/', (req, res, next) => {
           })
       })
   } else if (req.session.user && !staffArray.includes(req.session.user.sub)) {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal_login')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal_login')
   } else {
     res.render('login', {
     })
@@ -1241,7 +1241,7 @@ app.get('/login', (req, res) => {
 
 router.get('/home', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/')
   } 
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
@@ -1276,7 +1276,7 @@ app.get('/setCookie', async (_req, res) => {
 
 app.get('/logged-in', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/')
   } 
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
@@ -1342,7 +1342,7 @@ app.get('/logout', (req, res, next) => {
     req.session.user = req.user
   }
   if (req.session.user && staffArray.includes(req.session.user.sub)) {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/logout');
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/logout');
   }
 })
 
@@ -1393,7 +1393,7 @@ router.get('/documents', (req, res) => {
 
 router.get('/schedule.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/sched.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/sched.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/sched.pdf'))
     res.contentType('application/pdf')
@@ -1404,7 +1404,7 @@ router.get('/schedule.pdf', function (req, res) {
 })
 router.get('/Basic_Rubric.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Basic_Rubric.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Basic_Rubric.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Basic_Rubric.pdf'))
     res.contentType('application/pdf')
@@ -1413,7 +1413,7 @@ router.get('/Basic_Rubric.pdf', function (req, res) {
 })
 router.get('/Level_1_Rubric.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_1_Rubric.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Level_1_Rubric.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_1_Rubric.pdf'))
     res.contentType('application/pdf')
@@ -1422,7 +1422,7 @@ router.get('/Level_1_Rubric.pdf', function (req, res) {
 })
 router.get('/Level_2_Rubric.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_2_Rubric.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Level_2_Rubric.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_2_Rubric.pdf'))
     res.contentType('application/pdf')
@@ -1431,7 +1431,7 @@ router.get('/Level_2_Rubric.pdf', function (req, res) {
 })
 router.get('/Level_3_Rubric.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_3_Rubric.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Level_3_Rubric.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_3_Rubric.pdf'))
     res.contentType('application/pdf')
@@ -1440,7 +1440,7 @@ router.get('/Level_3_Rubric.pdf', function (req, res) {
 })
 router.get('/Level_1_Manual.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_1_Manual.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Level_1_Manual.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_1_Manual.pdf'))
     res.contentType('application/pdf')
@@ -1449,7 +1449,7 @@ router.get('/Level_1_Manual.pdf', function (req, res) {
 })
 router.get('/Level_2_Manual.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_2_Manual.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Level_2_Manual.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_2_Manual.pdf'))
     res.contentType('application/pdf')
@@ -1458,7 +1458,7 @@ router.get('/Level_2_Manual.pdf', function (req, res) {
 })
 router.get('/Level_3_Manual.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_3_Manual.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Level_3_Manual.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_3_Manual.pdf'))
     res.contentType('application/pdf')
@@ -1467,7 +1467,7 @@ router.get('/Level_3_Manual.pdf', function (req, res) {
 })
 router.get('/CalendlyInstructions.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/CalendlyInstructions.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/CalendlyInstructions.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/CalendlyInstructions.pdf'))
     res.contentType('application/pdf')
@@ -1476,7 +1476,7 @@ router.get('/CalendlyInstructions.pdf', function (req, res) {
 })
 router.get('/ITP.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ITP.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/ITP.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/ITP.pdf'))
     res.contentType('application/pdf')
@@ -1485,7 +1485,7 @@ router.get('/ITP.pdf', function (req, res) {
 })
 router.get('/L1.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_1_Combos.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Level_1_Combos.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_1_Combos.pdf'))
     res.contentType('application/pdf')
@@ -1494,7 +1494,7 @@ router.get('/L1.pdf', function (req, res) {
 })
 router.get('/L2.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_2_Combos.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Level_2_Combos.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_2_Combos.pdf'))
     res.contentType('application/pdf')
@@ -1503,7 +1503,7 @@ router.get('/L2.pdf', function (req, res) {
 })
 router.get('/L3.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level_3_Combos.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Level_3_Combos.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level_3_Combos.pdf'))
     res.contentType('application/pdf')
@@ -1512,7 +1512,7 @@ router.get('/L3.pdf', function (req, res) {
 })
 router.get('/bingo_cards.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/bingo_cards.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/bingo_cards.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/bingo_cards.pdf'))
     res.contentType('application/pdf')
@@ -1521,7 +1521,7 @@ router.get('/bingo_cards.pdf', function (req, res) {
 })
 router.get('/aspHomework.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ASPhomework.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/ASPhomework.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/ASPhomework.pdf'))
     res.contentType('application/pdf')
@@ -1530,7 +1530,7 @@ router.get('/aspHomework.pdf', function (req, res) {
 })
 router.get('/Lvl1Homework.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Lvl1Homework.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Lvl1Homework.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Lvl1Homework.pdf'))
     res.contentType('application/pdf')
@@ -1539,7 +1539,7 @@ router.get('/Lvl1Homework.pdf', function (req, res) {
 })
 router.get('/Lvl2Homework.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Lv21Homework.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Lv21Homework.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Lvl2Homework.pdf'))
     res.contentType('application/pdf')
@@ -1548,7 +1548,7 @@ router.get('/Lvl2Homework.pdf', function (req, res) {
 })
 router.get('/Lvl3Homework.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Lvl3Homework.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Lvl3Homework.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Lvl3Homework.pdf'))
     res.contentType('application/pdf')
@@ -1557,7 +1557,7 @@ router.get('/Lvl3Homework.pdf', function (req, res) {
 })
 router.get('/BBHomework.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/BBHomework.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/BBHomework.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/BBHomework.pdf'))
     res.contentType('application/pdf')
@@ -1566,7 +1566,7 @@ router.get('/BBHomework.pdf', function (req, res) {
 })
 router.get('/Lvl1Sparring.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Lvl1Sparring.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Lvl1Sparring.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Lvl1Sparring.pdf'))
     res.contentType('application/pdf')
@@ -1575,7 +1575,7 @@ router.get('/Lvl1Sparring.pdf', function (req, res) {
 })
 router.get('/Lvl2Sparring.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Lvl2Sparring.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Lvl2Sparring.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Lvl2Sparring.pdf'))
     res.contentType('application/pdf')
@@ -1584,7 +1584,7 @@ router.get('/Lvl2Sparring.pdf', function (req, res) {
 })
 router.get('/ASPPacket.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ASPPacket.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/ASPPacket.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/ASPPacket.pdf'))
     res.contentType('application/pdf')
@@ -1593,7 +1593,7 @@ router.get('/ASPPacket.pdf', function (req, res) {
 })
 router.get('/Calendar.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Calendar.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Calendar.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Calendar.pdf'))
     res.contentType('application/pdf')
@@ -1611,7 +1611,7 @@ router.get('/yearly_calendar.pdf', function (req, res) {
 })
 router.get('/last_month.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/last_month.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/last_month.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/last_month.pdf'))
     res.contentType('application/pdf')
@@ -1620,7 +1620,7 @@ router.get('/last_month.pdf', function (req, res) {
 })
 router.get('/1Confidence', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/1Confidence.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/1Confidence.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/1Confidence.pdf'))
     res.contentType('application/pdf')
@@ -1629,7 +1629,7 @@ router.get('/1Confidence', function (req, res) {
 })
 router.get('/2Discipline', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/2Discipline.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/2Discipline.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/2Discipline.pdf'))
     res.contentType('application/pdf')
@@ -1638,7 +1638,7 @@ router.get('/2Discipline', function (req, res) {
 })
 router.get('/3Respect', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/3Respect.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/3Respect.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/3Respect.pdf'))
     res.contentType('application/pdf')
@@ -1647,7 +1647,7 @@ router.get('/3Respect', function (req, res) {
 })
 router.get('/4Responsibility', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/4Responsibility.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/4Responsibility.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/4Responsibility.pdf'))
     res.contentType('application/pdf')
@@ -1656,7 +1656,7 @@ router.get('/4Responsibility', function (req, res) {
 })
 router.get('/5Focus', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/5Focus.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/5Focus.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/5Focus.pdf'))
     res.contentType('application/pdf')
@@ -1665,7 +1665,7 @@ router.get('/5Focus', function (req, res) {
 })
 router.get('/6GoalSetting', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/6GoalSetting.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/6GoalSetting.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/6GoalSetting.pdf'))
     res.contentType('application/pdf')
@@ -1674,7 +1674,7 @@ router.get('/6GoalSetting', function (req, res) {
 })
 router.get('/Level1Curriculum.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level1Curriculum.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Level1Curriculum.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level1Curriculum.pdf'))
     res.contentType('application/pdf')
@@ -1683,7 +1683,7 @@ router.get('/Level1Curriculum.pdf', function (req, res) {
 })
 router.get('/Level2Curriculum.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level2Curriculum.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Level2Curriculum.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level2Curriculum.pdf'))
     res.contentType('application/pdf')
@@ -1692,7 +1692,7 @@ router.get('/Level2Curriculum.pdf', function (req, res) {
 })
 router.get('/Level3Curriculum.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/Level3Curriculum.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/Level3Curriculum.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/Level3Curriculum.pdf'))
     res.contentType('application/pdf')
@@ -1701,7 +1701,7 @@ router.get('/Level3Curriculum.pdf', function (req, res) {
 })
 router.get('/SWAT1Tasks.pdf', function (req, res) {
   if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/SWAT1Tasks.pdf')
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/SWAT1Tasks.pdf')
   } else {
     const data = fs.readFileSync(path.join(__dirname, '/views/storedFiles/SWAT1Tasks.pdf'))
     res.contentType('application/pdf')
@@ -1728,7 +1728,7 @@ router.get('/dragons_signup', (req, res, next) => {
       var dragonsDateCalculation = '01 10, ' + String(year)
     }
     if (req.headers['x-forwarded-proto'] !== 'https') {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/dragons_signup')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/dragons_signup')
     } else {
       const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (-1, -1.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
       const getNames = 'select * from signup_names(-1);'
@@ -1805,7 +1805,7 @@ router.get('/basic_signup', (req, res, next) => {
       var basicDateCalculation = '01 10, ' + String(year)
     }
     if (req.headers['x-forwarded-proto'] !== 'https') {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/basic_signup')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/basic_signup')
     } else {
       const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (0, 0.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
       const getNames = 'select * from signup_names(0);'
@@ -1882,7 +1882,7 @@ router.get('/level1_signup', (req, res, next) => {
       var level1DateCalculation = '01 10, ' + String(year)
     }
     if (req.headers['x-forwarded-proto'] !== 'https') {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/level1_signup')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/level1_signup')
     } else {
       const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (1, 1.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
       const getNames = 'select * from signup_names(0);'
@@ -1959,7 +1959,7 @@ router.get('/level2_signup', (req, res, next) => {
       var level2DateCalculation = '01 10, ' + String(year)
     }
     if (req.headers['x-forwarded-proto'] !== 'https') {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/level2_signup')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/level2_signup')
     } else {
       const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (2, 2.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
       const getNames = 'select * from signup_names(0);'
@@ -2036,7 +2036,7 @@ router.get('/level3_signup', (req, res, next) => {
       var level3DateCalculation = '01 10, ' + String(year)
     }
     if (req.headers['x-forwarded-proto'] !== 'https') {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/level3_signup')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/level3_signup')
     } else {
       const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (3, 3.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
       const getNames = 'select * from signup_names(0);'
@@ -2113,7 +2113,7 @@ router.get('/wfc_signup', (req, res, next) => {
       var wfc3DateCalculation = '01 10, ' + String(year)
     }
     if (req.headers['x-forwarded-proto'] !== 'https') {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/wfc_signup')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/wfc_signup')
     } else {
       const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (8, 8.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
       const getNames = 'select * from signup_names(0);'
@@ -2190,7 +2190,7 @@ router.get('/sparapalooza_signup', (req, res, next) => {
       var sparapaloozaDateCalculation = '01 10, ' + String(year)
     }
     if (req.headers['x-forwarded-proto'] !== 'https') {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/sparapalooza_signup')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/sparapalooza_signup')
     } else {
       const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (9, 9.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
       const getNames = 'select * from signup_names(0);'
@@ -2267,7 +2267,7 @@ router.get('/bb_signup', (req, res, next) => {
       var bbDateCalculation = '01 10, ' + String(year)
     }
     if (req.headers['x-forwarded-proto'] !== 'https') {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/bb_signup')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/bb_signup')
     } else {
       const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (5, 5.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
       const getNames = 'select * from signup_names(5);'
@@ -2344,7 +2344,7 @@ router.get('/weapons_signup', (req, res, next) => {
       var weaponsDateCalculation = '01 10, ' + String(year)
     }
     if (req.headers['x-forwarded-proto'] !== 'https') {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/weapons_signup')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/weapons_signup')
     } else {
       const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (7, 7.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
       const getNames = 'select * from signup_names(1);'
@@ -2421,7 +2421,7 @@ router.get('/bjj_signup', (req, res, next) => {
       var bjjDateCalculation = '01 10, ' + String(year)
     }
     if (req.headers['x-forwarded-proto'] !== 'https') {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/bjj_signup')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/bjj_signup')
     } else {
       const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (9, 9.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
       const getNames = 'select * from signup_names(1);'
@@ -2498,7 +2498,7 @@ router.get('/conditional_signup', (req, res, next) => {
       var conditionalDateCalculation = '01 10, ' + String(year)
     }
     if (req.headers['x-forwarded-proto'] !== 'https') {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/conditional_signup')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/conditional_signup')
     } else {
       const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, student_count from classes where level in (4, 4.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
       const getNames = 'select * from signup_names(4);'
@@ -2575,7 +2575,7 @@ router.get('/swat_signup', (req, res, next) => {
       var swatDateCalculation = '01 10, ' + String(year)
     }
     if (req.headers['x-forwarded-proto'] !== 'https') {
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/swat_signup')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/swat_signup')
     } else {
       const classQuery = "select class_id, trim(to_char(starts_at, 'Day')) || ', ' || to_char(starts_at, 'Month') || ' ' || to_char(starts_at, 'DD') || ' at ' || to_char(starts_at, 'HH:MI PM') as class_instance, level, swat_count from classes where level in (8, 7, 7.5, 0.5, 2, 2.5, 3, 3.5, 1.5, 0, 1, 1.5, -1, -1.5) and starts_at >= (CURRENT_DATE - INTERVAL '7 hour')::date and swat_count < 3 and can_view = TRUE and starts_at < (to_date($1, 'MM DD, YYYY')) and can_view = TRUE order by starts_at;"
       const getNames = 'select * from signup_names(5);'
@@ -3025,21 +3025,21 @@ router.get('/update_checkin/(:barcode)/(:class_id)/(:class_level)/(:class_time)/
           .then(rows => {
             db.none(update_visit, [req.params.class_id, req.params.barcode, req.params.class_id])
               .then(row => {
-                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+                res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
               })
               .catch(err => {
                 console.log('Could not update last_visit status of ' + req.params.class_session_id + '>  ' + err);
-                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+                res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
               })
           })
           .catch(err => {
             console.log('Could not update checked_in status of ' + req.params.class_session_id);
-            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+            res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
           })
       })
       .catch(err => {
         console.log('Could not update count of ' + req.params.barcode);
-        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+        res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
       })
   } else {
     res.render('login', {
@@ -3494,7 +3494,7 @@ router.get('/class_checkin/(:class_id)/(:class_level)/(:class_time)/(:class_type
       })
       .catch(err => {
         console.log('Could not find people checked in for class. Error: ' + err);
-        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/home');
+        res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/home');
       })
   } else {
     res.render('login', {
@@ -3692,7 +3692,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3717,7 +3717,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3731,7 +3731,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3756,7 +3756,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3770,7 +3770,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3784,7 +3784,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_2), Number(input.day_2), Number(input.end_hour_2), Number(input.end_min_2)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3809,7 +3809,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3823,7 +3823,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3837,7 +3837,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_2), Number(input.day_2), Number(input.end_hour_2), Number(input.end_min_2)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3851,7 +3851,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_3), Number(input.day_3), Number(input.end_hour_3), Number(input.end_min_3)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3885,7 +3885,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3910,7 +3910,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3924,7 +3924,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3949,7 +3949,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3963,7 +3963,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -3977,7 +3977,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_2), Number(input.day_2), Number(input.end_hour_2), Number(input.end_min_2)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -4002,7 +4002,7 @@ router.post('/build_ics', (req, res) => {
             end: [Number(convertTZ(new Date(), 'America/Denver').getFullYear()), Number(input.month), Number(input.day), Number(input.end_hour), Number(input.end_min)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -4016,7 +4016,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_1), Number(input.day_1), Number(input.end_hour_1), Number(input.end_min_1)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -4030,7 +4030,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_2), Number(input.day_2), Number(input.end_hour_2), Number(input.end_min_2)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -4044,7 +4044,7 @@ router.post('/build_ics', (req, res) => {
             end: [year, Number(input.month_3), Number(input.day_3), Number(input.end_hour_3), Number(input.end_min_3)],
             endInputType: 'local',
             endOutputType: 'local',
-            url: 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + numIn.master_barcode,
+            url: 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + numIn.master_barcode,
             busyStatus: 'BUSY',
             status: 'CONFIRMED',
             location: '100025 W Kentucky Dr, Lakewood, CO, 80226',
@@ -4137,7 +4137,7 @@ router.get('/download_done/(:url)', (req, res) => {
       console.error(err)
     }
   })
-  res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_classes')
+  res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_classes')
 })
 
 router.get('/student_portal_login', (req, res, next) => {
@@ -5085,7 +5085,7 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', (req, r
       case 'test':
         db.none(dropTest, [req.params.id, req.params.barcode])
           .then(rows => {
-            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + req.params.barcode)
+            res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + req.params.barcode)
           })
           .catch(err => {
             console.log('Unable to delete test. ERR: ' + err)
@@ -5102,11 +5102,11 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', (req, r
           .then(rows => {
             db.none(updateClassCount, [req.params.item_id])
               .then(row => {
-                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + req.params.barcode)
+                res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + req.params.barcode)
               })
               .catch(err => {
                 console.log('Could not reduce class count: ' + err)
-                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + req.params.barcode)
+                res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + req.params.barcode)
               })
           })
           .catch(err => {
@@ -5124,7 +5124,7 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', (req, r
           .then(row => {
             db.none(dropClass, [req.params.id, req.params.barcode])
               .then(rows => {
-                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + req.params.barcode)
+                res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + req.params.barcode)
               })
               .catch(err => {
                 console.log('Unable to delete swat. ERR: ' + err)
@@ -5148,7 +5148,7 @@ app.get('/delete_instance/(:barcode)/(:item_id)/(:id)/(:email)/(:type)', (req, r
         break
       default:
         console.log('Unknown delete type.')
-        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_portal/' + req.params.barcode)
+        res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_portal/' + req.params.barcode)
         break
     }
   } else {
@@ -5448,12 +5448,12 @@ router.get('/test_remove/(:barcode)/(:test_id)', (req, res, next) => {
     const remove_query = "delete from test_signups where barcode = $1 and test_id = $2;";
     db.any(remove_query, [req.params.barcode, req.params.test_id])
       .then(rows => {
-        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.barcode);
+        res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.barcode);
       })
       .catch(err => {
         console.log('Could not remove person from test: ' + req.params.test_id + ', ' + req.params.barcode);
         console.log('test_remove_error: ' + err);
-        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_selector_force');
+        res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/test_selector_force');
       });
   } else {
     res.render('login', {
@@ -5481,7 +5481,7 @@ router.get('/test_remove_blackbelt/(:barcode)/(:test_id)', (req, res, next) => {
       .catch(err => {
         console.log('Could not remove person from test: ' + req.params.test_id + ', ' + req.params.barcode);
         console.log('test_remove_error: ' + err);
-        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_selector_force');
+        res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/test_selector_force');
       });
   } else {
     res.render('login', {
@@ -5507,16 +5507,16 @@ router.get('/update_test_checkin/(:barcode)/(:session_id)/(:test_id)/(:level)', 
       .then(rows => {
         db.none(update_status, [req.params.session_id])
           .then(rows => {
-            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+            res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
           })
           .catch(err => {
             console.log('Could not update checked_in status of ' + req.params.session_id + ': ' + err);
-            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+            res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
           })
       })
       .catch(err => {
         console.log('Could not check in person with test_id, barcode ' + req.params.test_id + ', ' + req.params.barcode);
-        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_selector_force');
+        res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/test_selector_force');
       })
   } else {
     res.render('login', {
@@ -5967,27 +5967,27 @@ router.get('/set_can_view/(:combined_data)', (req, res, next) => {
       db.none(update_set_view, ['false', url_vals[0]])
         .then(row => {
           console.log('Set can_view for ' + url_vals);
-          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + 'false');
+          res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + 'false');
         })
         .catch(err => {
           console.log('Could not set can_view for: ' + url_vals);
           console.log('ERROR in true -> false: ' + err);
-          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + url_vals[4]);
+          res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + url_vals[4]);
         })
     } else if (String(url_vals[4]) == 'false'){
       db.none(update_set_view, ['true', url_vals[0]])
         .then(row => {
           console.log('Set can_view for ' + url_vals);
-          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + 'true');
+          res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + 'true');
         })
         .catch(err => {
           console.log('Could not set can_view for: ' + url_vals);
           console.log('ERROR in false -> true: ' + err);
-          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + url_vals[4]);
+          res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + url_vals[4]);
         })
     } else {
       console.log('Could not set can_view for: ' + url_vals);
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + url_vals[4]);
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/class_checkin/' + url_vals[0] + '/' + url_vals[1] + '/' + url_vals[2] + '/' + url_vals[3] + '/' + url_vals[4]);
     }
   } else {
     res.render('login', {
@@ -6042,16 +6042,16 @@ router.get('/class_remove/(:barcode)/(:class_id)/(:class_level)/(:class_time)/(:
       .then(update => {
         db.any(remove_query, [req.params.class_id, req.params.barcode])
           .then(function (rows) {
-            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
+            res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/class_checkin/' + req.params.class_id + '/' + req.params.class_level + '/' + req.params.class_time + '/' + req.params.class_type + '/' + req.params.can_view);
           })
           .catch(function (err) {
             console.log('Could not remove person from class with class_id and barcode ' + req.params.class_id + ', ' + req.params.barcode + '. Err: ' + err)
-            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_selector')
+            res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/class_selector')
           })
       })
       .catch(function (err) {
         console.log('Could not remove person from class with class_id and barcode ' + req.params.class_id + ', ' + req.params.barcode + '. Err: ' + err)
-        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/class_selector')
+        res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/class_selector')
       })
   } else {
     res.render('login', {
@@ -6130,11 +6130,11 @@ router.get('/pass_test/(:belt_color)/(:barcode)/(:test_id)/(:level)', (req, res,
       const false_update = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";
       db.one(false_update, [req.params.barcode, req.params.test_id])
         .then(row => {
-          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+          res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
         })
         .catch(err => {
           console.log("Unable to fake pass student in weapons " + err);
-          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+          res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
         })
     } else {
       const update_status = "update test_signups set pass_status = true where barcode = $1 and test_id = $2;";//color, level, order
@@ -6146,12 +6146,12 @@ router.get('/pass_test/(:belt_color)/(:barcode)/(:test_id)/(:level)', (req, res,
         .then(rows => {
           db.any(update_info, [belt_info[0], belt_info[1], belt_info[2], req.params.barcode])
             .then(rows => {
-              res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+              res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
             })
             .catch(err => {
               console.log('Could not update belt info of student ' + req.params.barcode);
               console.log('Success error: ' + err);
-              res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+              res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
             })
         })
         .catch(err => {
@@ -6184,11 +6184,11 @@ router.get('/fail_test/(:barcode)/(:test_id)/(:level)/(:belt_color)', (req, res,
       .then(rows => {
         db.any(make_up_test, [req.params.belt_color, req.params.barcode, req.params.level])
           .then(rows => {
-            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+            res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
           })
           .catch(err => {
             console.log("Could not sign up for make up testing. ERR: " + err);
-            res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
+            res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/test_checkin/' + req.params.test_id + '/' + req.params.level);
           })
       })
       .catch(err => {
@@ -6439,7 +6439,7 @@ router.post('/student_lookup', lookupValidate, (req, res) => {
       student_info: req.body.result
     }
     const stud_info = parseStudentInfo(items.student_info);
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/student_data_loading/' + stud_info[0] + '/' + stud_info[1]);
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/student_data_loading/' + stud_info[0] + '/' + stud_info[1]);
   }
 })
 
@@ -6711,14 +6711,14 @@ router.post('/student_data', dataValidate, (req, res) => {
             request(options, function(error, response, body) {
               if (!error && response && response.statusCode < 300) {
                 var temp_message = 'Successfully updated ' + items.first_name + ' ' + items.last_name + ' in EMA Side Kick and on PaySimple!';
-                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/lookup_message/' + temp_message);
+                res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/lookup_message/' + temp_message);
                 return;
               }
               if (error){
                 console.log('Customer put API error: ' + error);
               }
               var temp_message = 'Successfully updated ' + items.first_name + ' ' + items.last_name + ' in EMA Side Kick and on PaySimple!';
-              res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/lookup_message/' + temp_message);
+              res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/lookup_message/' + temp_message);
               //res.status((response && response.statusCode) || 500).send(error);
           
             });
@@ -6910,16 +6910,16 @@ router.get('/delete_test/(:id)/(:level)', (req, res) => {
     .then(test => {
       db.any(signup_delete, [req.params.test_id])
         .then(tests => {
-          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/create_test')
+          res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/create_test')
         })
         .catch(err => {
           console.log('Could not delete any test_signups. ERR: ' + err)
-          res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/create_test')
+          res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/create_test')
         })
     })
     .catch(error => {
       console.log('Could not delete test_instance with id: ' + req.params.id + '. ERROR: ' + error)
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/create_test')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/create_test')
     })
 })
 
@@ -7455,7 +7455,7 @@ router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)/(:phone
           .then(rows => {
             request(options, function(error, response, body) {
               if (!error && response && response.statusCode < 300) {
-                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/viewNew');
+                res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/viewNew');
                   return;
               }
             
@@ -7493,7 +7493,7 @@ router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)/(:phone
           .then(rows => {
             request(options, function(error, response, body) {
               if (!error && response && response.statusCode < 300) {
-                res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/viewNew');
+                res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/viewNew');
                 return;
               }
             
@@ -7519,7 +7519,7 @@ router.get('/integrate_ps/(:new_id)/(:inList)/(:fname)/(:lname)/(:email)/(:phone
 
 request.get({
   uri: 'https://api.paysimple.com/ps/webhook/subscriptions/',
-  "url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ps_webhook',
+  "url": 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/ps_webhook',
   "event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
   "is_active": 'true',
   headers: {
@@ -7527,7 +7527,7 @@ request.get({
     "content-type": "application/json; charset=utf-8",
   },
   body: JSON.stringify({
-    "url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ps_webhook',
+    "url": 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/ps_webhook',
     "event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
     "is_active": 'true',
   })
@@ -7538,7 +7538,7 @@ request.get({
 request.post({
   uri: 'https://api.paysimple.com/ps/webhook/subscription',
   //uri: 'https://sandbox-api.paysimple.com/ps/webhook/subscription',
-  "url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ps_webhook',
+  "url": 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/ps_webhook',
   "event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
   "is_active": 'true',
   headers: {
@@ -7546,7 +7546,7 @@ request.post({
     "content-type": "application/json; charset=utf-8",
   },
   body: JSON.stringify({
-    "url": 'https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com/ps_webhook',
+    "url": 'https://ema-lakewood-73915fd7a5c6.herokuapp.com/ps_webhook',
     "event_types": ['payment_failed', 'customer_created', 'customer_updated', 'customer_deleted'],
     "is_active": 'true',
   })
