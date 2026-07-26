@@ -4176,7 +4176,7 @@ router.get('/student_portal_login', (req, res, next) => {
 
 router.get('/testing_signup_dragons', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_dragons');
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/testing_signup_dragons');
   }
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
@@ -4221,7 +4221,7 @@ router.get('/testing_signup_dragons', (req, res, next) => {
 
 router.get('/testing_signup_basic', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_basic');
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/testing_signup_basic');
   }
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
@@ -4266,7 +4266,7 @@ router.get('/testing_signup_basic', (req, res, next) => {
 
 router.get('/testing_signup_level1', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_level1');
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/testing_signup_level1');
   }
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
@@ -4311,7 +4311,7 @@ router.get('/testing_signup_level1', (req, res, next) => {
 
 router.get('/testing_signup_level2', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_level2');
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/testing_signup_level2');
   } 
     if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
@@ -4356,7 +4356,7 @@ router.get('/testing_signup_level2', (req, res, next) => {
 
 router.get('/testing_signup_level3', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_level3');
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/testing_signup_level3');
   } 
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
@@ -4401,7 +4401,7 @@ router.get('/testing_signup_level3', (req, res, next) => {
 
 router.get('/testing_signup_weapons', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_weapons');
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/testing_signup_weapons');
   } 
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
@@ -4446,7 +4446,7 @@ router.get('/testing_signup_weapons', (req, res, next) => {
 
 router.get('/testing_signup_blackbelt', (req, res, next) => {
   if (req.headers['x-forwarded-proto'] != 'https') {
-    res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/testing_signup_blackbelt');
+    res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/testing_signup_blackbelt');
   } 
   if (req.query.access_token) {
     authenticateTokenFromQuery(req, res, next)
@@ -5053,11 +5053,11 @@ router.get('/refresh_belts', (req, res, next) => {
     const belt_query = "update belt_inventory set quantity = 0;"
     db.none(belt_query)
       .then(row => {
-        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/belt_inventory');
+        res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/belt_inventory');
       })
       .catch(err => {
         console.log('Could not refresh belts');
-        res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp/belt_inventory');
+        res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com/belt_inventory');
       })
   } else {
     res.render('login', {
@@ -5882,11 +5882,11 @@ router.get('/reset_counts', function (req, res) {
   db.none(count_reset)
     .then(row => {
       console.log('Counts reset')
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com')
     })
     .catch(err => {
       console.log('Could not reset counts. Error: ' + err)
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com')
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com')
     })
 })
 
@@ -7414,7 +7414,7 @@ router.get('/viewNew', (req, res, next) => {
     })
     .catch(err => {
       console.log('Could not find any people. Error: ' + err);
-      res.redirect('https://ema-sidekick-lakewood-cf3bcec8ecb2.herokuapp.com');
+      res.redirect('https://ema-lakewood-73915fd7a5c6.herokuapp.com');
     })
   } else {
     res.render('login', {
