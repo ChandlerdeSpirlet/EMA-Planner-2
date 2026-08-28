@@ -389,6 +389,12 @@ app.get('/token', (req, res) => {
 });
 
 router.get('/callback', async(req, res, next) => {
+      // If already logged in (this route can get hit more than once
+    // for the same login), just continue on instead of failing a
+    // stale/duplicate state check.
+    if (req.session.user) {
+      return res.redirect(req.session.returnTo || '/student_portal_login');
+    }
   try {
     const { code, state } = req.query;
 
