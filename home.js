@@ -4148,6 +4148,7 @@ router.get('/student_portal_login', (req, res, next) => {
   }
 }, (req, res, next) => {
   console.log('req.session.user: ' + JSON.safeStringify(req.session.user));
+  res.set('Cache-Control', 'no-store');
   if (req.user && !req.session.user) {
     req.session.user = req.user
   }
